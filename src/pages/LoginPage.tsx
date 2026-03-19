@@ -497,7 +497,7 @@ export default function LoginPage() {
                 {/* Footer Status - Shows after complete */}
                 <div className={`mt-8 text-center space-y-3 transition-all duration-700 ${isLoaded('complete') ? 'opacity-100' : 'opacity-0'}`}>
                     <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                        {bootComplete ? 'Authorized Use Only • Public Access Restricted • v2.0.0-beta' : ''}
+                        {bootComplete ? 'Authorized Use Only • Public Access Restricted • v2.1.0-beta' : ''}
                     </p>
                     <div
                         className={`inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full ${IS_MOCK
