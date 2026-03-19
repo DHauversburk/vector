@@ -1,6 +1,7 @@
 import { supabase } from '../../supabase';
 import type { Appointment } from '../types';
 import type { IAppointmentActions } from '../interfaces';
+import { logger } from '../../logger';
 
 export const supabaseAppointments: IAppointmentActions = {
     getMyAppointments: async (startDate?: string, endDate?: string): Promise<Appointment[]> => {
@@ -75,7 +76,7 @@ export const supabaseAppointments: IAppointmentActions = {
                 const newNotes = (data?.notes || '') + ` | CANCEL_REASON: ${reason}`;
                 await supabase.from('appointments').update({ notes: newNotes }).eq('id', appointmentId);
             } catch (e) {
-                console.warn('Could not save cancel reason', e);
+                logger.warn('supabase', 'Could not save cancel reason', e);
             }
         }
     },

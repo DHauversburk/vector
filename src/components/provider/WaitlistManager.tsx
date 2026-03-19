@@ -12,6 +12,7 @@ import { Clock, CheckCircle, XCircle, Calendar } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
+import { logger } from '../../lib/logger';
 
 export function WaitlistManager() {
     const { user } = useAuth();
@@ -26,7 +27,7 @@ export function WaitlistManager() {
             const data = await api.getProviderWaitlist(user.id);
             setEntries(data);
         } catch (err) {
-            console.error(err);
+            logger.error('WaitlistManager', err);
         } finally {
             setLoading(false);
         }

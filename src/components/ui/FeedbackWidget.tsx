@@ -129,7 +129,7 @@ export function FeedbackWidget() {
                                             Send Feedback
                                         </h2>
                                         <p className="text-xs text-white/80 font-medium">
-                                            Help us improve Project Vector
+                                            Help us improve VECTOR
                                         </p>
                                     </div>
                                 </div>

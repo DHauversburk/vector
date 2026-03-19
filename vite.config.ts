@@ -14,7 +14,7 @@ export default defineConfig({
       injectRegister: 'auto',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
       manifest: {
-        name: 'Project Vector',
+        name: 'VECTOR',
         short_name: 'Vector',
         description: 'Secure, Anonymous Scheduling for Military Medical Groups',
         theme_color: '#4f46e5',

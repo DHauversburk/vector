@@ -1,4 +1,4 @@
-# Project Vector: Product Backlog
+# VECTOR: Product Backlog
 ## User Personas, Epics & User Stories
 
 **Version:** 2.0.0 (Phase 2 Roadmap)  

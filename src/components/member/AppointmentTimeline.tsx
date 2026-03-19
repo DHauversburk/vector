@@ -16,7 +16,7 @@ export function AppointmentCountdown({ startTime }: { startTime: string }) {
 
     useEffect(() => {
         const calculate = () => {
-            const diff = new Date(startTime).getTime() - new Date().getTime();
+            const diff = parseISO(startTime).getTime() - new Date().getTime();
             if (diff <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
 
             return {
@@ -32,7 +32,7 @@ export function AppointmentCountdown({ startTime }: { startTime: string }) {
     }, [startTime]);
 
     return (
-        <div className="flex gap-4">
+        <div className="flex gap-4" aria-label="Time remaining until appointment">
             <div className="text-center">
                 <div className="text-3xl font-black font-mono tracking-tighter text-white">{timeLeft.days}</div>
                 <div className="text-[8px] font-bold uppercase tracking-widest text-indigo-300">Days</div>
@@ -68,11 +68,13 @@ export function AppointmentRow({
     const [isExpanded, setIsExpanded] = useState(false);
     const cancelReason = appt.notes?.split('|').find((s: string) => s.trim().startsWith('CANCEL_REASON:'))?.replace('CANCEL_REASON:', '').trim();
     const diff = differenceInMinutes(parseISO(appt.start_time), new Date());
-    const isPast = new Date(appt.start_time) < new Date();
+    const isPast = parseISO(appt.start_time) < new Date();
 
     return (
         <Card
             variant={isExpanded ? 'elevated' : 'default'}
+            role="article"
+            aria-expanded={isExpanded}
             className={cn(
                 'overflow-hidden transition-all duration-300 transform',
                 isExpanded ? 'scale-[1.01] border-indigo-500/30' : 'hover:scale-[1.005] hover:border-indigo-500/10',
@@ -82,6 +84,10 @@ export function AppointmentRow({
             <div
                 className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer"
                 onClick={() => setIsExpanded(!isExpanded)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsExpanded(!isExpanded); }}
+                tabIndex={0}
+                role="button"
+                aria-label={`${isExpanded ? 'Collapse' : 'Expand'} appointment details for ${format(parseISO(appt.start_time), 'MMM d, HH:mm')}`}
             >
                 <div className="flex items-center gap-5">
                     {/* Date Badge */}
@@ -182,6 +188,7 @@ export function AppointmentRow({
                                             onClick={(e) => { e.stopPropagation(); generateICS({ title: `Appointment with ${appt.provider?.token_alias || 'Provider'}`, description: appt.notes?.split('|')[0] || 'Medical Appointment', location: getProviderLocation(appt.provider?.service_type), startTime: appt.start_time, endTime: appt.end_time }); }}
                                             size="sm"
                                             variant="outline"
+                                            aria-label="Export appointment to iCalendar"
                                             className="h-8 text-[10px] font-black"
                                         >
                                             <Download className="mr-1.5 h-3.5 w-3.5" /> Export .ICS
@@ -190,6 +197,7 @@ export function AppointmentRow({
                                             onClick={(e) => { e.stopPropagation(); onReschedule(appt.id); }}
                                             size="sm"
                                             variant="outline"
+                                            aria-label="Reschedule this appointment"
                                             className="h-8 text-[10px] font-black"
                                         >
                                             <Clock className="mr-1.5 h-3.5 w-3.5" /> Reschedule
@@ -198,6 +206,7 @@ export function AppointmentRow({
                                             onClick={(e) => { e.stopPropagation(); onCancel(appt.id); }}
                                             size="sm"
                                             variant="destructive"
+                                            aria-label="Cancel this appointment"
                                             className="h-8 text-[10px] font-black"
                                         >
                                             <X className="mr-1.5 h-3.5 w-3.5" /> Terminate Session
@@ -208,6 +217,7 @@ export function AppointmentRow({
                                         onClick={(e) => { e.stopPropagation(); onFeedback(appt.id); }}
                                         size="sm"
                                         variant="gradient"
+                                        aria-label="Provide feedback for this visit"
                                         className="h-8 text-[10px] font-black"
                                     >
                                         <Star className="mr-1.5 h-3.5 w-3.5" /> Review Visit

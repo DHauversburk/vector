@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { useDevice } from '../../hooks/useDevice';
 import { useAuth } from '../../hooks/useAuth';
 import { useOffline } from '../../hooks/useOffline';
+import { logger } from '../../lib/logger';
 
 interface QuickNoteModalProps {
     isOpen: boolean;
@@ -90,7 +91,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
             };
 
             recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
-                console.error('Speech recognition error', event.error);
+                logger.error('QuickNoteModal', 'Speech recognition error', event.error);
                 setIsListening(false);
                 toast.error(`Speech Error: ${event.error}`);
             };
@@ -114,7 +115,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                     .slice(0, 4);
                 setRecentMembers(unique);
             } catch (e) {
-                console.error("Failed to load recents", e);
+                logger.error('QuickNoteModal', "Failed to load recents", e);
             }
         };
         if (isOpen) loadRecent();
@@ -148,7 +149,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                     description: "Speak clearly into your microphone."
                 });
             } catch (e) {
-                console.error("Speech start error", e);
+                logger.error('QuickNoteModal', "Speech start error", e);
                 setIsListening(true);
             }
         }
@@ -258,7 +259,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
             }
         } catch (err) {
             setError('Failed to save note');
-            console.error(err);
+            logger.error('QuickNoteModal', err);
         } finally {
             setLoading(false);
         }

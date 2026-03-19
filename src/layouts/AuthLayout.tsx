@@ -31,7 +31,7 @@ export default function AuthLayout() {
                     <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                         <ShieldCheck className="h-8 w-8" />
                     </div>
-                    <h1 className="text-2xl font-semibold tracking-tight">Project Vector</h1>
+                    <h1 className="text-2xl font-semibold tracking-tight">VECTOR</h1>
                     <p className="text-sm text-muted-foreground">
                         Secure. Private. Anonymous.
                     </p>

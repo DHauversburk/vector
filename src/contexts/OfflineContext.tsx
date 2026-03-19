@@ -2,6 +2,7 @@ import { createContext, useEffect, useState, useCallback, type ReactNode } from 
 import { toast } from 'sonner';
 import { OfflineQueue } from '../lib/offline/queue';
 import { api } from '../lib/api';
+import { logger } from '../lib/logger';
 
 type MutationType = 'CREATE_NOTE' | 'UPDATE_NOTE' | 'ARCHIVE_NOTE' | 'CREATE_APPOINTMENT' | 'CANCEL_APPOINTMENT' | 'LINK_NOTE_FOLLOWUP' | 'TOGGLE_SLOT_BLOCK' | 'CREATE_HELP_REQUEST';
 
@@ -59,11 +60,11 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
 
             for (const req of queue) {
                 try {
-                    console.log(`[Sync] Processing ${req.operationName}...`, req.body);
+                    logger.debug('Sync', 'Processing ${req.operationName}...', req.body);
                     await performOperation(req.operationName as MutationType, req.body);
                     if (req.id) await OfflineQueue.remove(req.id);
                 } catch (error) {
-                    console.error(`[Sync] Failed ${req.operationName}`, error);
+                    logger.error('Sync', 'Failed ${req.operationName}', error);
                     // Decide whether to remove or retry. For now, keep it if it's a network error, remove if logic error?
                     // Assuming retry logic happens elsewhere or manual.
                 }
@@ -77,7 +78,7 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
                 toast.success("All offline changes synced!");
             }
         } catch (error) {
-            console.error("Sync Engine Error:", error);
+            logger.error('OfflineContext', "Sync Engine Error:", error);
         } finally {
             setIsSyncing(false);
         }
@@ -114,12 +115,12 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
                 if (optimisticUpdate) optimisticUpdate();
                 return result;
             } catch (error) {
-                console.error("Online mutation failed:", error);
+                logger.error('OfflineContext', "Online mutation failed:", error);
                 throw error;
             }
         } else {
             // Offline: Enqueue
-            console.log(`[Offline] Queueing ${type}`);
+            logger.debug('Offline', 'Queueing ${type}');
             await OfflineQueue.enqueue({
                 type: 'POST', // Simplified for now
                 url: type, // Using URL field to store Operation Name

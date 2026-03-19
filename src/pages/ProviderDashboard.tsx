@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { api } from '../lib/api';
+import { format, parseISO } from 'date-fns';
+import { logger } from '../lib/logger';
 import { Button } from '../components/ui/Button';
 import { CalendarRange, Users, BarChart3, Shield, LayoutGrid, X, FileText } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
@@ -34,13 +36,13 @@ const FeatureLoading = () => (
     </div>
 );
 
-type Member = {
+interface Member {
     id: string;
     token_alias: string;
     status: 'active' | 'disabled';
     created_at: string;
     appointments?: { count: number }[];
-};
+}
 
 export default function ProviderDashboard() {
     const { user, signOut } = useAuth();
@@ -63,7 +65,7 @@ export default function ProviderDashboard() {
             const data = await api.getMembers(memberSearch);
             setMembers(data as Member[]);
         } catch (error) {
-            console.error(error);
+            logger.error('ProviderDashboard', 'Failed to load members', error);
         }
     }, [memberSearch]);
 
@@ -181,10 +183,15 @@ export default function ProviderDashboard() {
                                                         </Badge>
                                                     </div>
                                                     <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">
-                                                        Joined: {new Date(member.created_at).toLocaleDateString()}
+                                                        Joined: {format(parseISO(member.created_at), 'PPP')}
                                                     </p>
                                                 </div>
-                                                <Button size="sm" variant="ghost" onClick={() => console.log('Edit:', member.id)}>
+                                                <Button 
+                                                    size="sm" 
+                                                    variant="ghost" 
+                                                    onClick={() => logger.debug('ProviderDashboard', `Edit: ${member.id}`)}
+                                                    aria-label={`Edit notes for ${member.token_alias}`}
+                                                >
                                                     <span className="sr-only">Edit</span>
                                                     <FileText className="w-4 h-4 text-slate-400" />
                                                 </Button>
@@ -220,10 +227,16 @@ export default function ProviderDashboard() {
                                                             </Badge>
                                                         </td>
                                                         <td className="p-4 text-xs text-slate-500 font-bold uppercase">
-                                                            {new Date(member.created_at).toLocaleDateString()}
+                                                            {format(parseISO(member.created_at), 'PPP')}
                                                         </td>
                                                         <td className="p-4 text-right">
-                                                            <Button size="sm" variant="ghost" onClick={() => console.log('Edit:', member.id)} className="h-8 text-[10px] font-black uppercase">
+                                                            <Button 
+                                                                size="sm" 
+                                                                variant="ghost" 
+                                                                onClick={() => logger.debug('ProviderDashboard', `Edit: ${member.id}`)} 
+                                                                className="h-8 text-[10px] font-black uppercase"
+                                                                aria-label={`Edit details for ${member.token_alias}`}
+                                                            >
                                                                 Edit
                                                             </Button>
                                                         </td>

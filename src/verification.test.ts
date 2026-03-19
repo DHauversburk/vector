@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { api } from './lib/api';
 import { supabase } from './lib/supabase';
 
-describe('Project Vector Core Logic Verification', () => {
+describe('VECTOR Core Logic Verification', () => {
     beforeEach(() => {
         // Reset mock store
         api.mockStore.appointments = [];

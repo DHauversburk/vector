@@ -139,10 +139,13 @@ export default function LandingPage() {
 
                 {/* Title */}
                 <div className={`text-center mb-10 transition-all duration-500 ${isLoaded('title') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                    <h1 className="text-3xl font-black tracking-[0.15em] uppercase mb-2 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        Project Vector
+                    <h1 className="text-4xl font-black tracking-[0.2em] uppercase mb-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        VECTOR
                     </h1>
-                    <p className="text-slate-400 text-sm font-medium mb-4">
+                    <p className="text-indigo-400 text-[10px] font-black uppercase tracking-[0.1em] mb-4">
+                        Virtual Enrollment & Clinical Triage for Operational Readiness
+                    </p>
+                    <p className="text-slate-400 text-xs font-medium mb-6">
                         Secure Clinical Scheduling Platform
                     </p>
                     <div className="flex items-center justify-center gap-3">

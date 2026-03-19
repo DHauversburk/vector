@@ -1,6 +1,7 @@
 import { supabase } from '../../supabase';
 import type { PublicUser, AuditLog, SystemStats, Json } from '../types';
 import type { IAdminActions } from '../interfaces';
+import { logger } from '../../logger';
 
 export const supabaseAdmin: IAdminActions = {
     getMembers: async (search?: string): Promise<PublicUser[]> => {
@@ -43,7 +44,7 @@ export const supabaseAdmin: IAdminActions = {
                 p_metadata: metadata as unknown as Json
             });
         } catch (e) {
-            console.error('Failed to log event:', e);
+            logger.error('supabase', 'Failed to log event:', e);
         }
     },
 
@@ -60,7 +61,7 @@ export const supabaseAdmin: IAdminActions = {
     getSystemStats: async (): Promise<SystemStats> => {
         const { data, error } = await supabase.rpc('get_system_stats');
         if (error) {
-            console.warn("get_system_stats RPC failed or missing", error);
+            logger.warn('supabase', "get_system_stats RPC failed or missing", error);
             return {
                 total_users: 0,
                 active_appointments: 0,

@@ -1,6 +1,7 @@
 import { mockStore } from '../mockStore';
 import type { PublicUser, AuditLog, SystemStats } from '../types';
 import type { IAdminActions } from '../interfaces';
+import { logger } from '../../logger';
 
 export const mockAdmin: IAdminActions = {
     getMembers: async (search?: string): Promise<PublicUser[]> => {
@@ -16,7 +17,7 @@ export const mockAdmin: IAdminActions = {
     },
 
     updateUser: async (id: string, updates: Partial<PublicUser>): Promise<PublicUser> => {
-        console.log('[MOCK] Update user', id, updates);
+        logger.debug('MOCK', 'Update user', id, updates);
         return { id, ...updates } as PublicUser;
     },
 
@@ -35,7 +36,7 @@ export const mockAdmin: IAdminActions = {
     },
 
     logEvent: async (type: string, description: string, severity: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL' = 'INFO', metadata: Record<string, unknown> = {}): Promise<void> => {
-        console.log(`[MOCK AUDIT] [${severity}] ${type}: ${description}`, metadata);
+        logger.debug('MOCK AUDIT', '[${severity}] ${type}: ${description}', metadata);
     },
 
     getAuditLogs: async (_filters: { type?: string; severity?: string, limit?: number } = {}): Promise<AuditLog[]> => {
@@ -57,7 +58,7 @@ export const mockAdmin: IAdminActions = {
     },
 
     adminCreateUser: async (email: string, _pass: string, token: string, _role: string, _serviceType: string): Promise<string> => {
-        console.log('[MOCK] Created user:', { email, token });
+        logger.debug('MOCK', 'Created user:', { email, token });
         return 'mock-user-id-' + Math.random();
     },
 
@@ -70,6 +71,6 @@ export const mockAdmin: IAdminActions = {
     },
 
     adminDeleteUser: async (userId: string): Promise<void> => {
-        console.log('[MOCK] Delete user', userId);
+        logger.debug('MOCK', 'Delete user', userId);
     }
 };

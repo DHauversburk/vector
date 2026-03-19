@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, SkipForward, Check } from 'lucide-react';
 import { useOnboarding } from '../../hooks/useOnboarding';
 import { cn } from '../../lib/utils';
+import { logger } from '../../lib/logger';
 
 interface TooltipPosition {
     top: number;
@@ -46,7 +47,7 @@ export function TourTooltip() {
             requestAnimationFrame(() => {
                 const target = document.querySelector(step.targetSelector);
                 if (!target) {
-                    console.warn(`Tour target not found: ${step.targetSelector}`);
+                    logger.warn('TourTooltip', `Tour target not found: ${step.targetSelector}`);
                     return;
                 }
 

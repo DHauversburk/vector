@@ -1,4 +1,4 @@
-# Project Vector (Beta Preview v1.4.2)
+# VECTOR (Beta Preview v1.4.2)
 
 > **Secure, Anonymous Medical Scheduling System**  
 > *Designed for high-compliance environments requiring Zero-Trust architecture.*

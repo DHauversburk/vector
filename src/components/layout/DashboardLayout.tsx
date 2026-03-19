@@ -50,7 +50,7 @@ export function DashboardLayout({
     user,
     role,
     onSignOut,
-    title = 'Project Vector',
+    title = 'VECTOR',
     showMobileBottomNav,
     headerActions
 }: DashboardLayoutProps) {

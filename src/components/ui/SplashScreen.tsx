@@ -173,7 +173,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
                     <div className="relative w-24 h-24 rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 flex items-center justify-center shadow-2xl">
                         <img
                             src="/pwa-192x192.png"
-                            alt="Project Vector"
+                            alt="VECTOR"
                             className="w-14 h-14 drop-shadow-lg"
                         />
                     </div>

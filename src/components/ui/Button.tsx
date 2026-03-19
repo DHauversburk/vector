@@ -2,7 +2,7 @@
  * Button Component - Enterprise-grade action button
  * 
  * @component
- * @description Primary interaction component used throughout Project Vector.
+ * @description Primary interaction component used throughout VECTOR.
  * Supports multiple variants including gradient styling, loading states,
  * and various sizes optimized for both desktop and touch interfaces.
  * 

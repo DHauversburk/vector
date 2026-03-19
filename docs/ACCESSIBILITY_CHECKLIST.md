@@ -1,4 +1,4 @@
-# Project Vector: WCAG 2.1 Accessibility Checklist
+# VECTOR: WCAG 2.1 Accessibility Checklist
 
 **Last Updated:** 2026-02-07  
 **Target Compliance:** WCAG 2.1 AA (with AAA enhancements)  

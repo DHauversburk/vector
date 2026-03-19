@@ -13,6 +13,7 @@ import { Button } from './Button';
 import { useOffline } from '../../hooks/useOffline';
 // Force Refresh
 import { type HelpRequest } from '../../lib/api';
+import { logger } from '../../lib/logger';
 
 interface HelpRequestModalProps {
     isOpen: boolean;
@@ -116,7 +117,7 @@ export function HelpRequestModal({ isOpen, onClose, onSuccess, patientName }: He
             }, 2000);
         } catch (err) {
             setError('Failed to submit request. Please try again.');
-            console.error(err);
+            logger.error('HelpRequestModal', err);
         } finally {
             setLoading(false);
         }

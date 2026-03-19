@@ -1,7 +1,7 @@
-# Project Vector - High-Level Architecture
+# VECTOR - High-Level Architecture
 
 ## Overview
-Project Vector is a modern, enterprise-grade healthcare portal designed for high-security environments. It features a cinematic user experience, PWA capabilities, and a robust role-based access control system.
+VECTOR is a modern, enterprise-grade healthcare portal designed for high-security environments. It features a cinematic user experience, PWA capabilities, and a robust role-based access control system.
 
 ## Tech Stack
 - **Frontend**: React 19, TypeScript 5, Vite 7

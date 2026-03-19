@@ -13,6 +13,7 @@ import { Input } from '../ui/Input';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { toast } from 'sonner';
+import { logger } from '../../lib/logger';
 
 const categoryIcons: Record<string, LucideIcon> = {
     question: MessageSquare,
@@ -57,7 +58,7 @@ export function EncounterLogs() {
             const data = await api.getProviderEncounterNotes(100, showArchived);
             setNotes(data);
         } catch (err) {
-            console.error('Failed to load encounter logs', err);
+            logger.error('EncounterLogs', 'Failed to load encounter logs', err);
             toast.error('Failed to load clinical logs');
         } finally {
             setLoading(false);
@@ -74,7 +75,7 @@ export function EncounterLogs() {
             toast.success('Note archived');
             loadNotes();
         } catch (err) {
-            console.error('Failed to archive note', err);
+            logger.error('EncounterLogs', 'Failed to archive note', err);
             toast.error('Failed to archive note');
         }
     };
@@ -85,7 +86,7 @@ export function EncounterLogs() {
             toast.success('Note restored');
             loadNotes();
         } catch (err) {
-            console.error('Failed to restore note', err);
+            logger.error('EncounterLogs', 'Failed to restore note', err);
             toast.error('Failed to restore note');
         }
     };
@@ -106,7 +107,7 @@ export function EncounterLogs() {
             toast.success(`Status updated to ${statusLabels[nextStatus]}`);
             loadNotes();
         } catch (err) {
-            console.error('Failed to update status', err);
+            logger.error('EncounterLogs', 'Failed to update status', err);
             toast.error('Failed to update status');
         }
     };
@@ -134,7 +135,7 @@ export function EncounterLogs() {
             setShowBulkArchiveModal(false);
             setBulkArchiveDate('');
         } catch (err) {
-            console.error('Failed to bulk archive', err);
+            logger.error('EncounterLogs', 'Failed to bulk archive', err);
             toast.error('Failed to archive notes');
         } finally {
             setBulkArchiveLoading(false);

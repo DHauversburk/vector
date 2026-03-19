@@ -5,6 +5,7 @@ import { Input } from '../ui/Input';
 import { X } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { api } from '../../lib/api';
+import { logger } from '../../lib/logger';
 
 interface SlotGeneratorModalProps {
     isOpen: boolean;
@@ -47,7 +48,7 @@ export function SlotGeneratorModal({ isOpen, onClose, onSuccess }: SlotGenerator
             toast.info(isBlockMode ? 'Block-out time added.' : 'Slots generated successfully.');
         } catch (error: unknown) {
             const err = error as Error;
-            console.error(err);
+            logger.error('SlotGeneratorModal', err);
             toast.error('Generation Failed: ' + err.message);
         } finally {
             setGenLoading(false);

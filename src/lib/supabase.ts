@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
+import { logger } from './logger';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -19,7 +20,7 @@ try {
         client = createClient<Database>(supabaseUrl, supabaseAnonKey);
     }
 } catch (e) {
-    console.error("Supabase Client Init Failed - Falling back to mock", e);
+    logger.error('supabase', "Supabase Client Init Failed - Falling back to mock", e);
     isMock = true;
 }
 
@@ -44,7 +45,7 @@ if (typeof window !== 'undefined') {
         try {
             mockSession = JSON.parse(stored);
         } catch (e) {
-            console.error('Failed to restore mock session', e);
+            logger.error('supabase', 'Failed to restore mock session', e);
         }
     }
 }
@@ -60,7 +61,7 @@ const mockSupabase = {
             error: null
         }),
         signInWithPassword: async ({ email, password }: { email: string, password?: string }) => {
-            console.log('[MOCK] Auth Attempt:', email);
+            logger.debug('MOCK', 'Auth Attempt:', email);
             
             const BETA_PASSWORD = 'VectorBeta2026!';
             if (password !== BETA_PASSWORD) {
@@ -199,7 +200,7 @@ const mockSupabase = {
         insert: () => ({ select: () => ({ single: () => ({ data: {}, error: null }) }) })
     }),
     rpc: async (fn: string, args: any) => {
-        console.log(`[MOCK] RPC Call: ${fn}`, args);
+        logger.debug('MOCK', 'RPC Call: ${fn}', args);
         return { data: null, error: null };
     }
 };
@@ -207,5 +208,5 @@ const mockSupabase = {
 export const supabase = (IS_MOCK ? (mockSupabase as unknown as SupabaseClient<Database>) : client!) as SupabaseClient<Database>;
 
 if (IS_MOCK) {
-    console.warn('⚠️ RUNNING IN MOCK MODE: Supabase keys missing. Using fake backend.');
+    logger.warn('supabase', '⚠️ RUNNING IN MOCK MODE: Supabase keys missing. Using fake backend.');
 }

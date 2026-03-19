@@ -6,6 +6,8 @@ import { Printer, Copy, Check, LayoutGrid, List, Trash2 } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import { api } from '../../lib/api';
 import type { PublicUser } from '../../lib/api/types';
+import { logger } from '../../lib/logger';
+import { format, parseISO } from 'date-fns';
 
 type ServiceType = 'PT_BLUE' | 'MH_GREEN' | 'PCM_RED';
 
@@ -32,19 +34,17 @@ interface TokenGeneratorProps {
 export default function TokenGenerator({ isProvider = false }: TokenGeneratorProps) {
     const [serviceType, setServiceType] = useState<ServiceType>('PT_BLUE');
     const [targetRole, setTargetRole] = useState<'member' | 'provider'>('member');
-    const [quantity, setQuantity] = useState(5); // Default lowered for DB safety
+    const [quantity, setQuantity] = useState(5);
     const [cohortTag, setCohortTag] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [lastBatch, setLastBatch] = useState<TokenBatch | null>(null);
     const [copiedToken, setCopiedToken] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
 
-    // Directory Mode
     const [mode, setMode] = useState<'provision' | 'directory'>('provision');
     const [directory, setDirectory] = useState<DirectoryUser[]>([]);
     const [loadingDir, setLoadingDir] = useState(false);
 
-    // Filter & Selection State
     const [filterService, setFilterService] = useState<string>('ALL');
     const [filterRole, setFilterRole] = useState<string>('ALL');
     const [sortBy, setSortBy] = useState<'created_desc' | 'alias_asc' | 'role'>('created_desc');
@@ -70,7 +70,6 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
             if (sortBy === 'role') {
                 return a.role.localeCompare(b.role);
             }
-            // created_desc (default)
             return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
         });
 
@@ -92,7 +91,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
         try {
             const ids = Array.from(selectedIds);
             for (const id of ids) {
-                try { await api.adminDeleteUser(id); } catch (e) { console.error(e); }
+                try { await api.adminDeleteUser(id); } catch (e) { logger.error('TokenGenerator', e); }
             }
             toast.success('Bulk Action Complete');
             setSelectedIds(new Set());
@@ -108,22 +107,18 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
     const loadDirectory = async () => {
         setLoadingDir(true);
         try {
-            // Fetch both lists
             const [members, providers] = await Promise.all([
                 api.getMembers(),
                 api.getProviders()
             ]);
-            // Merge (sorting handled by processedDirectory)
             const allUsers: DirectoryUser[] = [
                 ...providers.map((p: PublicUser) => ({ ...p, role: 'provider' })),
                 ...members.map((m: PublicUser) => ({ ...m, role: 'member' }))
             ];
-
             setDirectory(allUsers);
         } catch (e) {
-            console.error(e);
-            console.error(e);
-            toast.error('Failed to load user directory: ' + JSON.stringify(e, null, 2););
+            logger.error('TokenGenerator', 'Failed to load user directory', e);
+            toast.error('Failed to load user directory');
         } finally {
             setLoadingDir(false);
         }
@@ -135,7 +130,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
             await api.adminResetUserSecurity(userId);
             toast.success(`PIN Reset for ${alias}`);
         } catch (e) {
-            console.error(e);
+            logger.error('TokenGenerator', e);
             toast.error('Reset failed');
         }
     };
@@ -147,7 +142,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
             toast.success(`User ${alias} Deleted`);
             loadDirectory();
         } catch (e) {
-            console.error(e);
+            logger.error('TokenGenerator', e);
             toast.error('Delete failed');
         }
     };
@@ -165,13 +160,10 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
 
         try {
             for (let i = 0; i < quantity; i++) {
-                // Generate a HIGH ENTROPY secure random string
                 const seg1 = Math.random().toString(36).substring(2, 6).toUpperCase();
                 const seg2 = Math.random().toString(36).substring(2, 6).toUpperCase();
                 const seg3 = Math.random().toString(36).substring(2, 6).toUpperCase();
 
-                // PREFIX: M (Member) or P (Provider) for quick visual ID, although not strictly required
-                // Using Service Prefix is standard
                 const tokenParts: string[] = [serviceType];
                 if (cohortTag.trim()) {
                     tokenParts.push(cohortTag.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 8));
@@ -179,18 +171,11 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                 tokenParts.push(seg1, seg2, seg3);
 
                 const token = tokenParts.join('-');
-
-                // DB Provisioning
-                // Email Strategy: token@vector.mil (Standardized Pattern)
                 const email = `${token.toLowerCase()}@vector.mil`;
                 const password = 'SecurePass2025!';
-
-                // For Members, we set service_type to ALL usually, but categorizing them is fine too.
-                // For Providers, service_type is critical.
                 const finalServiceType = targetRole === 'provider' ? serviceType : 'ALL';
 
                 try {
-                    // 4. Provision in Backend (Admin or Provider)
                     if (isProvider) {
                         await api.provisionMember(token, finalServiceType);
                     } else {
@@ -200,8 +185,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                     successCount++;
                     setStatusParams(prev => ({ ...prev, success: successCount }));
                 } catch (e) {
-                    console.error('Failed to provision user:', token, e);
-                    // We continue loop even if one fails
+                    logger.error('TokenGenerator', 'Failed to provision user:', token, e);
                 }
             }
 
@@ -213,7 +197,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
             });
 
         } catch (error) {
-            console.error(error);
+            logger.error('TokenGenerator', error);
             toast.error('Batch Generation Failed');
         } finally {
             setIsGenerating(false);
@@ -232,7 +216,6 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
-            {/* Mode Switcher */}
             <div className="flex items-center gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
                 <Button
                     variant={mode === 'provision' ? 'default' : 'ghost'}
@@ -435,7 +418,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                                                 {user.service_type || 'N/A'}
                                             </td>
                                             <td className="px-4 py-3 text-[10px] font-mono text-slate-400">
-                                                {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
+                                                {user.created_at ? format(parseISO(user.created_at), 'MMM d, yyyy') : '-'}
                                             </td>
                                             <td className="px-4 py-3 text-right">
                                                 <div className="flex items-center justify-end gap-2">
@@ -448,7 +431,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                                                     <button
                                                         onClick={() => handleDelete(user.id, user.token_alias || '')}
                                                         className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                                                        title="Delete User"
+                                                        aria-label={`Delete user ${user.token_alias || user.id}`}
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>
@@ -468,7 +451,6 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                 </div>
             )}
 
-            {/* Output Grid */}
             {mode === 'provision' && lastBatch && (
                 <div className="space-y-4">
                     <div className="flex justify-between items-center print:hidden border-b border-slate-200 pb-4">
@@ -477,12 +459,14 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                             <div className="flex bg-slate-100 p-1 rounded-md">
                                 <button
                                     onClick={() => setViewMode('grid')}
+                                    aria-label="Grid view"
                                     className={`p-1 rounded ${viewMode === 'grid' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
                                 >
                                     <LayoutGrid className="w-3.5 h-3.5" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('table')}
+                                    aria-label="Table view"
                                     className={`p-1 rounded ${viewMode === 'table' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}
                                 >
                                     <List className="w-3.5 h-3.5" />
@@ -502,24 +486,21 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                                     key={token}
                                     className="bg-white text-slate-900 p-6 rounded border border-slate-200 flex flex-col items-center justify-between aspect-[1.58/1] shadow-sm relative group transition-all hover:border-indigo-200 hover:shadow-md print:shadow-none print:border-slate-300"
                                 >
-                                    {/* Action Overlay */}
                                     <div className="absolute top-2 right-2 print:hidden">
                                         <button
                                             onClick={() => copyToClipboard(token)}
                                             className="p-1.5 rounded-full hover:bg-slate-100 text-slate-400 transition-colors"
-                                            title="Copy Token"
+                                            aria-label="Copy Token"
                                         >
                                             {copiedToken === token ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
                                         </button>
                                     </div>
 
-                                    {/* Card Header */}
                                     <div className="w-full flex justify-between items-center border-b border-slate-100 pb-3 mb-3">
                                         <img src="/pwa-192x192.png" className="w-5 h-5 opacity-80" alt="" />
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Secured Access</span>
                                     </div>
 
-                                    {/* QR & Token */}
                                     <div className="flex-1 flex flex-row items-center justify-between w-full gap-4">
                                         <div className="bg-slate-50 p-2 rounded border border-slate-100">
                                             <QRCodeCanvas
@@ -535,7 +516,6 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                                         </div>
                                     </div>
 
-                                    {/* Card Footer */}
                                     <div className="w-full text-left mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
                                         <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${lastBatch.serviceType === 'PT_BLUE' ? 'bg-blue-50 text-blue-700' :
                                             lastBatch.serviceType === 'MH_GREEN' ? 'bg-emerald-50 text-emerald-700' :
@@ -570,6 +550,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                                                 <button
                                                     onClick={() => copyToClipboard(token)}
                                                     className="inline-flex items-center gap-2 text-[10px] font-black uppercase text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    aria-label="Copy Access Token"
                                                 >
                                                     {copiedToken === token ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                                                     Copy

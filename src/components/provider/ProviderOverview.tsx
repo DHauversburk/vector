@@ -13,6 +13,7 @@ import { WaitlistManager } from './WaitlistManager';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { MetricCard } from '../ui/MetricCard';
 import { TodayAgenda } from './TodayAgenda';
+import { logger } from '../../lib/logger';
 
 export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) => void }) => {
     const { user } = useAuth();
@@ -43,7 +44,7 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
             // Filter to only notes requiring action
             setActionNotes(notes.filter(n => n.status === 'requires_action').slice(0, 5));
         } catch (err) {
-            console.error("Failed to load overview data", err);
+            logger.error('ProviderOverview', "Failed to load overview data", err);
         } finally {
             setLoading(false);
         }
@@ -73,7 +74,7 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
             load();
             setConfirmModal({ open: false, apptId: null });
         } catch (err) {
-            console.error(err);
+            logger.error('ProviderOverview', err);
             toast.error('Failed to update status');
         } finally {
             setConfirmLoading(false);

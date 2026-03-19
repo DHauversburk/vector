@@ -15,7 +15,7 @@ export const TOUR_SEQUENCES: Record<string, TourStep[]> = {
         {
             id: 'welcome',
             targetSelector: '[data-tour="dashboard-title"]',
-            title: 'Welcome to Project Vector! 👋',
+            title: 'Welcome to VECTOR! 👋',
             description: 'This is your secure patient portal. Let\'s take a quick tour to help you get started.',
             position: 'bottom'
         },

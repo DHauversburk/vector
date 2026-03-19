@@ -3,7 +3,7 @@ import { api, type Appointment, type WaitlistEntry } from '../lib/api';
 import { swrFetcher } from '../lib/api/swr-fetcher';
 import useSWR, { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
-import { Loader2, Clock, X, Shield, Activity, FileText } from 'lucide-react';
+import { Loader2, Clock, Shield, Activity, FileText } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { DashboardLayout, type NavItem } from '../components/layout/DashboardLayout';
@@ -30,6 +30,7 @@ import { ErrorBoundary } from '../components/ui/ErrorBoundary';
 import { AppointmentRow, AppointmentCountdown } from '../components/member/AppointmentTimeline';
 import { FeedbackModal } from '../components/member/FeedbackModal';
 import { BookingConsole } from '../components/member/BookingConsole';
+import { logger } from '../lib/logger';
 
 /**
  * Feature-level loading fallback
@@ -117,7 +118,7 @@ export default function MemberDashboard() {
             toast.success('Appointment entry neutralized.', { id: toastId });
             mutate('appointments');
         } catch (error: any) {
-            console.error('Cancellation error:', error);
+            logger.error('MemberDashboard', 'Cancellation error:', error);
             toast.error(`Cancellation Failed: ${error.message || 'Unknown protocol error'}`, { id: toastId });
         }
     };
@@ -144,7 +145,7 @@ export default function MemberDashboard() {
             user={user}
             role="Member"
             onSignOut={signOut}
-            title="Project Vector"
+            title="VECTOR"
         >
             <WelcomeModal role="member" userName={user?.user_metadata?.token_alias || user?.email} />
             <div className="max-w-4xl mx-auto px-4 py-4 md:py-8 space-y-4 md:space-y-8 pb-20">

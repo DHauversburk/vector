@@ -40,7 +40,7 @@ export default function RegisterPage() {
 
             if (signUpError) throw signUpError;
 
-            // In Project Vector, self-registration might require manual approval
+            // In VECTOR, self-registration might require manual approval
             // but for this PoC we navigate to dashboard
             navigate('/dashboard');
         } catch (err) {
@@ -66,7 +66,7 @@ export default function RegisterPage() {
                     </div>
                     <div className="space-y-1">
                         <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-[0.2em] uppercase">Patient Registration</h1>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enroll in Project Vector Healthcare</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Enroll in VECTOR Healthcare</p>
                     </div>
                 </div>
 

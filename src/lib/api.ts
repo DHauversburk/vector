@@ -8,7 +8,7 @@ import { interactionActions } from './api/interactions';
 export * from './api/types';
 
 /**
- * PROJECT VECTOR API CLIENT (REFACTORED)
+ * VECTOR API CLIENT (REFACTORED)
  * ------------------------------------
  * This client now uses a modular structure under src/lib/api/.
  * The 'api' object below maintains backward compatibility with the existing codebase.

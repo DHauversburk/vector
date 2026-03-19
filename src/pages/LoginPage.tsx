@@ -2,7 +2,7 @@
  * LoginPage - Dramatic enterprise login with choreographed reveal
  * 
  * @component
- * @description The primary authentication entry point for Project Vector.
+ * @description The primary authentication entry point for VECTOR.
  * Features a cinematic boot sequence where UI elements "load in" with
  * placeholder text that transforms into the actual component.
  * 
@@ -405,7 +405,7 @@ export default function LoginPage() {
                         {/* Loaded state */}
                         <div className={`transition-all duration-700 ${isLoaded('title') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
                             <h1 className="text-3xl font-black tracking-[0.2em] uppercase mb-2 vector-gradient-text">
-                                Project Vector
+                                VECTOR
                             </h1>
                             <div className="flex items-center justify-center gap-3">
                                 <span className="h-px w-8 bg-gradient-to-r from-transparent to-slate-600" />

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/Button';
 import { api } from '../../lib/api';
+import { logger } from '../../lib/logger';
 
 interface FeedbackModalProps {
     isOpen: boolean;
@@ -26,7 +27,7 @@ export function FeedbackModal({ isOpen, appointmentId, onClose, onSuccess }: Fee
             onClose();
             if (onSuccess) onSuccess();
         } catch (error) {
-            console.error(error);
+            logger.error('FeedbackModal', error);
             toast.error('Failed to submit feedback.');
         } finally {
             setLoading(false);

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { format, formatDistanceToNow } from 'date-fns';
+import { logger } from '../../lib/logger';
 
 const categoryConfig: Record<HelpRequest['category'], { icon: typeof HelpCircle; color: string; label: string }> = {
     question: { icon: MessageSquare, color: 'blue', label: 'Question' },
@@ -46,7 +47,7 @@ export function PendingRequests() {
             const data = await api.getPendingHelpRequests();
             setRequests(data);
         } catch (err) {
-            console.error('Failed to load requests:', err);
+            logger.error('PendingRequests', 'Failed to load requests:', err);
         } finally {
             setLoading(false);
         }
@@ -68,7 +69,7 @@ export function PendingRequests() {
             setResolutionNote('');
             loadRequests();
         } catch (err) {
-            console.error('Failed to resolve:', err);
+            logger.error('PendingRequests', 'Failed to resolve:', err);
         } finally {
             setResolving(false);
         }

@@ -29,7 +29,7 @@ if (typeof window !== 'undefined') {
   };
 
   console.log(`
-    [PROJECT VECTOR DEBUG]
+    [VECTOR DEBUG]
     - window.supabase is now available.
     - Run window.toggleRealMode() to switch between Mock/Real data.
     `);

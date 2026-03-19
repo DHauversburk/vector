@@ -18,7 +18,7 @@ export const generateICS = (event: {
     const calendarEvent = [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
-        'PRODID:-//Project Vector//Secure Schedule//EN',
+        'PRODID:-//VECTOR//Secure Schedule//EN',
         'CALSCALE:GREGORIAN',
         'BEGIN:VEVENT',
         `DTSTAMP:${now}`,
@@ -27,7 +27,7 @@ export const generateICS = (event: {
         `SUMMARY:${event.title}`,
         `DESCRIPTION:${event.description}`,
         `LOCATION:${event.location}`,
-        `UID:${checkSum}@projectvector.local`,
+        `UID:${checkSum}@vector.local`,
         'STATUS:CONFIRMED',
         'SEQUENCE:0',
         'END:VEVENT',

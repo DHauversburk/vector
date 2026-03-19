@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { Wifi, WifiOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '../../lib/logger';
 
 export function PWAManager() {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -12,10 +13,10 @@ export function PWAManager() {
         updateServiceWorker,
     } = useRegisterSW({
         onRegistered(r: ServiceWorkerRegistration | undefined) {
-            console.log('SW Registered:', r);
+            logger.debug('PWAManager', 'SW Registered:', r);
         },
         onRegisterError(error: Error) {
-            console.error('SW registration error', error);
+            logger.error('PWAManager', 'SW registration error', error);
         },
     });
 

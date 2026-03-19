@@ -1,5 +1,6 @@
+import { logger } from './logger';
 /**
- * WebAuthn Utility for Project Vector
+ * WebAuthn Utility for VECTOR
  * Implements native biometric session locking using the Web Authentication API.
  */
 
@@ -26,7 +27,7 @@ export const webauthn = {
             const creationOptions: PublicKeyCredentialCreationOptions = {
                 challenge,
                 rp: {
-                    name: "Project Vector",
+                    name: "VECTOR",
                     id: window.location.hostname === 'localhost' ? 'localhost' : window.location.hostname,
                 },
                 user: {
@@ -56,7 +57,7 @@ export const webauthn = {
             }
             return false;
         } catch (error) {
-            console.error("Biometric registration failed", error);
+            logger.error('webauthn', "Biometric registration failed", error);
             return false;
         }
     },
@@ -81,7 +82,7 @@ export const webauthn = {
 
             return !!assertion;
         } catch (error) {
-            console.error("Biometric authentication failed", error);
+            logger.error('webauthn', "Biometric authentication failed", error);
             return false;
         }
     }

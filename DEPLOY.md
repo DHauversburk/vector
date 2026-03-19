@@ -1,8 +1,8 @@
-# Project Vector - Deployment Guide
+# VECTOR - Deployment Guide
 
 ## Overview
 
-Project Vector is a secure, anonymous scheduling PWA for military medical groups. This guide covers deployment options from development to production.
+VECTOR is a secure, anonymous scheduling PWA for military medical groups. This guide covers deployment options from development to production.
 
 ---
 

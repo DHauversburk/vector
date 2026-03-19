@@ -54,7 +54,7 @@ export function WelcomeModal({ role, userName }: WelcomeModalProps) {
     const roleConfig = {
         member: {
             emoji: '👋',
-            title: 'Welcome to Project Vector!',
+            title: 'Welcome to VECTOR!',
             subtitle: 'Secure Anonymous Scheduling',
             description: 'This is your personal patient portal. You can book appointments, manage your schedule, and access care — all while maintaining complete privacy.',
             gradient: 'from-blue-500 via-indigo-500 to-purple-500'

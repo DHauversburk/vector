@@ -5,6 +5,7 @@ import { Loader2, Calendar, Clock, Lock, Zap, Video } from 'lucide-react';
 import { ServiceTeamSelector } from './ServiceTeamSelector';
 import { Button } from '../ui/Button';
 import { toast } from 'sonner';
+import { logger } from '../../lib/logger';
 
 interface ProviderInfo {
     id: string;
@@ -39,35 +40,31 @@ export function BookingConsole({
     const [availableSlots, setAvailableSlots] = useState<Appointment[]>([]);
     const [slotsLoading, setSlotsLoading] = useState(false);
 
-    // Auto-select provider if only one available
     useEffect(() => {
         if (providers.length === 1 && !providerId) {
             setProviderId(providers[0].id);
         }
     }, [providers, providerId]);
 
-    // Fetch slots when provider changes
     useEffect(() => {
         if (providerId) {
             setSlotsLoading(true);
             const today = new Date().toISOString();
             api.getProviderOpenSlots(providerId, today)
                 .then(setAvailableSlots)
-                .catch(console.error)
+                .catch((e) => logger.error('BookingConsole', 'Failed to fetch open slots', e))
                 .finally(() => setSlotsLoading(false));
         } else {
             setAvailableSlots([]);
         }
     }, [providerId]);
 
-    // Group slots by date with Operational Filter (07:00 - 17:00)
     const groupedSlots = useMemo(() => {
         const groups: Record<string, Appointment[]> = {};
         availableSlots.forEach(slot => {
             const date = parseISO(slot.start_time);
             const hour = parseInt(format(date, 'H'));
 
-            // FILTER: Only show slots between 07:00 and 17:00
             if (hour < 7 || hour >= 17) return;
 
             const dateKey = format(date, 'yyyy-MM-dd');
@@ -77,7 +74,6 @@ export function BookingConsole({
         return groups;
     }, [availableSlots]);
 
-    // Calculate the TRUE first available slot
     const firstAvailableSlot = useMemo(() => {
         const sortedDates = Object.keys(groupedSlots).sort();
         for (const date of sortedDates) {
@@ -123,7 +119,7 @@ export function BookingConsole({
             setNotes('');
             onBookingComplete();
         } catch (error) {
-            console.error(error);
+            logger.error('BookingConsole', error);
             toast.error('Booking failed. Please try again.');
         } finally {
             setBookingLoading(false);
@@ -158,8 +154,9 @@ export function BookingConsole({
                     />
                 </div>
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Reason for Visit</label>
+                    <label id="visit-reason-label" className="text-[10px] font-black uppercase tracking-widest text-slate-500">Reason for Visit</label>
                     <select
+                        aria-labelledby="visit-reason-label"
                         className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded h-10 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/10 cursor-pointer transition-all"
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
@@ -177,7 +174,6 @@ export function BookingConsole({
 
             {providerId && (
                 <div className="space-y-6 pt-2">
-                    {/* First Available Quick-Book */}
                     {!slotsLoading && firstAvailableSlot && notes && (
                         <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg p-4 text-white shadow-lg">
                             <div className="flex items-center justify-between">
@@ -195,6 +191,7 @@ export function BookingConsole({
                                 <button
                                     onClick={() => handleSlotBooking(firstAvailableSlot.id)}
                                     disabled={bookingLoading}
+                                    aria-label={`Quick book first available slot on ${format(parseISO(firstAvailableSlot.start_time), 'MMM d @ HH:mm')}`}
                                     className="px-4 py-2 bg-white text-indigo-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-indigo-50 transition-all shadow-md active:scale-95"
                                 >
                                     {bookingLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Book Now'}
@@ -257,6 +254,7 @@ export function BookingConsole({
                                                 key={slot.id}
                                                 onClick={() => handleSlotBooking(slot.id)}
                                                 disabled={bookingLoading || isBlocked}
+                                                aria-label={`Book slot at ${format(parseISO(slot.start_time), 'HH:mm')}`}
                                                 className={`flex flex-col items-center justify-center p-3 border-2 border-dashed rounded transition-all group active:scale-95
                                                     ${isBlocked
                                                         ? 'opacity-40 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 cursor-not-allowed'
@@ -264,7 +262,7 @@ export function BookingConsole({
                                                     }`}
                                             >
                                                 <span className={`text-xs font-black ${isBlocked ? 'text-slate-400' : 'text-emerald-700 dark:text-emerald-400 group-hover:text-emerald-600'}`}>
-                                                    {new Date(slot.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                                    {format(parseISO(slot.start_time), 'HH:mm')}
                                                 </span>
                                                 {isBlocked ? (
                                                     <span className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter mt-1">LOCKED</span>

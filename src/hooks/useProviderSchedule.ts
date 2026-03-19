@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { generatePatientCodename } from '../lib/codenames';
 import { toast } from 'sonner';
 import { useOffline } from '../contexts/OfflineContext';
+import { logger } from '../lib/logger';
 
 export function useProviderSchedule() {
     const { executeMutation } = useOffline();
@@ -58,7 +59,7 @@ export function useProviderSchedule() {
             const data = await api.getProviderSchedule(user.id, start.toISOString(), end.toISOString());
             setAppointments(data);
         } catch (error) {
-            console.error("Failed to load schedule", error);
+            logger.error('useProviderSchedule', "Failed to load schedule", error);
             toast.error("Failed to sync schedule");
         } finally {
             setLoading(false);
@@ -106,7 +107,7 @@ export function useProviderSchedule() {
                 lastFetchRef.current = newIds;
                 setAppointments(newData);
             } catch (err) {
-                console.error("Auto-refresh failed", err);
+                logger.error('useProviderSchedule', "Auto-refresh failed", err);
             }
         }, 30000);
 
@@ -129,7 +130,7 @@ export function useProviderSchedule() {
                     new Date(b.start_time).getTime() - new Date(a.start_time).getTime()
                 ));
             } catch (err) {
-                console.error('Failed to load history', err);
+                logger.error('useProviderSchedule', 'Failed to load history', err);
             } finally {
                 setHistoryLoading(false);
             }

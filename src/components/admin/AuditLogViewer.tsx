@@ -4,6 +4,7 @@ import { AlertCircle, AlertTriangle, Info, ShieldAlert, RefreshCw, Filter, Code 
 import { format } from 'date-fns';
 
 import type { AuditLog } from '../../lib/api/types';
+import { logger } from '../../lib/logger';
 
 interface AuditMetadata {
     role?: string;
@@ -28,7 +29,7 @@ export default function AuditLogViewer() {
             });
             setLogs(data);
         } catch (error) {
-            console.error('Failed to load logs', error);
+            logger.error('AuditLogViewer', 'Failed to load logs', error);
         } finally {
             setLoading(false);
         }

@@ -6,15 +6,15 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type Feedback = {
+export interface Feedback {
     id: string;
     appointment_id: string;
     rating: number;
     comment?: string | null;
     created_at: string;
-};
+}
 
-export type Appointment = {
+export interface Appointment {
     id: string;
     provider_id: string;
     member_id: string | null;
@@ -32,17 +32,17 @@ export type Appointment = {
     member?: {
         token_alias?: string;
     };
-};
+}
 
-export type Member = {
+export interface Member {
     id: string;
     token_alias: string;
     role: string;
     status: string;
     created_at: string;
-};
+}
 
-export type ProviderResource = {
+export interface ProviderResource {
     id: string;
     provider_id: string;
     title: string;
@@ -50,7 +50,7 @@ export type ProviderResource = {
     category: 'video' | 'article' | 'worksheet' | 'exercise' | 'other';
     description?: string | null;
     created_at: string;
-};
+}
 
 export type EncounterNoteCategory =
     | 'question'
@@ -64,7 +64,7 @@ export type EncounterNoteCategory =
 
 export type EncounterNoteStatus = 'active' | 'requires_action' | 'resolved';
 
-export type EncounterNote = {
+export interface EncounterNote {
     id: string;
     provider_id: string;
     member_id: string;
@@ -82,10 +82,10 @@ export type EncounterNote = {
     archived_at?: string;
     /** New: Updated timestamp for edits */
     updated_at?: string;
-};
+}
 
 /** Aggregate statistics for preserved analytics */
-export type NoteStatistics = {
+export interface NoteStatistics {
     period: string; // YYYY-MM format
     provider_id: string;
     total_encounters: number;
@@ -93,9 +93,9 @@ export type NoteStatistics = {
     unique_patients: number;
     requires_action_count: number;
     created_at: string;
-};
+}
 
-export type WaitlistEntry = {
+export interface WaitlistEntry {
     id: string;
     member_id: string;
     member_name: string;
@@ -105,7 +105,7 @@ export type WaitlistEntry = {
     note?: string;
     created_at: string;
     status: 'active' | 'fulfilled' | 'cancelled';
-};
+}
 
 export interface HelpRequest {
     id: string;
@@ -132,23 +132,23 @@ export interface ScheduleUpdate {
 
 export type ViewMode = 'day' | 'week' | 'month';
 
-export type PublicUser = {
+export interface PublicUser {
     id: string;
     token_alias: string;
     role: string;
     service_type: string;
     status?: string;
     created_at?: string;
-};
+}
 
-export type ProviderProfile = {
+export interface ProviderProfile {
     id: string;
     token_alias: string;
     role: 'provider';
     service_type: string;
-};
+}
 
-export type AuditLog = {
+export interface AuditLog {
     id: string;
     action_type: string;
     description: string;
@@ -156,15 +156,15 @@ export type AuditLog = {
     metadata?: Record<string, unknown>;
     created_at: string;
     actor_id?: string;
-};
+}
 
-export type SystemStats = {
+export interface SystemStats {
     total_users: number;
     active_appointments: number;
     available_slots: number;
     errors_today: number;
     duplicates: number;
-};
+}
 
 export interface GenerateSlotsResult {
     success: boolean;

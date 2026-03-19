@@ -5,6 +5,7 @@ import { Input } from '../ui/Input';
 import { ShieldAlert } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { api } from '../../lib/api';
+import { logger } from '../../lib/logger';
 
 interface ClearScheduleModalProps {
     isOpen: boolean;
@@ -34,7 +35,7 @@ export function ClearScheduleModal({ isOpen, onClose, onSuccess }: ClearSchedule
             onSuccess();
             toast.success('Schedule cleared successfully.');
         } catch (error) {
-            console.error(error);
+            logger.error('ClearScheduleModal', error);
             toast.error('Failed to clear schedule');
         } finally {
             setGenLoading(false);

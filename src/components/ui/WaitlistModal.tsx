@@ -11,6 +11,7 @@ import { X, Clock, CheckCircle, Loader2, Bell } from 'lucide-react';
 import { Button } from './Button';
 import { api } from '../../lib/api';
 import type { WaitlistEntry } from '../../lib/api';
+import { logger } from '../../lib/logger';
 
 interface WaitlistModalProps {
     isOpen: boolean;
@@ -56,7 +57,7 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
             onClose();
         } catch (err) {
             const error = err as Error;
-            console.error(error);
+            logger.error('WaitlistModal', error);
             setError(error.message || 'Failed to join waitlist');
         } finally {
             setLoading(false);

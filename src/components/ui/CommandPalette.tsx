@@ -212,7 +212,7 @@ export default function CommandPalette() {
                         <span><strong className="text-slate-600 dark:text-slate-400">↑↓</strong> Navigate</span>
                         <span><strong className="text-slate-600 dark:text-slate-400">↵</strong> Select</span>
                     </div>
-                    <span>Project Vector v2.0</span>
+                    <span>VECTOR v2.0</span>
                 </div>
             </div>
         </div>

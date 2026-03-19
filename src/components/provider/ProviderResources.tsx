@@ -3,6 +3,7 @@ import { api, type ProviderResource } from '../../lib/api';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Plus, Trash2, ExternalLink, Video, FileText, Dumbbell, BookOpen, Link2, ChevronDown, X } from 'lucide-react';
+import { logger } from '../../lib/logger';
 
 const categoryConfig = {
     video: { icon: Video, label: 'Video', color: 'text-red-500 bg-red-50 dark:bg-red-900/30' },
@@ -30,7 +31,7 @@ export const ProviderResources: React.FC = () => {
             const data = await api.getMyResources();
             setResources(data);
         } catch (error) {
-            console.error('Failed to load resources:', error);
+            logger.error('ProviderResources', 'Failed to load resources:', error);
         } finally {
             setLoading(false);
         }
@@ -59,7 +60,7 @@ export const ProviderResources: React.FC = () => {
             setAddOpen(false);
             loadResources();
         } catch (error) {
-            console.error('Failed to add resource:', error);
+            logger.error('ProviderResources', 'Failed to add resource:', error);
         } finally {
             setSaving(false);
         }
@@ -71,7 +72,7 @@ export const ProviderResources: React.FC = () => {
             await api.deleteResource(id);
             loadResources();
         } catch (error) {
-            console.error('Failed to delete resource:', error);
+            logger.error('ProviderResources', 'Failed to delete resource:', error);
         }
     };
 

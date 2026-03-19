@@ -1,19 +1,21 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { Lock, Unlock, AlertCircle, Clock, Filter, ListFilter } from 'lucide-react';
+import { logger } from '../../lib/logger';
+import { format, parseISO } from 'date-fns';
 
-type AppointmentWithDetails = {
+interface AppointmentWithDetails {
     id: string;
     start_time: string;
     end_time: string;
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
     member: { token_alias: string };
     provider: { token_alias: string; service_type: string };
-};
+}
 
-type MasterScheduleProps = {
+interface MasterScheduleProps {
     actionContext: 'view' | 'block' | 'unblock' | 'override';
-};
+}
 
 export default function MasterSchedule({ actionContext }: MasterScheduleProps) {
     const [appointments, setAppointments] = useState<AppointmentWithDetails[]>([]);
@@ -27,7 +29,7 @@ export default function MasterSchedule({ actionContext }: MasterScheduleProps) {
     const fetchSchedule = async () => {
         try {
             const data = await api.getAllAppointments();
-            // @ts-expect-error - Event type mismatch with library definition - Supabase types are tricky with joins
+            // @ts-expect-error - Event type mismatch with library definition
             setAppointments(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Failed to fetch schedule');
@@ -51,7 +53,7 @@ export default function MasterSchedule({ actionContext }: MasterScheduleProps) {
                 await api.updateAppointmentStatus(apt.id, newStatus as AppointmentWithDetails['status']);
             } catch (err) {
                 setAppointments(prev => prev.map(a => a.id === apt.id ? { ...a, status: originalStatus } : a));
-                console.error('Failed to update status', err);
+                logger.error('MasterSchedule', 'Failed to update status', err);
             }
         }
     };
@@ -86,10 +88,16 @@ export default function MasterSchedule({ actionContext }: MasterScheduleProps) {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <button className="p-1.5 rounded hover:bg-white hover:shadow-sm text-slate-400 transition-all border border-transparent hover:border-slate-200">
+                    <button 
+                        aria-label="Filter schedule"
+                        className="p-1.5 rounded hover:bg-white hover:shadow-sm text-slate-400 transition-all border border-transparent hover:border-slate-200"
+                    >
                         <Filter className="w-3.5 h-3.5" />
                     </button>
-                    <button className="p-1.5 rounded hover:bg-white hover:shadow-sm text-slate-400 transition-all border border-transparent hover:border-slate-200">
+                    <button 
+                        aria-label="Filter by criteria"
+                        className="p-1.5 rounded hover:bg-white hover:shadow-sm text-slate-400 transition-all border border-transparent hover:border-slate-200"
+                    >
                         <ListFilter className="w-3.5 h-3.5" />
                     </button>
                     <div className="h-4 w-px bg-slate-200 mx-1" />
@@ -129,7 +137,7 @@ export default function MasterSchedule({ actionContext }: MasterScheduleProps) {
 
                                 <div className="flex justify-between items-start mb-1.5">
                                     <span className="text-xs font-black text-slate-900 tracking-tighter">
-                                        {new Date(apt.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                        {format(parseISO(apt.start_time), 'HH:mm')}
                                     </span>
 
                                     <div className="flex gap-1.5">

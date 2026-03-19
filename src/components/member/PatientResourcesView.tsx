@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api, type ProviderResource } from '../../lib/api';
 import { Video, FileText, Dumbbell, BookOpen, Link2, ExternalLink, Loader2 } from 'lucide-react';
+import { logger } from '../../lib/logger';
 
 const categoryConfig = {
     video: { icon: Video, label: 'Video', color: 'text-red-500 bg-red-50 dark:bg-red-900/30', bgHover: 'hover:bg-red-50 dark:hover:bg-red-900/20' },
@@ -33,7 +34,7 @@ export const PatientResourcesView: React.FC<Props> = ({ providerId }) => {
                     setResources(all);
                 }
             } catch (error) {
-                console.error('Failed to load resources:', error);
+                logger.error('PatientResourcesView', 'Failed to load resources:', error);
             } finally {
                 setLoading(false);
             }

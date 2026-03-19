@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import { logger } from '../lib/logger';
 
 type UserRole = 'member' | 'provider' | 'admin' | null;
 
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     const fetchProfile = async (userId: string, currentUser: User) => {
-        console.log('[AuthContext] Fetching profile for userId:', userId);
+        logger.debug('AuthContext', 'Fetching profile for userId:', userId);
         try {
             const { data, error } = await supabase
                 .from('users')
@@ -44,13 +45,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .eq('id', userId)
                 .single();
 
-            console.log('[AuthContext] Profile query result:', { data, error });
+            logger.debug('AuthContext', 'Profile query result:', { data, error });
 
             if (error) {
-                console.error('[AuthContext] Error fetching profile:', error);
+                logger.error('AuthContext', 'Error fetching profile:', error);
                 setRole('member');
             } else if (data) {
-                console.log('[AuthContext] Setting role to:', data.role);
+                logger.debug('AuthContext', 'Setting role to:', data.role);
                 setRole(data.role as UserRole);
                 // Enrich user object with profile data
                 if (currentUser) {
@@ -61,14 +62,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         role: data.role
                     };
                     setUser({ ...currentUser });
-                    console.log('[AuthContext] User metadata updated:', currentUser.user_metadata);
+                    logger.debug('AuthContext', 'User metadata updated:', currentUser.user_metadata);
                 }
             } else {
-                console.log('[AuthContext] No data returned, defaulting to member');
+                logger.debug('AuthContext', 'No data returned, defaulting to member');
                 setRole('member');
             }
         } catch (err) {
-            console.error('[AuthContext] Unexpected error fetching profile:', err);
+            logger.error('AuthContext', 'Unexpected error fetching profile:', err);
             setRole('member');
         }
     };
@@ -88,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 setLoading(false);
             }
         }).catch((err: Error) => {
-            console.error("Auth Session Error:", err);
+            logger.error('AuthContext', "Auth Session Error:", err);
             // SAFETY VALVE: Ensure we never get stuck on "Authenticating..."
             setLoading(false);
         });

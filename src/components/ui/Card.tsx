@@ -2,7 +2,7 @@
  * Card Component - Enterprise-grade container with glassmorphism
  * 
  * @component
- * @description Versatile container component for Project Vector featuring
+ * @description Versatile container component for VECTOR featuring
  * glassmorphism effects, gradient borders, and various elevation levels.
  * Used throughout the application for content grouping.
  * 
@@ -31,7 +31,7 @@
  */
 
 import * as React from "react"
-import { cn } from "./Button"
+import { cn } from "../../lib/utils"
 
 /* ============================================================
    CARD VARIANTS

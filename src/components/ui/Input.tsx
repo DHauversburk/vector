@@ -2,7 +2,7 @@
  * Input Component - Enterprise-grade text input field
  * 
  * @component
- * @description Standard input component for Project Vector with enhanced
+ * @description Standard input component for VECTOR with enhanced
  * focus states featuring glow effects consistent with the Vector Dark theme.
  * Supports all standard HTML input attributes.
  * 
@@ -31,7 +31,7 @@
  */
 
 import * as React from "react"
-import { cn } from "./Button"
+import { cn } from "../../lib/utils"
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
     /** Visual variant for different input contexts */

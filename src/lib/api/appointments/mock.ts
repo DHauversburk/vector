@@ -2,6 +2,7 @@ import { mockStore } from '../mockStore';
 import type { Appointment } from '../types';
 import type { IAppointmentActions } from '../interfaces';
 import { supabase } from '../../supabase';
+import { logger } from '../../logger';
 
 export const mockAppointments: IAppointmentActions = {
     getMyAppointments: async (startDate?: string, endDate?: string): Promise<Appointment[]> => {
@@ -263,7 +264,7 @@ export const mockAppointments: IAppointmentActions = {
 };
 
 function seedInitialData(userId: string) {
-    console.log('[MOCK] Seeding initial dataset...');
+    logger.debug('MOCK', 'Seeding initial dataset...');
     const seedAppointments: Appointment[] = [];
     const now = new Date();
     const providerIds = [

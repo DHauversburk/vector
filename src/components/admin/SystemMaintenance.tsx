@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { api } from '../../lib/api';
 import { Button } from '../ui/Button';
 import { Trash2, RefreshCw, AlertTriangle, CheckCircle, Database } from 'lucide-react';
+import { logger } from '../../lib/logger';
 
 export const SystemMaintenance = () => {
     const [loading, setLoading] = useState(false);
@@ -21,7 +22,7 @@ export const SystemMaintenance = () => {
             const stats = await api.getSystemStats();
             setScanResults(stats);
         } catch (error) {
-            console.error(error);
+            logger.error('SystemMaintenance', error);
             toast.error("Scan failed");
         } finally {
             setLoading(false);
@@ -37,7 +38,7 @@ export const SystemMaintenance = () => {
             // Re-scan
             scanDatabase();
         } catch (error) {
-            console.error(error);
+            logger.error('SystemMaintenance', error);
             toast.error("Cleanup Failed.");
         } finally {
             setLoading(false);
@@ -51,7 +52,7 @@ export const SystemMaintenance = () => {
             toast.success("Mock Data Wiped Successfully.");
             scanDatabase();
         } catch (error) {
-            console.error(error);
+            logger.error('SystemMaintenance', error);
             toast.error("Wipe failed.");
         }
     };
@@ -169,7 +170,7 @@ export const SystemMaintenance = () => {
                                     scanDatabase();
                                 } catch (e) {
                                     toast.error('Pruning failed. Check Console / RPC.');
-                                    console.error(e);
+                                    logger.error('SystemMaintenance', e);
                                 } finally {
                                     setLoading(false);
                                 }

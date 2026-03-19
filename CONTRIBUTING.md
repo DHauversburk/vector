@@ -1,4 +1,4 @@
-# Contributing to Project Vector
+# Contributing to VECTOR
 
 ## Getting Started
 
