@@ -65,12 +65,31 @@ const mockSupabase = {
             data: { user: (mockSession as unknown as { user: unknown })?.user ?? null },
             error: null
         }),
-        signInWithPassword: async ({ email }: { email: string }) => {
-            console.log('[MOCK] Sign In:', email);
+        signInWithPassword: async ({ email, password }: { email: string, password?: string }) => {
+            console.log('[MOCK] Auth Attempt:', email);
+            
+            // SECURITY: For Beta, ensure we use the correct simulation password
+            const BETA_PASSWORD = 'VectorBeta2026!';
+            if (password !== BETA_PASSWORD) {
+                console.warn('[MOCK] Auth Failure: Incorrect password for', email);
+                return {
+                    data: { user: null, session: null },
+                    error: { message: 'Invalid login credentials' }
+                };
+            }
 
-            // Determine Role based on Email Pattern
-            const isProvider = email.includes('provider') || email.includes('jameson') || email.includes('doc') || email.includes('jameson');
-            const isAdmin = email.includes('admin') || email.includes('alex');
+            // Determine Role and valid mock users
+            const isProvider = email.includes('provider') || email.includes('medtech') || email.includes('doc') || email.includes('pt');
+            const isAdmin = email.includes('admin');
+            const isPatient = email.includes('patient');
+
+            if (!isAdmin && !isProvider && !isPatient) {
+                console.warn('[MOCK] Auth Failure: Unknown user path', email);
+                return {
+                    data: { user: null, session: null },
+                    error: { message: 'Authentication restricted to authorized beta paths' }
+                };
+            }
 
             let userId = 'mock-user-123';
             let tokenAlias = 'IVAN';
@@ -79,31 +98,36 @@ const mockSupabase = {
                 userId = 'mock-admin-alex';
                 tokenAlias = 'CMD. ALEX';
             } else if (isProvider) {
-                if (email.includes('blue')) {
-                    userId = 'mock-provider-smith'; // Reuse existing mock ID for Smith
+                if (email.includes('blue') || email.includes('doc.provider1')) {
+                    userId = 'mock-provider-smith';
                     tokenAlias = 'DR. SMITH';
-                } else if (email.includes('mh')) {
+                } else if (email.includes('mh') || email.includes('mh.provider')) {
                     userId = 'mock-provider-mh';
                     tokenAlias = 'DR. MH';
-                } else if (email.includes('pt')) {
+                } else if (email.includes('pt') || email.includes('pt.provider')) {
                     userId = 'mock-provider-pt';
                     tokenAlias = 'DR. PT';
-                } else if (email.includes('om')) {
-                    userId = 'mock-provider-om';
-                    tokenAlias = 'DR. OM';
+                } else if (email.includes('medtech')) {
+                    userId = 'mock-provider-mt';
+                    tokenAlias = 'TECH ALPHA';
                 } else {
                     userId = 'mock-provider-jameson';
                     tokenAlias = 'DR. JAMESON';
                 }
             } else {
-                // Member Logic
-                if (email.includes('patient01') || email.includes('8821')) {
+                // Member Logic - strictly map to 1-300 or known legacy
+                const match = email.match(/patient(\d{3})/);
+                if (match) {
+                    const num = match[1];
+                    userId = `mock-user-${num}`;
+                    tokenAlias = `PATIENT ${num}`;
+                } else if (email.includes('8821')) {
                     userId = 'mock-user-8821';
                     tokenAlias = 'PATIENT ALPHA';
-                } else if (email.includes('patient02') || email.includes('3392')) {
+                } else if (email.includes('3392')) {
                     userId = 'mock-user-3392';
                     tokenAlias = 'PATIENT BRAVO';
-                } else if (email.includes('patient03') || email.includes('1102')) {
+                } else if (email.includes('1102')) {
                     userId = 'mock-user-1102';
                     tokenAlias = 'PATIENT CHARLIE';
                 }
@@ -119,17 +143,15 @@ const mockSupabase = {
                 user
             };
 
-            // Update local state and persist
             mockSession = session;
             if (typeof window !== 'undefined') {
                 window.localStorage.setItem('PROJECT_VECTOR_MOCK_SESSION', JSON.stringify(session));
             }
 
-            // CRITICAL: Notify listeners so AuthContext redirects immediately
             notifyListeners('SIGNED_IN', session);
 
             return {
-                data: { user, session }, // Return valid session object so AuthContext can use it
+                data: { user, session },
                 error: null
             };
         },

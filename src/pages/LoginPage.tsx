@@ -245,17 +245,14 @@ export default function LoginPage() {
                 };
 
                 const key = token.trim().toUpperCase();
-
-                // Resolve token → email
                 const legacyEmail = legacyTokenMap[key];
+                
                 if (legacyEmail) {
                     loginEmail = legacyEmail;
-                } else if (/^M-\d{1,3}$/.test(key)) {
-                    // Patient token: M-1 through M-300 → patient001@vector.mil
+                } else if (/^M-(\d{1,3})$/.test(key)) {
                     const num = key.replace('M-', '');
                     loginEmail = `patient${num.padStart(3, '0')}@vector.mil`;
-                } else if (/^P-(MH|DOC|MT|PT)-\d{3}$/.test(key)) {
-                    // Provider token: P-MH-001 → mh.provider1@vector.mil etc.
+                } else if (/^P-(MH|DOC|MT|PT)-(\d{3})$/.test(key)) {
                     const match = key.match(/^P-(MH|DOC|MT|PT)-(\d{3})$/);
                     if (match) {
                         const typeMap: Record<string, string> = {
@@ -266,13 +263,13 @@ export default function LoginPage() {
                         };
                         const prefix = typeMap[match[1]] || match[1].toLowerCase();
                         loginEmail = `${prefix}${parseInt(match[2])}@vector.mil`;
-                    } else {
-                        loginEmail = `${key.toLowerCase()}@vector.mil`;
                     }
-                } else {
-                    // Generic fallback: treat token as email prefix
-                    loginEmail = `${key.toLowerCase().replace(/\s+/g, '')}@vector.mil`;
                 }
+
+                if (!loginEmail) {
+                    throw new Error('INVALID ACCESS TOKEN: Format unrecognized or token expired.');
+                }
+                
                 loginPassword = 'VectorBeta2026!';
             }
 
