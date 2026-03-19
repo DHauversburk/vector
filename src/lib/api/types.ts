@@ -1,8 +1,16 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
 export type Feedback = {
     id: string;
     appointment_id: string;
     rating: number;
-    comment?: string;
+    comment?: string | null;
     created_at: string;
 };
 
@@ -13,7 +21,7 @@ export type Appointment = {
     start_time: string;
     end_time: string;
     status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'blocked';
-    notes?: string;
+    notes?: string | null;
     is_booked: boolean;
     is_video?: boolean;
     created_at: string;
@@ -40,7 +48,7 @@ export type ProviderResource = {
     title: string;
     url: string;
     category: 'video' | 'article' | 'worksheet' | 'exercise' | 'other';
-    description?: string;
+    description?: string | null;
     created_at: string;
 };
 

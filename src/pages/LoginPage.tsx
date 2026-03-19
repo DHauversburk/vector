@@ -13,16 +13,19 @@
  */
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { QrCode, Mail, Activity, Key, ShieldCheck, Fingerprint, Lock, Shield, Zap, CheckCircle2, Loader2, HelpCircle } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Lock, CheckCircle2 } from 'lucide-react';
 import { supabase, IS_MOCK } from '../lib/supabase';
 import { webauthn } from '../lib/webauthn';
 import { api } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
-import { TacticalPinField } from '../components/ui/TacticalPinField';
 import { TokenHelpModal } from '../components/ui/TokenHelpModal';
+
+// Extracted Auth Components
+import { AuthForm, LoadingPlaceholder } from '../components/auth/AuthForm';
+import { PinVerification } from '../components/auth/PinVerification';
+import { PinSetup } from '../components/auth/PinSetup';
+import { ResetFlow } from '../components/auth/ResetFlow';
 
 interface AuthenticationError {
     message: string;
@@ -84,21 +87,26 @@ export default function LoginPage() {
         }
     }, []);
 
-    // Handle URL params for mode selection
+    // Handle all URL parameters (mode, token, help)
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        const modeParam = params.get('mode');
+        const urlMode = params.get('mode');
+        const urlToken = params.get('token');
         const helpParam = params.get('help');
 
-        if (modeParam === 'patient') {
+        if (urlMode === 'patient') {
             setMode('token');
-        } else if (modeParam === 'staff' || modeParam === 'admin') {
+        } else if (urlMode === 'staff' || urlMode === 'admin') {
             setMode('email');
+        }
+
+        if (urlToken) {
+            setToken(urlToken);
+            setMode('token');
         }
 
         if (helpParam === 'token') {
             setMode('token');
-            // Give a small delay to allow animation to settle if needed, or just open immediately
             setTimeout(() => setShowTokenHelp(true), 500);
         }
     }, [location]);
@@ -165,8 +173,8 @@ export default function LoginPage() {
         setError('');
         try {
             if (!currentUserId) throw new Error('SESSION INVALID');
-            const savedPin = await api.getTacticalPin(currentUserId);
-            if (enteredPin === savedPin) {
+            const isValid = await api.verifyTacticalPin(currentUserId, enteredPin);
+            if (isValid) {
                 verifyPin();
                 navigate('/dashboard');
             } else {
@@ -207,25 +215,6 @@ export default function LoginPage() {
         }
     };
 
-    // Handle URL parameters for mode and token
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-
-        // Check for mode from landing page
-        const urlMode = params.get('mode');
-        if (urlMode === 'patient') {
-            setMode('token');
-        } else if (urlMode === 'staff' || urlMode === 'admin') {
-            setMode('email');
-        }
-
-        // Check for pre-filled token
-        const urlToken = params.get('token');
-        if (urlToken) {
-            setToken(urlToken);
-            setMode('token');
-        }
-    }, [location]);
 
     const handleLogin = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
@@ -237,48 +226,54 @@ export default function LoginPage() {
             let loginPassword = password;
 
             if (mode === 'token') {
-                const tokenMap: Record<string, string> = {
-                    'M-8821-X4': 'patient01@example.com',
-                    'M-3392-L9': 'patient02@example.com',
-                    'M-1102-P2': 'patient03@example.com',
-                    'P-MH-9921': 'docmh@example.com',
-                    'R-TEAM-99X2': 'doc_red@example.com',
-                    'MOCK-R-TEAM-99X2': 'doc_red@example.com',
-                    'B-TEAM-77K1': 'doc_blue@example.com',
-                    'CMD-ALPHA-1': 'admin@example.com',
-                    'DOC-MH': 'doc.mh.final@gmail.com',
-                    'DOC-FAM': 'doc_fam@example.com',
-                    'DOC-PT': 'doc_pt@example.com',
-                    'COMMAND-01': 'admin@example.com',
-                    'PATIENT-01': 'patient01@example.com',
-                    'PATIENT-02': 'patient02@example.com',
-                    'SARAH': 'patient03@example.com'
+                // Legacy mock token map (backward compat for testers with old tokens)
+                const legacyTokenMap: Record<string, string> = {
+                    'M-8821-X4': 'patient001@vector.mil',
+                    'M-3392-L9': 'patient002@vector.mil',
+                    'M-1102-P2': 'patient003@vector.mil',
+                    'PATIENT-01': 'patient001@vector.mil',
+                    'PATIENT-02': 'patient002@vector.mil',
+                    'SARAH': 'patient003@vector.mil',
+                    'P-MH-9921': 'mh.provider1@vector.mil',
+                    'DOC-MH': 'mh.provider1@vector.mil',
+                    'DOC-FAM': 'doc.provider1@vector.mil',
+                    'DOC-PT': 'pt.provider1@vector.mil',
+                    'R-TEAM-99X2': 'doc.provider1@vector.mil',
+                    'B-TEAM-77K1': 'mh.provider2@vector.mil',
+                    'CMD-ALPHA-1': 'admin@vector.mil',
+                    'COMMAND-01': 'admin@vector.mil',
                 };
 
                 const key = token.trim().toUpperCase();
-                const isMockToken =
-                    key.includes('MOCK') ||
-                    key.includes('TEST') ||
-                    key.includes('DOC_RED') ||
-                    key.includes('R-TEAM') ||
-                    key.includes('B-TEAM') ||
-                    key.includes('P-MH') ||
-                    key.includes('CMD-ALPHA') ||
-                    key.startsWith('M-');
 
-                if (isMockToken && !localStorage.getItem('PROJECT_VECTOR_DEMO_MODE')) {
-                    localStorage.setItem('PROJECT_VECTOR_DEMO_MODE', 'true');
-                    window.location.href = `/login?token=${encodeURIComponent(key)}&autosubmit=true`;
-                    return;
-                }
-
-                const mappedEmail = tokenMap[key];
-                if (mappedEmail) {
-                    loginEmail = mappedEmail;
+                // Resolve token → email
+                const legacyEmail = legacyTokenMap[key];
+                if (legacyEmail) {
+                    loginEmail = legacyEmail;
+                } else if (/^M-\d{1,3}$/.test(key)) {
+                    // Patient token: M-1 through M-300 → patient001@vector.mil
+                    const num = key.replace('M-', '');
+                    loginEmail = `patient${num.padStart(3, '0')}@vector.mil`;
+                } else if (/^P-(MH|DOC|MT|PT)-\d{3}$/.test(key)) {
+                    // Provider token: P-MH-001 → mh.provider1@vector.mil etc.
+                    const match = key.match(/^P-(MH|DOC|MT|PT)-(\d{3})$/);
+                    if (match) {
+                        const typeMap: Record<string, string> = {
+                            'MH': 'mh.provider',
+                            'DOC': 'doc.provider',
+                            'MT': 'medtech',
+                            'PT': 'pt.provider'
+                        };
+                        const prefix = typeMap[match[1]] || match[1].toLowerCase();
+                        loginEmail = `${prefix}${parseInt(match[2])}@vector.mil`;
+                    } else {
+                        loginEmail = `${key.toLowerCase()}@vector.mil`;
+                    }
                 } else {
-                    loginEmail = `${key.toLowerCase()}@vector.mil`;
+                    // Generic fallback: treat token as email prefix
+                    loginEmail = `${key.toLowerCase().replace(/\s+/g, '')}@vector.mil`;
                 }
-                loginPassword = 'SecurePass2025!';
+                loginPassword = 'VectorBeta2026!';
             }
 
             const { error } = await supabase.auth.signInWithPassword({
@@ -329,13 +324,7 @@ export default function LoginPage() {
     const isLoaded = (id: string) => loadedElements.has(id);
     const isLoading = (id: string) => bootPhase === id && !loadedElements.has(id);
 
-    // Loading placeholder component
-    const LoadingPlaceholder = ({ text, visible }: { text: string; visible: boolean }) => (
-        <div className={`flex items-center justify-center gap-2 transition-opacity duration-300 ${visible ? 'opacity-100' : 'opacity-0'}`}>
-            <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
-            <span className="text-xs font-mono text-blue-400 uppercase tracking-widest">{text}</span>
-        </div>
-    );
+
 
     return (
         <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden">
@@ -452,262 +441,44 @@ export default function LoginPage() {
                         <div className="relative bg-slate-900/80 backdrop-blur-2xl border border-slate-700/50 rounded-3xl p-8 shadow-2xl">
 
                             {stage === 'auth' ? (
-                                <>
-                                    {/* Mode Toggle */}
-                                    <div className={`transition-all duration-500 delay-100 ${isLoaded('inputs') ? 'opacity-100' : 'opacity-0'}`}>
-                                        <div className="flex bg-slate-950/80 p-1 rounded-xl border border-slate-800 mb-8">
-                                            <button
-                                                type="button"
-                                                onClick={() => setMode('token')}
-                                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all duration-300 ${mode === 'token'
-                                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                                                    : 'text-slate-500 hover:text-slate-300'
-                                                    }`}
-                                            >
-                                                <QrCode className="w-4 h-4" />
-                                                Token
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setMode('email')}
-                                                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all duration-300 ${mode === 'email'
-                                                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                                                    : 'text-slate-500 hover:text-slate-300'
-                                                    }`}
-                                            >
-                                                <Mail className="w-4 h-4" />
-                                                Email
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <form onSubmit={handleLogin} className="space-y-6">
-                                        {/* Input Fields Loading */}
-                                        {isLoading('inputs') && (
-                                            <div className="py-8 flex items-center justify-center">
-                                                <LoadingPlaceholder text={currentLoadingText} visible={true} />
-                                            </div>
-                                        )}
-
-                                        {/* Input Fields Loaded */}
-                                        <div className={`transition-all duration-500 ${isLoaded('inputs') ? 'opacity-100' : 'opacity-0'}`}>
-                                            {mode === 'email' ? (
-                                                <div className="space-y-5">
-                                                    <div className="space-y-2">
-                                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">
-                                                            Email Address
-                                                        </label>
-                                                        <Input
-                                                            type="email"
-                                                            placeholder="user@vector.mil"
-                                                            value={email}
-                                                            onChange={(e) => setEmail(e.target.value)}
-                                                            required
-                                                            className="h-12 bg-slate-950/50 border-slate-700 text-white placeholder:text-slate-600 focus:border-blue-500"
-                                                        />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">
-                                                            Password
-                                                        </label>
-                                                        <Input
-                                                            type="password"
-                                                            placeholder="••••••••••••"
-                                                            value={password}
-                                                            onChange={(e) => setPassword(e.target.value)}
-                                                            required
-                                                            className="h-12 bg-slate-950/50 border-slate-700 text-white placeholder:text-slate-600 focus:border-blue-500"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="space-y-6">
-                                                    <div className="space-y-3">
-                                                        <label className="text-sm font-black uppercase tracking-widest text-center block text-slate-300">
-                                                            Clinical Identity Token
-                                                        </label>
-                                                        <div className="relative group">
-                                                            <div className="absolute -inset-1 vector-gradient rounded-xl blur opacity-25 group-focus-within:opacity-50 transition-opacity" />
-                                                            <div className="relative">
-                                                                <input
-                                                                    ref={tokenInputRef}
-                                                                    type="text"
-                                                                    placeholder="M-XXXX-XX"
-                                                                    value={token}
-                                                                    onChange={(e) => setToken(e.target.value.toUpperCase())}
-                                                                    className="flex w-full h-16 text-center text-2xl tracking-[0.2em] font-black uppercase bg-slate-950/80 border-2 border-slate-700 text-white placeholder:text-slate-700 focus:border-blue-500 font-mono rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-                                                                />
-                                                                <Key className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 w-5 h-5" />
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowTokenHelp(true)}
-                                                            className="flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-blue-400 transition-colors mx-auto"
-                                                        >
-                                                            <HelpCircle className="w-4 h-4" />
-                                                            <span>What's a Token? Where do I find it?</span>
-                                                        </button>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <button
-                                                            type="button"
-                                                            className="group p-5 bg-slate-950/50 border border-slate-800 rounded-xl flex flex-col items-center justify-center hover:border-blue-500/50 hover:bg-slate-900/50 transition-all duration-300"
-                                                        >
-                                                            <div className="w-12 h-12 rounded-xl bg-slate-800/50 flex items-center justify-center mb-3 group-hover:bg-blue-900/30 transition-colors">
-                                                                <QrCode className="w-6 h-6 text-slate-500 group-hover:text-blue-400 transition-colors" />
-                                                            </div>
-                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-300 transition-colors">
-                                                                Scan QR
-                                                            </span>
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={handleBiometric}
-                                                            className="group p-5 bg-slate-950/50 border border-slate-800 rounded-xl flex flex-col items-center justify-center hover:border-emerald-500/50 hover:bg-slate-900/50 transition-all duration-300"
-                                                        >
-                                                            <div className="w-12 h-12 rounded-xl bg-slate-800/50 flex items-center justify-center mb-3 group-hover:bg-emerald-900/30 transition-colors">
-                                                                <Fingerprint className="w-6 h-6 text-slate-500 group-hover:text-emerald-400 transition-colors" />
-                                                            </div>
-                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-300 transition-colors">
-                                                                Biometric
-                                                            </span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Error Display */}
-                                        {error && (
-                                            <div className="flex items-start gap-3 p-4 bg-red-950/50 border border-red-900/50 rounded-xl text-red-400 animate-scale-in">
-                                                <ShieldCheck className="w-5 h-5 mt-0.5 shrink-0" />
-                                                <p className="text-xs font-black uppercase leading-relaxed tracking-wide">{error}</p>
-                                            </div>
-                                        )}
-
-                                        {/* Submit Button Loading */}
-                                        {isLoading('button') && (
-                                            <div className="py-4 flex items-center justify-center">
-                                                <LoadingPlaceholder text={currentLoadingText} visible={true} />
-                                            </div>
-                                        )}
-
-                                        {/* Submit Button Loaded */}
-                                        <div className={`transition-all duration-500 ${isLoaded('button') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                            <Button
-                                                type="submit"
-                                                variant="gradient"
-                                                size="lg"
-                                                className="w-full h-14 text-sm"
-                                                isLoading={loading}
-                                                disabled={!bootComplete}
-                                            >
-                                                {mode === 'token' ? (
-                                                    <>
-                                                        <Zap className="w-5 h-5 mr-2" />
-                                                        Authenticate
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Shield className="w-5 h-5 mr-2" />
-                                                        Secure Login
-                                                    </>
-                                                )}
-                                            </Button>
-                                        </div>
-
-                                        {/* Footer Loading */}
-                                        {isLoading('footer') && (
-                                            <div className="py-4 flex items-center justify-center">
-                                                <LoadingPlaceholder text={currentLoadingText} visible={true} />
-                                            </div>
-                                        )}
-
-                                        {/* Footer Links */}
-                                        <div className={`transition-all duration-500 ${isLoaded('footer') ? 'opacity-100' : 'opacity-0'}`}>
-                                            <div className="flex flex-col items-center gap-4 pt-4">
-                                                {mode === 'email' && (
-                                                    <Link
-                                                        to="/register"
-                                                        className="text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-blue-400 transition-colors"
-                                                    >
-                                                        Request Access Clearance
-                                                    </Link>
-                                                )}
-                                                <div className="flex items-center gap-2">
-                                                    <Activity className="w-4 h-4 text-emerald-500" />
-                                                    <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                                                        Zero PHI • FIPS-140
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </>
+                                <AuthForm
+                                    mode={mode}
+                                    setMode={setMode}
+                                    email={email}
+                                    setEmail={setEmail}
+                                    password={password}
+                                    setPassword={setPassword}
+                                    token={token}
+                                    setToken={setToken}
+                                    handleLogin={handleLogin}
+                                    handleBiometric={handleBiometric}
+                                    loading={loading}
+                                    error={error}
+                                    bootComplete={bootComplete}
+                                    setShowTokenHelp={setShowTokenHelp}
+                                    tokenInputRef={tokenInputRef}
+                                    isLoading={isLoading}
+                                    isLoaded={isLoaded}
+                                    currentLoadingText={currentLoadingText}
+                                />
                             ) : stage === 'pin' ? (
-                                <div className="space-y-6">
-                                    <div className="text-center mb-4">
-                                        <Shield className="w-12 h-12 mx-auto mb-4 text-blue-400" />
-                                        <h2 className="text-lg font-black uppercase tracking-widest text-white mb-2">
-                                            Security PIN Required
-                                        </h2>
-                                        <p className="text-xs text-slate-400 uppercase tracking-wide">
-                                            Enter your 4-digit security code
-                                        </p>
-                                    </div>
-                                    <TacticalPinField
-                                        onComplete={handlePinComplete}
-                                        error={error}
-                                        loading={pinLoading}
-                                    />
-                                </div>
+                                <PinVerification
+                                    error={error}
+                                    pinLoading={pinLoading}
+                                    onComplete={handlePinComplete}
+                                />
                             ) : stage === 'reset' ? (
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-black uppercase tracking-widest text-slate-400">
-                                            Administrative Reset Token
-                                        </label>
-                                        <Input
-                                            autoFocus
-                                            placeholder="Enter Reset Code"
-                                            className="h-12 bg-slate-950/50 border-slate-700 text-white"
-                                            onChange={(e) => {
-                                                if (e.target.value.length >= 4) handleReset(e.target.value);
-                                            }}
-                                        />
-                                    </div>
-                                    {error && (
-                                        <p className="text-xs text-red-400 font-bold uppercase">{error}</p>
-                                    )}
-                                    <Button
-                                        onClick={() => setStage('auth')}
-                                        variant="ghost"
-                                        className="w-full text-slate-500 hover:text-white"
-                                    >
-                                        Cancel Reset
-                                    </Button>
-                                </div>
+                                <ResetFlow
+                                    error={error}
+                                    handleReset={handleReset}
+                                    onCancel={() => setStage('auth')}
+                                />
                             ) : (
-                                <div className="space-y-6">
-                                    <div className="text-center mb-4">
-                                        <div className="w-12 h-12 mx-auto mb-4 rounded-full vector-gradient flex items-center justify-center">
-                                            <Shield className="w-6 h-6 text-white" />
-                                        </div>
-                                        <h2 className="text-lg font-black uppercase tracking-widest text-white mb-2">
-                                            Initialize Security
-                                        </h2>
-                                        <p className="text-xs text-slate-400 uppercase tracking-wide">
-                                            Create your 4-digit security PIN
-                                        </p>
-                                    </div>
-                                    <TacticalPinField
-                                        onComplete={handlePinSetup}
-                                        error={error}
-                                        loading={pinLoading}
-                                    />
-                                </div>
+                                <PinSetup
+                                    error={error}
+                                    pinLoading={pinLoading}
+                                    onComplete={handlePinSetup}
+                                />
                             )}
                         </div>
                     </div>

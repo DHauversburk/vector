@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from './database.types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -10,12 +11,12 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // SAFETY: For Beta, Force Mock Mode unless explicit Live Access is granted via LocalStorage
 const liveAccess = typeof window !== 'undefined' && window.localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true';
 
-let client: ReturnType<typeof createClient> | undefined;
+let client: ReturnType<typeof createClient<Database>> | undefined;
 let isMock = !liveAccess || !supabaseUrl || !supabaseAnonKey;
 
 try {
     if (!isMock) {
-        client = createClient(supabaseUrl, supabaseAnonKey);
+        client = createClient<Database>(supabaseUrl, supabaseAnonKey);
     }
 } catch (e) {
     console.error("Supabase Client Init Failed - Falling back to mock", e);

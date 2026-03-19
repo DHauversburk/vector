@@ -19,7 +19,7 @@ export const SecuritySettings: React.FC = () => {
         setIsBioEnrolled(localStorage.getItem('vector_biometric_enrolled') === 'true');
     }, []);
 
-    const { user } = useAuth();
+    const { user, role } = useAuth();
 
     const handleUpdatePin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -184,11 +184,9 @@ export const SecuritySettings: React.FC = () => {
                         <Button
                             variant="secondary"
                             onClick={() => {
-                                if (confirm('Factory Reset Simulation Data? This will reload the app.')) {
-                                    localStorage.removeItem('MOCK_DB_V1');
-                                    localStorage.removeItem('PROJECT_VECTOR_MOCK_SESSION');
-                                    window.location.reload();
-                                }
+                                api.mockStore.reset();
+                                localStorage.removeItem('PROJECT_VECTOR_MOCK_SESSION');
+                                window.location.reload();
                             }}
                             className="w-full h-10 text-[10px] font-black uppercase tracking-[0.2em] bg-red-600 hover:bg-red-700 text-white"
                         >
@@ -198,7 +196,7 @@ export const SecuritySettings: React.FC = () => {
                 </div>
 
                 {/* Admin Zone (Restricted) */}
-                {(user?.email?.includes('admin') || user?.email?.includes('alex')) && (
+                {role === 'admin' && (
                     <div className="bg-slate-900 dark:bg-black border border-slate-800 dark:border-slate-800 rounded-2xl p-6 shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                             <ShieldCheck className="w-24 h-24 text-white" />

@@ -7,6 +7,7 @@ import {
 import { cn } from '../../lib/utils';
 import CommandPalette from '../ui/CommandPalette';
 import { KeyboardShortcutsModal } from '../ui/KeyboardShortcutsModal';
+import { useSessionTimeout } from '../../hooks/useSessionTimeout';
 
 export interface NavItem {
     id: string;
@@ -59,6 +60,8 @@ export function DashboardLayout({
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile state
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
+    // Initialize global session timeout
+    useSessionTimeout();
 
     // Show bottom nav if explicitly set, or if 5 or fewer nav items
     const shouldShowBottomNav = showMobileBottomNav ?? navItems.length <= 5;

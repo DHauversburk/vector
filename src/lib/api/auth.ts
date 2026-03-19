@@ -1,17 +1,6 @@
-// Auth actions using localStorage for tactical PINs
+import { IS_MOCK } from '../supabase';
+import { supabaseAuth } from './auth/supabase';
+import { mockAuth } from './auth/mock';
+import type { IAuthActions } from './interfaces';
 
-export const authActions = {
-    /**
-     * Sets a tactical PIN in local storage for a specific user.
-     */
-    async setTacticalPin(userId: string, pin: string): Promise<void> {
-        localStorage.setItem(`TACTICAL_PIN_${userId}`, pin);
-    },
-
-    /**
-     * Retrieves the tactical PIN from local storage for a specific user.
-     */
-    async getTacticalPin(userId: string): Promise<string | null> {
-        return localStorage.getItem(`TACTICAL_PIN_${userId}`);
-    }
-};
+export const authActions: IAuthActions = IS_MOCK ? mockAuth : supabaseAuth;
