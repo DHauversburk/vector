@@ -291,7 +291,7 @@ function seedInitialData(userId: string) {
         });
     }
 
-    for (let d = 0; d < 90; d++) {
+    for (let d = 0; d < 30; d++) {
         const day = new Date(now);
         day.setDate(now.getDate() + d);
         if (day.getDay() === 0 || day.getDay() === 6) continue;

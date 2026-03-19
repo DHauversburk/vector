@@ -1,5 +1,8 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { api, type Appointment, type WaitlistEntry } from '../lib/api';
+import { swrFetcher } from '../lib/api/swr-fetcher';
+import useSWR, { useSWRConfig } from 'swr';
+import { toast } from 'sonner';
 import { Loader2, Clock, X, Shield, Activity, FileText } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
@@ -13,6 +16,7 @@ import {
     CardDescription
 } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+
 // --- LAZY-LOADED COMPONENTS ---
 const SecuritySettings = lazy(() => import('../components/SecuritySettings').then(m => ({ default: m.SecuritySettings })));
 const PatientResourcesView = lazy(() => import('../components/member/PatientResourcesView').then(m => ({ default: m.PatientResourcesView })));
@@ -36,15 +40,27 @@ const FeatureLoading = () => (
     </div>
 );
 
-
 export default function MemberDashboard() {
     const { user, signOut } = useAuth();
-    const [appointments, setAppointments] = useState<Appointment[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [bookingOpen, setBookingOpen] = useState(false);
-    const [providers, setProviders] = useState<{ id: string, token_alias: string, service_type: string }[]>([]);
+    const { mutate } = useSWRConfig();
+    
+    // Remote Data via SWR (Caching + Deduplication)
+    const { data: rawAppointments = [], isLoading: apptsLoading } = useSWR('appointments', swrFetcher);
+    const { data: rawProviders = [], isLoading: providersLoading } = useSWR('providers', swrFetcher);
+    const { data: rawWaitlist = [], isLoading: waitlistLoading } = useSWR('waitlist', swrFetcher);
 
-    // Reschedule / Swap Mode State
+    const loading = apptsLoading || providersLoading || waitlistLoading;
+    const appointments = rawAppointments as Appointment[];
+    const myWaitlist = rawWaitlist as WaitlistEntry[];
+    
+    // Unique Providers Filter
+    const providers = (rawProviders as any[]).filter((item, index, self) => 
+        index === self.findIndex((t) => (
+            t.token_alias === item.token_alias && t.service_type === item.service_type
+        ))
+    ) as { id: string, token_alias: string, service_type: string }[];
+
+    const [bookingOpen, setBookingOpen] = useState(false);
     const [isRescheduling, setIsRescheduling] = useState(false);
     const [apptToReschedule, setApptToReschedule] = useState<string | null>(null);
 
@@ -54,7 +70,6 @@ export default function MemberDashboard() {
 
     // Waitlist State
     const [waitlistOpen, setWaitlistOpen] = useState(false);
-    const [myWaitlist, setMyWaitlist] = useState<WaitlistEntry[]>([]);
     const [waitlistProviderId, setWaitlistProviderId] = useState<string>('');
 
     // Navigation State
@@ -63,42 +78,6 @@ export default function MemberDashboard() {
 
     // Help Request State
     const [helpModalOpen, setHelpModalOpen] = useState(false);
-
-
-
-    // Toast Notification State (non-blocking)
-    const [toast, setToast] = useState<{ type: 'success' | 'error' | 'warning', message: string } | null>(null);
-    const showToast = (type: 'success' | 'error' | 'warning', message: string) => {
-        setToast({ type, message });
-        setTimeout(() => setToast(null), 4000);
-    };
-
-    const loadData = async () => {
-        try {
-            const [myAppointments, providerList, waitlistData] = await Promise.all([
-                api.getMyAppointments(),
-                api.getProviders(),
-                api.getMyWaitlist()
-            ]);
-            setAppointments(myAppointments);
-            setMyWaitlist(waitlistData);
-
-            const uniqueProviders = Array.from(new Map(providerList.map((item: { token_alias: string, service_type: string, id: string }) =>
-                [item.token_alias + item.service_type, item])).values());
-
-            setProviders(uniqueProviders as { id: string, token_alias: string, service_type: string }[]);
-        } catch (error) {
-            console.error('Failed to load data', error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        loadData();
-    }, []);
-
-
 
     const startReschedule = (apptId: string) => {
         setIsRescheduling(true);
@@ -116,46 +95,30 @@ export default function MemberDashboard() {
     // Helper to determine location based on team/service
     const getProviderLocation = (serviceType?: string) => {
         const t = (serviceType || '').toUpperCase();
-        if (t.includes('GREEN') || t.includes('MH')) return 'Clinical Node B-4 (Bldg 210)'; // Mental Health
-        if (t.includes('BLUE') || t.includes('PT')) return 'Rehab Center - Wing C'; // Physical Therapy
-        if (t.includes('RED') || t.includes('MED') || t.includes('FAMILY')) return 'Primary Care - Bldg 1'; // Family Health
+        if (t.includes('GREEN') || t.includes('MH')) return 'Clinical Node B-4 (Bldg 210)';
+        if (t.includes('BLUE') || t.includes('PT')) return 'Rehab Center - Wing C';
+        if (t.includes('RED') || t.includes('MED') || t.includes('FAMILY')) return 'Primary Care - Bldg 1';
         return 'Main Clinic Front Desk';
     };
 
-
-
-
-
-
-
     const handleCancel = async (id: string) => {
-        // Policy Check: 30 minutes
         const appt = appointments.find(a => a.id === id);
         if (appt) {
             const minutesUntil = differenceInMinutes(parseISO(appt.start_time), new Date());
             if (minutesUntil < 30) {
-                showToast('error', 'Late Cancellation Forbidden: Cannot cancel within 30 minutes of appointment.');
+                toast.error('LATE CANCELLATION FORBIDDEN: Cannot cancel within 30 minutes of mission start.');
                 return;
             }
         }
 
-        showToast('warning', 'Processing cancellation...');
-        setLoading(true);
-
+        const toastId = toast.loading('Neutralizing appointment entry...');
         try {
             await api.cancelAppointment(id);
-            showToast('success', 'Appointment Cancelled Successfully');
-            await loadData();
-        } catch (error: unknown) {
-            const err = error as Error;
-            console.error('Cancellation error:', err);
-            let msg = err.message || 'Unknown error';
-            if (msg.includes('RLS') || msg.includes('policy')) {
-                msg = 'Permission Error: Access Denied.';
-            }
-            showToast('error', `Cancellation Failed: ${msg}`);
-        } finally {
-            setLoading(false);
+            toast.success('Appointment entry neutralized.', { id: toastId });
+            mutate('appointments');
+        } catch (error: any) {
+            console.error('Cancellation error:', error);
+            toast.error(`Cancellation Failed: ${error.message || 'Unknown protocol error'}`, { id: toastId });
         }
     };
 
@@ -165,7 +128,7 @@ export default function MemberDashboard() {
         { id: 'security', label: 'Security', icon: Shield, onClick: () => setActiveTab('security') },
     ];
 
-    if (loading) return (
+    if (loading && appointments.length === 0) return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4">
             <div className="flex flex-col items-center gap-4 animate-pulse">
                 <Loader2 className="animate-spin text-indigo-600 w-8 h-8" />
@@ -192,7 +155,7 @@ export default function MemberDashboard() {
                             <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase">Manage your care and appointments securely</p>
                         </header>
 
-                        {/* Hero & Countdown Section - Premium Design */}
+                        {/* Upcoming Session Countdown */}
                         {appointments.length > 0 && appointments.some(a => new Date(a.start_time) > new Date() && a.status !== 'cancelled') && (
                             <Card variant="glass" withGradientBorder className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border-none shadow-2xl overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-indigo-500/20 transition-all duration-1000"></div>
@@ -241,9 +204,7 @@ export default function MemberDashboard() {
                         )}
 
                         <QuickActionsPanel
-                            onBook={() => {
-                                setBookingOpen(true);
-                            }}
+                            onBook={() => setBookingOpen(true)}
                             onViewSchedule={() => {
                                 const el = document.getElementById('schedule-section');
                                 if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -254,24 +215,25 @@ export default function MemberDashboard() {
 
                         {/* Booking Console */}
                         {bookingOpen && (
-                        <BookingConsole
-                            providers={providers}
-                            appointments={appointments}
-                            myWaitlist={myWaitlist}
-                            isRescheduling={isRescheduling}
-                            apptToReschedule={apptToReschedule}
-                            onBookingComplete={() => {
-                                loadData();
-                                setBookingOpen(false);
-                                setIsRescheduling(false);
-                                setApptToReschedule(null);
-                            }}
-                            onCancelReschedule={cancelReschedule}
-                            onRequestWaitlist={(id) => {
-                                setWaitlistProviderId(id);
-                                setWaitlistOpen(true);
-                            }}
-                        />
+                            <BookingConsole
+                                providers={providers}
+                                appointments={appointments}
+                                myWaitlist={myWaitlist}
+                                isRescheduling={isRescheduling}
+                                apptToReschedule={apptToReschedule}
+                                onBookingComplete={() => {
+                                    mutate('appointments');
+                                    mutate('waitlist');
+                                    setBookingOpen(false);
+                                    setIsRescheduling(false);
+                                    setApptToReschedule(null);
+                                }}
+                                onCancelReschedule={cancelReschedule}
+                                onRequestWaitlist={(id) => {
+                                    setWaitlistProviderId(id);
+                                    setWaitlistOpen(true);
+                                }}
+                            />
                         )}
 
                         {/* Schedule Timeline */}
@@ -298,9 +260,10 @@ export default function MemberDashboard() {
                             <CardContent className="pt-6">
                                 <div className="grid gap-3">
                                     {(() => {
+                                        const now = new Date();
                                         const filtered = appointView === 'upcoming'
-                                            ? appointments.filter(a => a.status !== 'cancelled' && new Date(a.start_time) >= new Date()).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
-                                            : appointments.filter(a => a.status === 'cancelled' || new Date(a.start_time) < new Date()).sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
+                                            ? appointments.filter(a => a.status !== 'cancelled' && new Date(a.start_time) >= now).sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime())
+                                            : appointments.filter(a => a.status === 'cancelled' || new Date(a.start_time) < now).sort((a, b) => new Date(b.start_time).getTime() - new Date(a.start_time).getTime());
 
                                         if (filtered.length === 0) return (
                                             <div className="text-center py-20 bg-slate-50/10 dark:bg-slate-900/10 border border-dashed border-slate-300 dark:border-slate-800 rounded-lg">
@@ -334,11 +297,11 @@ export default function MemberDashboard() {
                 {activeTab === 'resources' && (
                     <Card variant="default" className="shadow-sm animate-in fade-in duration-500">
                         <CardHeader>
-                            <CardTitle className="uppercase tracking-widest">Health Resources</CardTitle>
+                            <CardTitle className="uppercase tracking-widest text-lg font-black">Health Resources</CardTitle>
                             <CardDescription className="uppercase text-[10px] font-bold">Educational materials from your healthcare providers</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <ErrorBoundary>
+                            <ErrorBoundary name="ResourcesView">
                                 <Suspense fallback={<FeatureLoading />}>
                                     <PatientResourcesView />
                                 </Suspense>
@@ -348,7 +311,7 @@ export default function MemberDashboard() {
                 )}
 
                 {activeTab === 'security' && (
-                    <ErrorBoundary>
+                    <ErrorBoundary name="SecuritySettings">
                         <Suspense fallback={<FeatureLoading />}>
                             <SecuritySettings />
                         </Suspense>
@@ -357,21 +320,6 @@ export default function MemberDashboard() {
             </div>
 
             {/* Modals */}
-            {toast && (
-                <div className="fixed top-20 right-4 z-50 animate-in slide-in-from-right-5 duration-300">
-                    <div className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border ${toast.type === 'success'
-                        ? 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-900/90 dark:border-emerald-800 dark:text-emerald-300'
-                        : toast.type === 'error'
-                            ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/90 dark:border-red-800 dark:text-red-300'
-                            : 'bg-amber-50 border-amber-200 text-amber-700 dark:bg-amber-900/90 dark:border-amber-800 dark:text-amber-300'
-                        }`}>
-                        <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
-                        <button onClick={() => setToast(null)} className="ml-2 opacity-50 hover:opacity-100 transition-opacity">
-                            <X className="w-3 h-3" />
-                        </button>
-                    </div>
-                </div>
-            )}
             <FeedbackModal
                 isOpen={feedbackOpen}
                 appointmentId={feedbackApptId}
@@ -379,12 +327,18 @@ export default function MemberDashboard() {
                     setFeedbackOpen(false);
                     setFeedbackApptId(null);
                 }}
+                onSuccess={() => mutate('appointments')}
             />
 
-            <ErrorBoundary>
+            <ErrorBoundary name="DashboardModals">
                 <Suspense fallback={null}>
                     <HelpRequestModal isOpen={helpModalOpen} onClose={() => setHelpModalOpen(false)} />
-                    <WaitlistModal isOpen={waitlistOpen} onClose={() => setWaitlistOpen(false)} providerId={waitlistProviderId} serviceType={providers.find(p => p.id === waitlistProviderId)?.service_type || ''} />
+                    <WaitlistModal 
+                        isOpen={waitlistOpen} 
+                        onClose={() => setWaitlistOpen(false)} 
+                        providerId={waitlistProviderId} 
+                        serviceType={providers.find(p => p.id === waitlistProviderId)?.service_type || ''} 
+                    />
                 </Suspense>
             </ErrorBoundary>
 

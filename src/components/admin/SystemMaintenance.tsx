@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { toast } from 'sonner';
 import { api } from '../../lib/api';
 import { Button } from '../ui/Button';
 import { Trash2, RefreshCw, AlertTriangle, CheckCircle, Database } from 'lucide-react';
@@ -21,7 +22,7 @@ export const SystemMaintenance = () => {
             setScanResults(stats);
         } catch (error) {
             console.error(error);
-            alert("Scan failed");
+            toast.error("Scan failed");
         } finally {
             setLoading(false);
         }
@@ -32,12 +33,12 @@ export const SystemMaintenance = () => {
         setLoading(true);
         try {
             await api.fixDuplicateUsers();
-            alert("Cleanup Complete. Duplicates removed.");
+            toast.success("Cleanup Complete. Duplicates removed.");
             // Re-scan
             scanDatabase();
         } catch (error) {
             console.error(error);
-            alert("Cleanup Failed.");
+            toast.error("Cleanup Failed.");
         } finally {
             setLoading(false);
         }
@@ -47,11 +48,11 @@ export const SystemMaintenance = () => {
         if (!confirm("EXTREME DANGER: This will wipe ALL mock appointments, settings, and local changes. \n\nThis is irreversible. Are you sure?")) return;
         try {
             await api.resetMockData();
-            alert("Mock Data Wiped Successfully.");
+            toast.success("Mock Data Wiped Successfully.");
             scanDatabase();
         } catch (error) {
             console.error(error);
-            alert("Wipe failed.");
+            toast.error("Wipe failed.");
         }
     };
 
@@ -164,10 +165,10 @@ export const SystemMaintenance = () => {
                                 try {
                                     setLoading(true);
                                     const count = await api.pruneInactiveUsers(days);
-                                    alert(`Pruning Successful. Removed ${count} accounts.`);
+                                    toast.success(`Pruning Successful. Removed ${count} accounts.`);
                                     scanDatabase();
                                 } catch (e) {
-                                    alert('Pruning failed. Check Console / RPC.');
+                                    toast.error('Pruning failed. Check Console / RPC.');
                                     console.error(e);
                                 } finally {
                                     setLoading(false);

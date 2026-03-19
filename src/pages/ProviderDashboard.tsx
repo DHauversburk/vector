@@ -6,7 +6,7 @@ import { useAuth } from '../hooks/useAuth';
 import { ProviderSchedule } from '../components/provider/ProviderSchedule';
 import { ProviderOverview } from '../components/provider/ProviderOverview';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';
-import { Toaster } from 'sonner';
+
 import { QuickNoteModal } from '../components/ui/QuickNoteModal';
 import { DashboardLayout, type NavItem } from '../components/layout/DashboardLayout';
 import { WelcomeModal } from '../components/onboarding/WelcomeModal';
@@ -121,7 +121,7 @@ export default function ProviderDashboard() {
         >
             <WelcomeModal role="provider" userName="Provider Console" />
             <div className="max-w-[1600px] mx-auto px-4 md:px-6 pt-2 pb-4 md:pt-4 md:pb-6 space-y-4 md:space-y-6">
-                <ErrorBoundary fallbackTitle="Dashboard Module Failure">
+                <ErrorBoundary name="ProviderDashboard">
                     {view === 'overview' && <ProviderOverview onNavigate={(v) => setView(v as typeof view)} />}
 
                     {view === 'schedule' && (
@@ -312,7 +312,7 @@ export default function ProviderDashboard() {
             />
 
             <QuickNoteModal isOpen={quickNoteOpen} onClose={() => setQuickNoteOpen(false)} />
-            <Toaster position="top-right" />
+
         </DashboardLayout>
     );
 }

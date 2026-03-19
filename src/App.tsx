@@ -21,6 +21,7 @@ import { TourTooltip } from './components/onboarding/TourTooltip';
 import { LoadingState } from './components/ui/LoadingState';
 import { AnnouncerProvider } from './components/ui/ScreenReaderAnnouncer';
 import { ErrorBoundary } from './components/ui/ErrorBoundary';
+import { Toaster } from 'sonner';
 
 // --- LAZY-LOADED PAGES ---
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -94,6 +95,7 @@ function App() {
                       </Routes>
                     </Suspense>
                   </ErrorBoundary>
+                  <Toaster position="top-right" richColors />
                 </AnnouncerProvider>
               </OnboardingProvider>
             </OfflineProvider>

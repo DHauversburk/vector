@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '../ui/Button';
 import { api } from '../../lib/api';
 
@@ -21,12 +22,12 @@ export function FeedbackModal({ isOpen, appointmentId, onClose, onSuccess }: Fee
         setLoading(true);
         try {
             await api.submitFeedback(appointmentId, rating, comment);
-            alert('Feedback Submitted.');
+            toast.success('Feedback Submitted.');
             onClose();
             if (onSuccess) onSuccess();
         } catch (error) {
             console.error(error);
-            alert('Failed to submit feedback.');
+            toast.error('Failed to submit feedback.');
         } finally {
             setLoading(false);
         }

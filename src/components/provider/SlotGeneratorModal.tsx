@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { X } from 'lucide-react';
@@ -43,11 +44,11 @@ export function SlotGeneratorModal({ isOpen, onClose, onSuccess }: SlotGenerator
                 isBlockMode ? blockReason : null
             );
             onSuccess();
-            alert(isBlockMode ? 'Block-out time added.' : 'Slots generated successfully.');
+            toast.info(isBlockMode ? 'Block-out time added.' : 'Slots generated successfully.');
         } catch (error: unknown) {
             const err = error as Error;
             console.error(err);
-            alert('Generation Failed: ' + err.message);
+            toast.error('Generation Failed: ' + err.message);
         } finally {
             setGenLoading(false);
         }

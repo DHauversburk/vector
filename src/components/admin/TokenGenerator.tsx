@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Printer, Copy, Check, LayoutGrid, List, Trash2 } from 'lucide-react';
@@ -93,11 +94,11 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
             for (const id of ids) {
                 try { await api.adminDeleteUser(id); } catch (e) { console.error(e); }
             }
-            alert('Bulk Action Complete');
+            toast.success('Bulk Action Complete');
             setSelectedIds(new Set());
             loadDirectory();
         } catch {
-            alert('Bulk Delete Error');
+            toast.error('Bulk Delete Error');
         } finally {
             setLoadingDir(false);
         }
@@ -122,7 +123,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
         } catch (e) {
             console.error(e);
             console.error(e);
-            alert('Failed to load user directory: ' + JSON.stringify(e, null, 2));
+            toast.error('Failed to load user directory: ' + JSON.stringify(e, null, 2););
         } finally {
             setLoadingDir(false);
         }
@@ -132,10 +133,10 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
         if (!confirm(`Reset PIN for ${alias}? User will need to set a new PIN on next login.`)) return;
         try {
             await api.adminResetUserSecurity(userId);
-            alert(`PIN Reset for ${alias}`);
+            toast.success(`PIN Reset for ${alias}`);
         } catch (e) {
             console.error(e);
-            alert('Reset failed');
+            toast.error('Reset failed');
         }
     };
 
@@ -143,11 +144,11 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
         if (!confirm(`DANGER: Permanently delete user ${alias || userId}? This cannot be undone.`)) return;
         try {
             await api.adminDeleteUser(userId);
-            alert(`User ${alias} Deleted`);
+            toast.success(`User ${alias} Deleted`);
             loadDirectory();
         } catch (e) {
             console.error(e);
-            alert('Delete failed');
+            toast.error('Delete failed');
         }
     };
 
@@ -213,7 +214,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
 
         } catch (error) {
             console.error(error);
-            alert('Batch Generation Failed');
+            toast.error('Batch Generation Failed');
         } finally {
             setIsGenerating(false);
         }

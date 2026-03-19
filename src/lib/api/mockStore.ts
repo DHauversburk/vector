@@ -9,6 +9,7 @@ export const mockStore = {
     init: false,
 
     load: () => {
+        if (mockStore.init) return;
         const stored = localStorage.getItem('MOCK_DB_V4');
         if (stored) {
             const parsed = JSON.parse(stored);

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { ShieldAlert } from 'lucide-react';
@@ -31,10 +32,10 @@ export function ClearScheduleModal({ isOpen, onClose, onSuccess }: ClearSchedule
             await api.clearSchedule(clearStart, clearEnd, cleanBooked);
             setCleanBooked(false);
             onSuccess();
-            alert('Schedule cleared successfully.');
+            toast.success('Schedule cleared successfully.');
         } catch (error) {
             console.error(error);
-            alert('Failed to clear schedule');
+            toast.error('Failed to clear schedule');
         } finally {
             setGenLoading(false);
         }
