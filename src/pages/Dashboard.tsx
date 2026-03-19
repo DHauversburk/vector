@@ -10,7 +10,7 @@
  * 
  * @returns {JSX.Element} The active dashboard based on user role
  */
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import MemberDashboard from './MemberDashboard';
 import ProviderDashboard from './ProviderDashboard';
 import AdminDashboard from './AdminDashboard';

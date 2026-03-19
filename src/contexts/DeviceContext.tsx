@@ -22,8 +22,8 @@
  * - If changes aren't detected: Ensure DeviceProvider wraps your app
  */
 
-/* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, useEffect, useLayoutEffect, useCallback, type ReactNode } from 'react';
+
+import { createContext, useState, useEffect, useLayoutEffect, useCallback, type ReactNode } from 'react';
 import type { DeviceType, Orientation, DeviceState, DeviceContextValue } from './deviceTypes';
 
 // Re-export types for convenience (needed for consumers who import from this file)
@@ -40,7 +40,7 @@ const BREAKPOINTS = {
 const STORAGE_KEY = 'vector-device-override';
 
 // --- Context ---
-const DeviceContext = createContext<DeviceContextValue | null>(null);
+export const DeviceContext = createContext<DeviceContextValue | null>(null);
 
 // --- Helper Functions ---
 
@@ -156,11 +156,9 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
         };
     }, [handleResize]);
 
-    // Initial detection - use layout effect to sync before paint
     useLayoutEffect(() => {
         handleResize();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [handleResize]);
 
     // Override setter
     const setOverride = useCallback((device: DeviceType | null) => {
@@ -201,15 +199,6 @@ export function DeviceProvider({ children }: DeviceProviderProps) {
  * @example
  * const { isMobile, isTouch, effectiveDevice } = useDevice();
  */
-export function useDevice(): DeviceContextValue {
-    const context = useContext(DeviceContext);
-
-    if (!context) {
-        throw new Error('useDevice must be used within a DeviceProvider');
-    }
-
-    return context;
-}
 
 // --- Export default for lazy loading ---
 export default DeviceProvider;

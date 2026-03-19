@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { api, type WaitlistEntry } from '../../lib/api';
 import { Clock, CheckCircle, XCircle, Calendar } from 'lucide-react';
 import { Button } from '../ui/Button';

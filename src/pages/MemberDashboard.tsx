@@ -1,7 +1,7 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { api, type Appointment, type WaitlistEntry } from '../lib/api';
 import { Loader2, Clock, X, Shield, Activity, FileText } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { DashboardLayout, type NavItem } from '../components/layout/DashboardLayout';
 import { WelcomeModal } from '../components/onboarding/WelcomeModal';

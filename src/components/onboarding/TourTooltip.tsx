@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { X, ChevronLeft, ChevronRight, SkipForward, Check } from 'lucide-react';
-import { useOnboarding } from '../../contexts/OnboardingContext';
+import { useOnboarding } from '../../hooks/useOnboarding';
 import { cn } from '../../lib/utils';
 
 interface TooltipPosition {

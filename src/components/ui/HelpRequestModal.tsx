@@ -10,7 +10,7 @@
 import { useState, useEffect } from 'react';
 import { X, HelpCircle, MessageSquare, Calendar, AlertTriangle, Wrench, Send, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from './Button';
-import { useOffline } from '../../contexts/OfflineContext';
+import { useOffline } from '../../hooks/useOffline';
 // Force Refresh
 import { type HelpRequest } from '../../lib/api';
 

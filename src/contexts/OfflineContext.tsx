@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { OfflineQueue } from '../lib/offline/queue';
 import { api } from '../lib/api';
@@ -13,7 +13,7 @@ interface OfflineContextType {
     syncNow: () => Promise<void>;
 }
 
-const OfflineContext = createContext<OfflineContextType | null>(null);
+export const OfflineContext = createContext<OfflineContextType | null>(null);
 
 export const OfflineProvider = ({ children }: { children: ReactNode }) => {
     const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -145,8 +145,3 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
-export const useOffline = () => {
-    const context = useContext(OfflineContext);
-    if (!context) throw new Error("useOffline must be used within OfflineProvider");
-    return context;
-};

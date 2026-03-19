@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
+import { createContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 
 // Tour step definition
 export interface TourStep {
@@ -10,7 +10,6 @@ export interface TourStep {
 }
 
 // Pre-defined tour sequences for each role
-// eslint-disable-next-line react-refresh/only-export-components
 export const TOUR_SEQUENCES: Record<string, TourStep[]> = {
     member: [
         {
@@ -157,7 +156,7 @@ interface OnboardingContextType {
     resetTourProgress: () => void;
 }
 
-const OnboardingContext = createContext<OnboardingContextType | null>(null);
+export const OnboardingContext = createContext<OnboardingContextType | null>(null);
 
 const STORAGE_KEY = 'vector_onboarding_completed';
 
@@ -259,11 +258,3 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 /**
  * Hook to access onboarding context
  */
-// eslint-disable-next-line react-refresh/only-export-components
-export function useOnboarding() {
-    const context = useContext(OnboardingContext);
-    if (!context) {
-        throw new Error('useOnboarding must be used within OnboardingProvider');
-    }
-    return context;
-}

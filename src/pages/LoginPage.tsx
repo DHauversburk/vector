@@ -18,7 +18,7 @@ import { Lock, CheckCircle2 } from 'lucide-react';
 import { supabase, IS_MOCK } from '../lib/supabase';
 import { webauthn } from '../lib/webauthn';
 import { api } from '../lib/api';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { TokenHelpModal } from '../components/ui/TokenHelpModal';
 
 // Extracted Auth Components

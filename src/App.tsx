@@ -4,22 +4,12 @@
  * @component
  * @description The main application entry point with routing, authentication,
  * and theme management. Features a new landing page for user type selection.
- * 
- * Routes:
- * - / → LandingPage (user type selection)
- * - /login → LoginPage (token/email auth)
- * - /register → RegisterPage
- * - /dashboard → Dashboard (protected)
- * 
- * @troubleshooting
- * - Auth not working: Verify Supabase configuration in lib/supabase.ts
- * - Theme not applying: Check ThemeProvider and localStorage
- * - Dark mode not default: Verify defaultTheme="dark" in ThemeProvider
  */
 
 import { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { useAuth } from './hooks/useAuth';;
 import { ThemeProvider } from './contexts/ThemeContext';
 import { DeviceProvider } from './contexts/DeviceContext';
 import { PWAManager } from './components/ui/PWAManager';
@@ -30,6 +20,7 @@ import { OfflineProvider } from './contexts/OfflineContext';
 import { TourTooltip } from './components/onboarding/TourTooltip';
 import { LoadingState } from './components/ui/LoadingState';
 import { AnnouncerProvider } from './components/ui/ScreenReaderAnnouncer';
+import { ErrorBoundary } from './components/ui/ErrorBoundary';
 
 // --- LAZY-LOADED PAGES ---
 const LandingPage = lazy(() => import('./pages/LandingPage'));
@@ -83,24 +74,26 @@ function App() {
                   <PWAManager />
                   <FeedbackWidget />
                   <TourTooltip />
-                  <Suspense fallback={<LoadingFallback />}>
-                    <Routes>
-                      {/* Public Routes */}
-                      <Route path="/" element={<LandingPage />} />
-                      <Route path="/login" element={<LoginPage />} />
-                      <Route path="/register" element={<RegisterPage />} />
+                  <ErrorBoundary name="Root">
+                    <Suspense fallback={<LoadingFallback />}>
+                      <Routes>
+                        {/* Public Routes */}
+                        <Route path="/" element={<LandingPage />} />
+                        <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegisterPage />} />
 
-                      {/* Protected Routes */}
-                      <Route path="/dashboard" element={
-                        <ProtectedRoute>
-                          <Dashboard />
-                        </ProtectedRoute>
-                      } />
+                        {/* Protected Routes */}
+                        <Route path="/dashboard" element={
+                          <ProtectedRoute>
+                            <Dashboard />
+                          </ProtectedRoute>
+                        } />
 
-                      {/* Fallback - redirect unknown routes to landing */}
-                      <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
-                  </Suspense>
+                        {/* Fallback - redirect unknown routes to landing */}
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </Suspense>
+                  </ErrorBoundary>
                 </AnnouncerProvider>
               </OnboardingProvider>
             </OfflineProvider>

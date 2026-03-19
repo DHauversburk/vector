@@ -5,13 +5,6 @@
  * @description Allows providers to quickly document brief patient interactions
  * without creating a full appointment. Categories include questions answered,
  * counseling provided, reschedule requests, and follow-up notes.
- * 
- * @features
- * - Device-adaptive layout (bottom-sheet on mobile, centered on desktop)
- * - Voice dictation via Web Speech API
- * - Timestamp-based Quick ID generation
- * - Follow-up appointment creation from notes
- * - Rapid-fire mode for back-to-back documentation
  */
 
 import { useState, useEffect, useRef } from 'react';
@@ -19,9 +12,9 @@ import { X, FileText, MessageSquare, Calendar, CalendarPlus, UserCheck, Settings
 import { Button } from './Button';
 import { api, type EncounterNote, type EncounterNoteCategory, type EncounterNoteStatus } from '../../lib/api';
 import { toast } from 'sonner';
-import { useDevice } from '../../contexts/DeviceContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { useOffline } from '../../contexts/OfflineContext';
+import { useDevice } from '../../hooks/useDevice';
+import { useAuth } from '../../hooks/useAuth';
+import { useOffline } from '../../hooks/useOffline';
 
 interface QuickNoteModalProps {
     isOpen: boolean;
@@ -44,14 +37,6 @@ const noteCategories: { value: EncounterNoteCategory; label: string; icon: typeo
     { value: 'other', label: 'Other', icon: HelpCircle, color: 'gray' },
 ];
 
-// TODO: Sprint 8 - Add status selector UI using statusOptions
-// const statusOptions: { value: EncounterNoteStatus; label: string; color: string }[] = [
-//     { value: 'active', label: 'Active', color: 'blue' },
-//     { value: 'requires_action', label: 'Needs Action', color: 'amber' },
-//     { value: 'resolved', label: 'Resolved', color: 'emerald' },
-// ];
-
-
 export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }: QuickNoteModalProps) {
     const { user } = useAuth();
     const { executeMutation } = useOffline();
@@ -73,9 +58,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
     const [isDragging, setIsDragging] = useState(false);
     const dragStartY = useRef(0);
     const modalRef = useRef<HTMLDivElement>(null);
-    // Web Speech API doesn't have built-in TypeScript types
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const recognitionRef = useRef<any>(null);
+    const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     // Follow-up scheduling state
     const [scheduleFollowUp, setScheduleFollowUp] = useState(false);
@@ -84,16 +67,14 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
 
     // Initialise Speech Recognition
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            recognitionRef.current = new SpeechRecognition();
+        const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognitionClass) {
+            recognitionRef.current = new SpeechRecognitionClass();
             recognitionRef.current.continuous = true;
             recognitionRef.current.interimResults = true;
             recognitionRef.current.lang = 'en-US';
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            recognitionRef.current.onresult = (event: any) => {
+            recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
                 let transcript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
@@ -108,8 +89,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                 }
             };
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            recognitionRef.current.onerror = (event: any) => {
+            recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
                 console.error('Speech recognition error', event.error);
                 setIsListening(false);
                 toast.error(`Speech Error: ${event.error}`);
@@ -140,7 +120,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
         if (isOpen) loadRecent();
     }, [isOpen]);
 
-    // Reset form when closed - must be before conditional return
+    // Reset form when closed
     useEffect(() => {
         if (!isOpen) {
             setDragY(0);
@@ -169,13 +149,11 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                 });
             } catch (e) {
                 console.error("Speech start error", e);
-                // Handle case where it's already started
                 setIsListening(true);
             }
         }
     };
 
-    // Handle touch events for mobile swipe-to-dismiss
     const handleTouchStart = (e: React.TouchEvent) => {
         if (!isMobile) return;
         dragStartY.current = e.touches[0].clientY;
@@ -186,7 +164,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
         if (!isDragging || !isMobile) return;
         const currentY = e.touches[0].clientY;
         const deltaY = currentY - dragStartY.current;
-        // Only allow dragging down
         if (deltaY > 0) {
             setDragY(deltaY);
         }
@@ -195,7 +172,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
     const handleTouchEnd = () => {
         if (!isMobile) return;
         setIsDragging(false);
-        // If dragged more than 100px, close the modal
         if (dragY > 100) {
             onClose();
         }
@@ -233,10 +209,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
         setError('');
 
         try {
-            // 1. Generate Client-Side ID for Offline Consistency
             const noteId = `note-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-            // 2. Queue Note Creation
             const noteData = {
                 id: noteId,
                 member_id: memberId || `manual-${Date.now()}`,
@@ -247,20 +220,17 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                 resolved: false,
                 status,
                 archived: false,
-                created_at: new Date().toISOString() // Ensure created_at is present for offline display
+                created_at: new Date().toISOString()
             };
 
             await executeMutation('CREATE_NOTE', noteData);
 
-            // 3. Queue Follow-up Link (if needed)
             if (scheduleFollowUp && followUpDate) {
                 const followUpId = `followup-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
                 await executeMutation('LINK_NOTE_FOLLOWUP', {
                     noteId: noteId,
                     appointmentId: followUpId
                 });
-
                 toast.success(`Note queued with follow-up for ${followUpDate}`);
             } else {
                 onSuccess?.(noteData as EncounterNote);
@@ -276,7 +246,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                     toast.success('Note saved successfully');
                 }
             } else {
-                // Reset form
                 setContent('');
                 setCategory('question');
                 setScheduleFollowUp(false);
@@ -333,19 +302,14 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
 
     return (
         <div
-            className={`fixed inset-0 z-50 ${isMobile
-                ? 'flex items-end'
-                : 'flex items-center justify-center p-4'
-                }`}
+            className={`fixed inset-0 z-50 ${isMobile ? 'flex items-end' : 'flex items-center justify-center p-4'}`}
             onClick={onClose}
         >
-            {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm transition-opacity"
                 style={{ opacity: isMobile ? Math.max(0, 1 - dragY / 300) : 1 }}
             />
 
-            {/* Modal */}
             <div
                 ref={modalRef}
                 className={`relative w-full bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden ${isMobile
@@ -358,7 +322,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                 } : {}}
                 onClick={e => e.stopPropagation()}
             >
-                {/* Mobile Drag Handle */}
                 {isMobile && (
                     <div
                         className="py-3 flex justify-center cursor-grab active:cursor-grabbing touch-none"
@@ -370,7 +333,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                     </div>
                 )}
 
-                {/* Header */}
                 <div className={`relative ${isMobile ? 'px-6 pb-4' : 'p-6 pb-4'} border-b border-slate-800`}>
                     <button
                         onClick={onClose}
@@ -390,9 +352,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                     </div>
                 </div>
 
-                {/* Content */}
                 <div className="p-6 space-y-5">
-                    {/* Patient Selection */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
@@ -413,7 +373,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                             </div>
                         </div>
 
-                        {/* Quick Select Bar */}
                         {recentMembers.length > 0 && !preselectedMember && (
                             <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                                 {recentMembers.map(m => (
@@ -436,7 +395,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                             value={memberName}
                             onChange={e => {
                                 setMemberName(e.target.value);
-                                setMemberId(''); // Clear manual ID if name is edited
+                                setMemberId('');
                             }}
                             placeholder="Name or Token (e.g., M-8821-X4)"
                             disabled={!!preselectedMember}
@@ -444,7 +403,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                         />
                     </div>
 
-                    {/* Category Selection */}
                     <div className="space-y-2">
                         <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
                             Interaction Type
@@ -471,7 +429,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                         </div>
                     </div>
 
-                    {/* Note Content */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
@@ -506,7 +463,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                         </div>
                     </div>
 
-                    {/* Field Toggles */}
                     <div className="pt-2 space-y-3">
                         <button
                             onClick={() => setKeepOpen(!keepOpen)}
@@ -524,7 +480,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                             </div>
                         </button>
 
-                        {/* Schedule Follow-Up Toggle */}
                         <button
                             onClick={() => setScheduleFollowUp(!scheduleFollowUp)}
                             className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${scheduleFollowUp ? 'bg-emerald-900/40 border-emerald-500 text-emerald-300' : 'bg-slate-800/40 border-slate-700 text-slate-500'}`}
@@ -541,7 +496,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                             </div>
                         </button>
 
-                        {/* Follow-Up Date/Time Picker (shown when toggle is on) */}
                         {scheduleFollowUp && (
                             <div className="p-4 bg-emerald-950/30 border border-emerald-700/50 rounded-lg space-y-3 animate-slide-up">
                                 <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
@@ -575,7 +529,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                         )}
                     </div>
 
-                    {/* Error Display */}
                     {error && (
                         <div className="p-3 rounded-lg bg-red-950/50 border border-red-500/50 text-red-400 text-sm">
                             {error}
@@ -583,7 +536,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                     )}
                 </div>
 
-                {/* Footer */}
                 <div className="p-6 pt-0 flex gap-3">
                     <Button
                         onClick={onClose}

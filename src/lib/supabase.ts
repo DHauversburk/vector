@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './database.types';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -11,7 +11,7 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 // SAFETY: For Beta, Force Mock Mode unless explicit Live Access is granted via LocalStorage
 const liveAccess = typeof window !== 'undefined' && window.localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true';
 
-let client: ReturnType<typeof createClient<Database>> | undefined;
+let client: SupabaseClient<Database> | undefined;
 let isMock = !liveAccess || !supabaseUrl || !supabaseAnonKey;
 
 try {
@@ -28,17 +28,14 @@ export const IS_MOCK = isMock;
 // --- MOCK CLIENT IMPLEMENTATION ---
 
 // Mock Event Emitter
-// This system simulates Supabase's `onAuthStateChange` subscription model.
-// When 'signInWithPassword' or 'signOut' is called in mock mode, we manually fire events
-// to all registered listeners. This ensures the UI (AuthContext) updates immediately.
-const mockAuthListeners: Array<(event: string, session: unknown) => void> = [];
+const mockAuthListeners: Array<(event: string, session: any) => void> = [];
 
-const notifyListeners = (event: string, session: unknown) => {
+const notifyListeners = (event: string, session: any) => {
     mockAuthListeners.forEach(cb => cb(event, session));
 };
 
 // State for Mock Session
-let mockSession: unknown = null;
+let mockSession: any = null;
 
 // Initialize from LocalStorage if available
 if (typeof window !== 'undefined') {
@@ -52,39 +49,32 @@ if (typeof window !== 'undefined') {
     }
 }
 
-// --- MOCK CLIENT IMPLEMENTATION ---
 const mockSupabase = {
     auth: {
         getSession: async () => ({
-            data: {
-                session: mockSession as unknown
-            },
+            data: { session: mockSession },
             error: null
         }),
         getUser: async () => ({
-            data: { user: (mockSession as unknown as { user: unknown })?.user ?? null },
+            data: { user: mockSession?.user ?? null },
             error: null
         }),
         signInWithPassword: async ({ email, password }: { email: string, password?: string }) => {
             console.log('[MOCK] Auth Attempt:', email);
             
-            // SECURITY: For Beta, ensure we use the correct simulation password
             const BETA_PASSWORD = 'VectorBeta2026!';
             if (password !== BETA_PASSWORD) {
-                console.warn('[MOCK] Auth Failure: Incorrect password for', email);
                 return {
                     data: { user: null, session: null },
                     error: { message: 'Invalid login credentials' }
                 };
             }
 
-            // Determine Role and valid mock users
             const isProvider = email.includes('provider') || email.includes('medtech') || email.includes('doc') || email.includes('pt');
             const isAdmin = email.includes('admin');
             const isPatient = email.includes('patient');
 
             if (!isAdmin && !isProvider && !isPatient) {
-                console.warn('[MOCK] Auth Failure: Unknown user path', email);
                 return {
                     data: { user: null, session: null },
                     error: { message: 'Authentication restricted to authorized beta paths' }
@@ -115,7 +105,6 @@ const mockSupabase = {
                     tokenAlias = 'DR. JAMESON';
                 }
             } else {
-                // Member Logic - strictly map to 1-300 or known legacy
                 const match = email.match(/patient(\d{3})/);
                 if (match) {
                     const num = match[1];
@@ -155,21 +144,14 @@ const mockSupabase = {
                 error: null
             };
         },
-        signUp: async ({ email, options }: { email: string; options?: { data?: unknown } }) => {
-            console.log('[MOCK] Sign Up:', email);
+        signUp: async ({ email, options }: any) => {
             const user = { id: 'mock-user-123', email, user_metadata: options?.data };
             const session = { access_token: 'mock-token', user };
-
             mockSession = session;
             notifyListeners('SIGNED_IN', session);
-
-            return {
-                data: { user, session },
-                error: null
-            };
+            return { data: { user, session }, error: null };
         },
         signOut: async () => {
-            console.log('[MOCK] Sign Out');
             mockSession = null;
             if (typeof window !== 'undefined') {
                 window.localStorage.removeItem('PROJECT_VECTOR_MOCK_SESSION');
@@ -177,7 +159,7 @@ const mockSupabase = {
             notifyListeners('SIGNED_OUT', null);
             return { error: null };
         },
-        onAuthStateChange: (callback: (event: string, session: unknown) => void) => {
+        onAuthStateChange: (callback: any) => {
             mockAuthListeners.push(callback);
             return {
                 data: {
@@ -191,58 +173,38 @@ const mockSupabase = {
             };
         }
     },
-    from: (table: string) => {
-        console.log(`[MOCK] DB Query on table: ${table}`);
-        return {
-            select: () => ({
-                eq: (col: string, val: string) => ({
-                    single: () => {
-                        // Mock Profile Fetch
-                        if (table === 'users' && col === 'id') {
-                            if (val === 'mock-admin-alex') return { data: { role: 'admin' }, error: null };
-                            if (val.includes('provider') || val.includes('jameson') || val.includes('smith') || val.includes('mh') || val.includes('pt') || val.includes('om')) { // Extended check
-                                let st = 'MH_GREEN'; // Default to Jameson/MH
-                                if (val.includes('mh')) st = 'MH_GREEN';
-                                else if (val.includes('smith') || val.includes('blue')) st = 'PRIMARY_BLUE';
-                                else if (val.includes('taylor') || val.includes('pt')) st = 'PT_GOLD';
-                                else if (val.includes('om')) st = 'PRIMARY'; // Operational Medicine -> Primary
-                                return { data: { role: 'provider', service_type: st }, error: null };
-                            }
-                            return { data: { role: 'member' }, error: null };
+    from: (table: string) => ({
+        select: () => ({
+            eq: (_col: string, val: string) => ({
+                single: () => {
+                    if (table === 'users') {
+                        if (val === 'mock-admin-alex') return { data: { role: 'admin' }, error: null };
+                        if (val.includes('provider') || val.includes('jameson') || val.includes('smith') || val.includes('mh') || val.includes('pt') || val.includes('mt')) {
+                            let st = 'MH_GREEN';
+                            if (val.includes('mh')) st = 'MH_GREEN';
+                            else if (val.includes('smith') || val.includes('blue')) st = 'PRIMARY_BLUE';
+                            else if (val.includes('pt')) st = 'PT_GOLD';
+                            return { data: { role: 'provider', service_type: st }, error: null };
                         }
                         return { data: { role: 'member' }, error: null };
-                    },
-                    gte: () => ({
-                        lte: () => ({
-                            order: () => ({ data: [], error: null }) // Generic Empty List
-                        })
-                    })
-                }),
-                order: () => ({ data: [], error: null }),
-                // Provider query specific:
-                gte: () => ({
-                    lte: () => ({
-                        order: () => ({ data: [], error: null })
-                    })
-                })
+                    }
+                    return { data: null, error: null };
+                },
+                gte: () => ({ lte: () => ({ order: () => ({ data: [], error: null }) }) })
             }),
-            update: () => ({
-                eq: () => ({
-                    select: () => ({ single: () => ({ data: {}, error: null }) })
-                })
-            }),
-            insert: () => ({
-                select: () => ({ single: () => ({ data: {}, error: null }) })
-            })
-        };
-    },
-    rpc: async (fn: string, args: unknown) => {
+            order: () => ({ data: [], error: null }),
+            gte: () => ({ lte: () => ({ order: () => ({ data: [], error: null }) }) })
+        }),
+        update: () => ({ eq: () => ({ select: () => ({ single: () => ({ data: {}, error: null }) }) }) }),
+        insert: () => ({ select: () => ({ single: () => ({ data: {}, error: null }) }) })
+    }),
+    rpc: async (fn: string, args: any) => {
         console.log(`[MOCK] RPC Call: ${fn}`, args);
         return { data: null, error: null };
     }
 };
 
-export const supabase = IS_MOCK ? (mockSupabase as unknown as ReturnType<typeof createClient>) : client!;
+export const supabase = (IS_MOCK ? (mockSupabase as unknown as SupabaseClient<Database>) : client!) as SupabaseClient<Database>;
 
 if (IS_MOCK) {
     console.warn('⚠️ RUNNING IN MOCK MODE: Supabase keys missing. Using fake backend.');

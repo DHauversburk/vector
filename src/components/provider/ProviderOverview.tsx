@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api, type Appointment, type EncounterNote } from '../../lib/api';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { format, parseISO, isAfter, isBefore, isValid } from 'date-fns';
 import {
     LayoutDashboard, Users, Clock, AlertCircle,

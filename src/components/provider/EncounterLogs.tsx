@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api, type EncounterNote, type EncounterNoteCategory, type EncounterNoteStatus } from '../../lib/api';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { format, parseISO } from 'date-fns';
 import type { LucideIcon } from 'lucide-react';
 import {

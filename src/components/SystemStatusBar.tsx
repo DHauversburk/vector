@@ -1,5 +1,5 @@
 import { IS_MOCK } from '../lib/supabase';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 export const SystemStatusBar = () => {
     const { session } = useAuth();

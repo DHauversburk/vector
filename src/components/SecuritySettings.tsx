@@ -4,7 +4,7 @@ import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { api } from '../lib/api';
 import { webauthn } from '../lib/webauthn';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 export const SecuritySettings: React.FC = () => {
     const [pin, setPin] = useState('');

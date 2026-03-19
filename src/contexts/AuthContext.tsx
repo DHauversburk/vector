@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -15,7 +15,7 @@ type AuthContextType = {
     supabase: typeof supabase;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [session, setSession] = useState<Session | null>(null);
@@ -38,9 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const fetchProfile = async (userId: string, currentUser: User) => {
         console.log('[AuthContext] Fetching profile for userId:', userId);
         try {
-            const { data, error } = await (supabase
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .from('users') as any)
+            const { data, error } = await supabase
+                .from('users')
                 .select('role, token_alias, service_type')
                 .eq('id', userId)
                 .single();
@@ -137,11 +136,3 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
 
-// eslint-disable-next-line react-refresh/only-export-components
-export function useAuth() {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
-}

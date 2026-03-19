@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { api } from '../lib/api';
 import {
     Activity,
@@ -23,7 +23,7 @@ import { SystemMaintenance } from '../components/admin/SystemMaintenance';
 import AuditLogViewer from '../components/admin/AuditLogViewer';
 import { FeedbackViewer } from '../components/admin/FeedbackViewer';
 import { WelcomeModal } from '../components/onboarding/WelcomeModal';
-import { useTheme } from '../contexts/ThemeContext';
+import { useTheme } from '../hooks/useTheme';
 
 type ActionContext = 'view' | 'block' | 'unblock' | 'override';
 type DashboardView = 'schedule' | 'tokens' | 'logs' | 'maintenance' | 'feedback';

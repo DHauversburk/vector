@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, lazy, Suspense } from 'react';
 import { api } from '../lib/api';
 import { Button } from '../components/ui/Button';
 import { CalendarRange, Users, BarChart3, Shield, LayoutGrid, X, FileText } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { ProviderSchedule } from '../components/provider/ProviderSchedule';
 import { ProviderOverview } from '../components/provider/ProviderOverview';
 import { ErrorBoundary } from '../components/ui/ErrorBoundary';

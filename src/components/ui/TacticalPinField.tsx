@@ -44,10 +44,7 @@ export const TacticalPinField: React.FC<TacticalPinFieldProps> = ({ onComplete, 
     useLayoutEffect(() => {
         if (error && error !== prevErrorRef.current) {
             // Only clear if there are values to clear
-            if (!pin.every(v => v === '')) {
-
-                setPin(['', '', '', '']); // eslint-disable-line
-            }
+            setPin(prev => prev.every(v => v === '') ? prev : ['', '', '', '']);
             setTimeout(() => focusInput(0), 100);
         }
         prevErrorRef.current = error;

@@ -32,18 +32,8 @@
  */
 
 import { type ButtonHTMLAttributes, forwardRef } from 'react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
 import { Loader2 } from 'lucide-react';
-
-/**
- * Utility function to merge Tailwind classes safely
- * @param inputs - Class values to merge
- * @returns Merged class string
- */
-function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
+import { cn } from '../../lib/utils';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
     /** Visual style variant */
@@ -126,6 +116,5 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
 Button.displayName = 'Button';
 
-// eslint-disable-next-line react-refresh/only-export-components
-export { Button, cn };
+export { Button };
 export type { ButtonProps };

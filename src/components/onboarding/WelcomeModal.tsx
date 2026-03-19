@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, ArrowRight, X } from 'lucide-react';
-import { useOnboarding } from '../../contexts/OnboardingContext';
+import { useOnboarding } from '../../hooks/useOnboarding';
 import { cn } from '../../lib/utils';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useAnnouncer } from '../ui/ScreenReaderAnnouncer';

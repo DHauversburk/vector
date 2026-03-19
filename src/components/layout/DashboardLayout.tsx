@@ -1,6 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
-import { useTheme } from '../../contexts/ThemeContext';
-import { useOffline } from '../../contexts/OfflineContext';
+import { useTheme } from '../../hooks/useTheme';
+import { useOffline } from '../../hooks/useOffline';
 import {
     Menu, X, Sun, Moon, LogOut, ChevronLeft, ChevronRight, User, Keyboard as KeyboardIcon, CloudOff, RefreshCcw
 } from 'lucide-react';
