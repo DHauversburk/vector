@@ -35,8 +35,8 @@ export const mockAdmin: IAdminActions = {
         return 0;
     },
 
-    logEvent: async (type: string, description: string, severity: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL' = 'INFO', metadata: Record<string, unknown> = {}): Promise<void> => {
-        logger.debug('MOCK AUDIT', '[${severity}] ${type}: ${description}', metadata);
+    logEvent: async (_type: string, _description: string, _severity: 'INFO' | 'WARN' | 'ERROR' | 'CRITICAL' = 'INFO', _metadata: Record<string, unknown> = {}): Promise<void> => {
+        // Mock audit logging
     },
 
     getAuditLogs: async (_filters: { type?: string; severity?: string, limit?: number } = {}): Promise<AuditLog[]> => {

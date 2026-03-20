@@ -33,7 +33,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error('ErrorBoundary:${this.props.name || 'Global'}', 'Uncaught error:', error, errorInfo);
+    logger.error(`ErrorBoundary:${this.props.name || 'Global'}`, 'Uncaught error:', error, errorInfo);
   }
 
   private handleReset = () => {

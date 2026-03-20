@@ -4,7 +4,7 @@
  * @component
  * @description Compact label component for status indicators, tags, and
  * small pieces of information. Supports multiple color variants aligned
- * with the Vector design system.
+ * with the VECTOR design system.
  * 
  * @example
  * // Status badges
@@ -27,7 +27,7 @@
  */
 
 import * as React from "react"
-import { cn } from "./Button"
+import { cn } from "../../lib/utils"
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
     /** Color variant matching status semantics */

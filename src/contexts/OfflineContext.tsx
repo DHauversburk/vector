@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useEffect, useState, useCallback, useContext, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { OfflineQueue } from '../lib/offline/queue';
 import { api } from '../lib/api';
@@ -60,11 +60,11 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
 
             for (const req of queue) {
                 try {
-                    logger.debug('Sync', 'Processing ${req.operationName}...', req.body);
+                    logger.debug('Sync', `Processing ${req.operationName}...`, req.body);
                     await performOperation(req.operationName as MutationType, req.body);
                     if (req.id) await OfflineQueue.remove(req.id);
                 } catch (error) {
-                    logger.error('Sync', 'Failed ${req.operationName}', error);
+                    logger.error('Sync', `Failed ${req.operationName}`, error);
                     // Decide whether to remove or retry. For now, keep it if it's a network error, remove if logic error?
                     // Assuming retry logic happens elsewhere or manual.
                 }
@@ -120,7 +120,7 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
             }
         } else {
             // Offline: Enqueue
-            logger.debug('Offline', 'Queueing ${type}');
+            logger.debug('Offline', `Queueing ${type}`);
             await OfflineQueue.enqueue({
                 type: 'POST', // Simplified for now
                 url: type, // Using URL field to store Operation Name
@@ -146,3 +146,10 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
     );
 };
 
+export const useOffline = () => {
+    const context = useContext(OfflineContext);
+    if (!context) {
+        throw new Error('useOffline must be used within an OfflineProvider');
+    }
+    return context;
+};

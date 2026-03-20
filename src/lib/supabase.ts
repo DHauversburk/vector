@@ -199,8 +199,8 @@ const mockSupabase = {
         update: () => ({ eq: () => ({ select: () => ({ single: () => ({ data: {}, error: null }) }) }) }),
         insert: () => ({ select: () => ({ single: () => ({ data: {}, error: null }) }) })
     }),
-    rpc: async (fn: string, args: any) => {
-        logger.debug('MOCK', 'RPC Call: ${fn}', args);
+    rpc: async (_fn: string, args: any) => {
+        logger.debug('MOCK', `RPC Call: ${_fn}`, args);
         return { data: null, error: null };
     }
 };

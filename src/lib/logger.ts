@@ -36,25 +36,25 @@ function formatTag(module: string): string {
 
 export const logger = {
     /** Verbose development-only logs (stripped in prod) */
-    debug(module: string, message: string, ...data: unknown[]) {
+    debug(module: string, message: any, ...data: unknown[]) {
         if (!shouldLog('debug')) return;
         console.log(`%c${formatTag(module)}%c ${message}`, 'color:#6366f1;font-weight:bold', 'color:inherit', ...data);
     },
 
     /** General informational messages (stripped in prod) */
-    info(module: string, message: string, ...data: unknown[]) {
+    info(module: string, message: any, ...data: unknown[]) {
         if (!shouldLog('info')) return;
         console.info(`${formatTag(module)} ${message}`, ...data);
     },
 
     /** Warnings that indicate something unexpected (always logged) */
-    warn(module: string, message: string, ...data: unknown[]) {
+    warn(module: string, message: any, ...data: unknown[]) {
         if (!shouldLog('warn')) return;
         console.warn(`${formatTag(module)} ${message}`, ...data);
     },
 
     /** Errors that need attention (always logged) */
-    error(module: string, message: string, ...data: unknown[]) {
+    error(module: string, message: any, ...data: unknown[]) {
         if (!shouldLog('error')) return;
         console.error(`${formatTag(module)} ${message}`, ...data);
     },

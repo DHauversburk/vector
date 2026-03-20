@@ -51,8 +51,8 @@ export const supabaseAdmin: IAdminActions = {
     getAuditLogs: async (filters: { type?: string; severity?: string, limit?: number } = {}): Promise<AuditLog[]> => {
         const { data, error } = await supabase.rpc('get_audit_logs', {
             p_limit: filters.limit || 50,
-            p_type: filters.type || null,
-            p_severity: filters.severity || null
+            p_type: filters.type || '',
+            p_severity: filters.severity || ''
         });
         if (error) throw error;
         return (data || []) as AuditLog[];
