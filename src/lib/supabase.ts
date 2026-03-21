@@ -71,7 +71,8 @@ const mockSupabase = {
                 };
             }
 
-            const isProvider = email.includes('provider') || email.includes('medtech') || email.includes('doc') || email.includes('pt');
+            // Expanded Beta Login Logic
+            const isProvider = email.includes('provider') || email.includes('medtech') || email.includes('doc') || email.includes('pt') || email.includes('mh');
             const isAdmin = email.includes('admin');
             const isPatient = email.includes('patient');
 
@@ -83,43 +84,34 @@ const mockSupabase = {
             }
 
             let userId = 'mock-user-123';
-            let tokenAlias = 'IVAN';
+            let tokenAlias = 'BETA_TESTER';
 
             if (isAdmin) {
                 userId = 'mock-admin-alex';
                 tokenAlias = 'CMD. ALEX';
             } else if (isProvider) {
-                if (email.includes('blue') || email.includes('doc.provider1')) {
-                    userId = 'mock-provider-smith';
-                    tokenAlias = 'DR. SMITH';
-                } else if (email.includes('mh') || email.includes('mh.provider')) {
-                    userId = 'mock-provider-mh';
-                    tokenAlias = 'DR. MH';
-                } else if (email.includes('pt') || email.includes('pt.provider')) {
-                    userId = 'mock-provider-pt';
-                    tokenAlias = 'DR. PT';
+                if (email.includes('doc')) {
+                    const num = email.match(/doc(\d+)/)?.[1] || '1';
+                    userId = `mock-provider-doc-${num}`;
+                    tokenAlias = `DR. DOCTOR ${num}`;
+                } else if (email.includes('mh')) {
+                    const num = email.match(/mh(\d+)/)?.[1] || '1';
+                    userId = `mock-provider-mh-${num}`;
+                    tokenAlias = `DOC MH ${num}`;
                 } else if (email.includes('medtech')) {
-                    userId = 'mock-provider-mt';
-                    tokenAlias = 'TECH ALPHA';
-                } else {
-                    userId = 'mock-provider-jameson';
-                    tokenAlias = 'DR. JAMESON';
+                    const num = email.match(/medtech(\d+)/)?.[1] || '1';
+                    userId = `mock-provider-mt-${num}`;
+                    tokenAlias = `TECH ${num}`;
+                } else if (email.includes('pt')) {
+                    userId = 'mock-provider-pt-1';
+                    tokenAlias = 'DR. PT 1';
                 }
-            } else {
+            } else if (isPatient) {
                 const match = email.match(/patient(\d{3})/);
                 if (match) {
                     const num = match[1];
                     userId = `mock-user-${num}`;
                     tokenAlias = `PATIENT ${num}`;
-                } else if (email.includes('8821')) {
-                    userId = 'mock-user-8821';
-                    tokenAlias = 'PATIENT ALPHA';
-                } else if (email.includes('3392')) {
-                    userId = 'mock-user-3392';
-                    tokenAlias = 'PATIENT BRAVO';
-                } else if (email.includes('1102')) {
-                    userId = 'mock-user-1102';
-                    tokenAlias = 'PATIENT CHARLIE';
                 }
             }
 
@@ -180,13 +172,20 @@ const mockSupabase = {
                 single: () => {
                     if (table === 'users') {
                         if (val === 'mock-admin-alex') return { data: { role: 'admin' }, error: null };
-                        if (val.includes('provider') || val.includes('jameson') || val.includes('smith') || val.includes('mh') || val.includes('pt') || val.includes('mt')) {
+                        
+                        // Expanded Provider Role Resolution
+                        if (val.includes('provider')) {
+                            let role = 'provider';
                             let st = 'MH_GREEN';
+                            
                             if (val.includes('mh')) st = 'MH_GREEN';
-                            else if (val.includes('smith') || val.includes('blue')) st = 'PRIMARY_BLUE';
+                            else if (val.includes('doc')) st = 'PRIMARY_BLUE';
                             else if (val.includes('pt')) st = 'PT_GOLD';
-                            return { data: { role: 'provider', service_type: st }, error: null };
+                            else if (val.includes('mt')) st = 'TECH_PURPLE';
+                            
+                            return { data: { role, service_type: st }, error: null };
                         }
+                        
                         return { data: { role: 'member' }, error: null };
                     }
                     return { data: null, error: null };

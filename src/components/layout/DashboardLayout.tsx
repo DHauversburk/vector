@@ -223,6 +223,8 @@ export function DashboardLayout({
                             <button
                                 key={item.id}
                                 onClick={() => item.onClick?.()}
+                                aria-label={`Navigate to ${item.label}`}
+                                aria-current={isActive ? 'page' : undefined}
                                 className={cn(
                                     'flex-1 h-full flex flex-col items-center justify-center transition-all duration-200 active:scale-95',
                                     isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400 dark:text-slate-500'

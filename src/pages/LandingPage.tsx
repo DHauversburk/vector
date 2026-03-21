@@ -224,7 +224,7 @@ export default function LandingPage() {
                         </span>
                     </div>
                     <p className="text-[9px] text-slate-600 uppercase tracking-wider">
-                        Authorized Use Only • v2.1.0-beta
+                        Authorized Use Only • v2.2.0-beta
                     </p>
                 </div>
             </div>

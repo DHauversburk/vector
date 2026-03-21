@@ -87,73 +87,7 @@ export default function LoginPage() {
         }
     }, []);
 
-    // Handle all URL parameters (mode, token, help)
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const urlMode = params.get('mode');
-        const urlToken = params.get('token');
-        const helpParam = params.get('help');
-
-        if (urlMode === 'patient') {
-            setMode('token');
-        } else if (urlMode === 'staff' || urlMode === 'admin') {
-            setMode('email');
-        }
-
-        if (urlToken) {
-            setToken(urlToken);
-            setMode('token');
-        }
-
-        if (helpParam === 'token') {
-            setMode('token');
-            setTimeout(() => setShowTokenHelp(true), 500);
-        }
-    }, [location]);
-
-    // Auto-focus token input when boot completes
-    useEffect(() => {
-        if (bootComplete && stage === 'auth' && mode === 'token') {
-            const focusToken = () => {
-                if (tokenInputRef.current) {
-                    tokenInputRef.current.focus();
-                }
-            };
-            // Multiple attempts to handle render timing
-            const timers = [0, 50, 100, 200, 400].map(delay =>
-                setTimeout(focusToken, delay)
-            );
-            return () => timers.forEach(clearTimeout);
-        }
-    }, [bootComplete, stage, mode]);
-
-    // Run boot sequence
-    useEffect(() => {
-        if (!showBootSequence) return;
-
-        bootSequence.forEach((step) => {
-            // Show loading text
-            setTimeout(() => {
-                setCurrentLoadingText(step.loadingText);
-                setBootPhase(step.id);
-            }, step.delay);
-
-            // Mark element as loaded after its duration
-            setTimeout(() => {
-                setLoadedElements(prev => new Set([...prev, step.id]));
-
-                if (step.id === 'complete') {
-                    setBootComplete(true);
-                    sessionStorage.setItem('VECTOR_BOOTED_THIS_SESSION', 'true');
-                    setTimeout(() => {
-                        setShowBootSequence(false);
-                    }, 500);
-                }
-            }, step.delay + step.duration);
-        });
-    }, [showBootSequence]);
-
-    // Auth logic (unchanged)
+    // Auth logic
     const checkPinRequirement = async (uid: string) => {
         try {
             setCurrentUserId(uid);
@@ -216,8 +150,8 @@ export default function LoginPage() {
     };
 
 
-    const handleLogin = useCallback(async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleLogin = useCallback(async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
         setLoading(true);
         setError('');
 
@@ -226,48 +160,39 @@ export default function LoginPage() {
             let loginPassword = password;
 
             if (mode === 'token') {
-                // Legacy mock token map (backward compat for testers with old tokens)
-                const legacyTokenMap: Record<string, string> = {
-                    'M-8821-X4': 'patient001@vector.mil',
-                    'M-3392-L9': 'patient002@vector.mil',
-                    'M-1102-P2': 'patient003@vector.mil',
+                // Expanded Beta Token Map
+                const tokenMap: Record<string, string> = {
+                    'ADMIN-01': 'admin@vector.mil',
+                    'DOC-01': 'doc1@vector.mil',
+                    'DOC-02': 'doc2@vector.mil',
+                    'DOC-03': 'doc3@vector.mil',
+                    'MH-01': 'mh1@vector.mil',
+                    'MH-02': 'mh2@vector.mil',
+                    'MH-03': 'mh3@vector.mil',
+                    'TECH-01': 'medtech1@vector.mil',
+                    'TECH-02': 'medtech2@vector.mil',
+                    'TECH-03': 'medtech3@vector.mil',
+                    'PT-01': 'pt1@vector.mil',
+                    // Backwards compat
                     'PATIENT-01': 'patient001@vector.mil',
-                    'PATIENT-02': 'patient002@vector.mil',
-                    'SARAH': 'patient003@vector.mil',
-                    'P-MH-9921': 'mh.provider1@vector.mil',
-                    'DOC-MH': 'mh.provider1@vector.mil',
-                    'DOC-FAM': 'doc.provider1@vector.mil',
-                    'DOC-PT': 'pt.provider1@vector.mil',
-                    'R-TEAM-99X2': 'doc.provider1@vector.mil',
-                    'B-TEAM-77K1': 'mh.provider2@vector.mil',
-                    'CMD-ALPHA-1': 'admin@vector.mil',
-                    'COMMAND-01': 'admin@vector.mil',
+                    'M-8821-X4': 'patient001@vector.mil',
                 };
 
-                const key = token.trim().toUpperCase();
-                const legacyEmail = legacyTokenMap[key];
+                const key = (token || '').trim().toUpperCase();
+                const mappedEmail = tokenMap[key];
                 
-                if (legacyEmail) {
-                    loginEmail = legacyEmail;
+                if (mappedEmail) {
+                    loginEmail = mappedEmail;
+                } else if (/^P-(\d{1,3})$/.test(key)) {
+                    const num = key.replace('P-', '');
+                    loginEmail = `patient${num.padStart(3, '0')}@vector.mil`;
                 } else if (/^M-(\d{1,3})$/.test(key)) {
                     const num = key.replace('M-', '');
                     loginEmail = `patient${num.padStart(3, '0')}@vector.mil`;
-                } else if (/^P-(MH|DOC|MT|PT)-(\d{3})$/.test(key)) {
-                    const match = key.match(/^P-(MH|DOC|MT|PT)-(\d{3})$/);
-                    if (match) {
-                        const typeMap: Record<string, string> = {
-                            'MH': 'mh.provider',
-                            'DOC': 'doc.provider',
-                            'MT': 'medtech',
-                            'PT': 'pt.provider'
-                        };
-                        const prefix = typeMap[match[1]] || match[1].toLowerCase();
-                        loginEmail = `${prefix}${parseInt(match[2])}@vector.mil`;
-                    }
                 }
 
                 if (!loginEmail) {
-                    throw new Error('INVALID ACCESS TOKEN: Format unrecognized or token expired.');
+                    throw new Error('INVALID ACCESS TOKEN: Please use a valid Beta code (e.g., DOC-01, ADMIN-01, or P-001)');
                 }
                 
                 loginPassword = 'VectorBeta2026!';
@@ -287,13 +212,77 @@ export default function LoginPage() {
         }
     }, [email, password, mode, token]);
 
+    // Handle all URL parameters and initial state cleanup
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        if (params.get('autosubmit') === 'true' && token) {
-            const fakeEvent = { preventDefault: () => { } } as React.FormEvent;
-            handleLogin(fakeEvent);
+        const urlMode = params.get('mode');
+        const urlToken = params.get('token');
+        const helpParam = params.get('help');
+        const autoSubmit = params.get('autosubmit') === 'true';
+
+        if (urlMode === 'patient') {
+            setMode('token');
+        } else if (urlMode === 'staff' || urlMode === 'admin') {
+            setMode('email');
         }
-    }, [token, location, handleLogin]);
+
+        if (urlToken) {
+            setToken(urlToken);
+            setMode('token');
+            if (autoSubmit) {
+                // Trigger login after short delay to allow state to settle
+                setTimeout(() => handleLogin(), 100);
+            }
+        }
+
+        if (helpParam === 'token') {
+            setMode('token');
+            setTimeout(() => setShowTokenHelp(true), 500);
+        }
+    }, [location, handleLogin]);
+
+    // Auto-focus token input when boot completes
+    useEffect(() => {
+        if (bootComplete && stage === 'auth' && mode === 'token') {
+            const focusToken = () => {
+                if (tokenInputRef.current) {
+                    tokenInputRef.current.focus();
+                }
+            };
+            // Multiple attempts to handle render timing
+            const timers = [0, 50, 100, 200, 400].map(delay =>
+                setTimeout(focusToken, delay)
+            );
+            return () => timers.forEach(clearTimeout);
+        }
+    }, [bootComplete, stage, mode]);
+
+    // Run boot sequence
+    useEffect(() => {
+        if (!showBootSequence) return;
+
+        bootSequence.forEach((step) => {
+            // Show loading text
+            setTimeout(() => {
+                setCurrentLoadingText(step.loadingText);
+                setBootPhase(step.id);
+            }, step.delay);
+
+            // Mark element as loaded after its duration
+            setTimeout(() => {
+                setLoadedElements(prev => new Set([...prev, step.id]));
+
+                if (step.id === 'complete') {
+                    setBootComplete(true);
+                    sessionStorage.setItem('VECTOR_BOOTED_THIS_SESSION', 'true');
+                    setTimeout(() => {
+                        setShowBootSequence(false);
+                    }, 500);
+                }
+            }, step.delay + step.duration);
+        });
+    }, [showBootSequence]);
+
 
     const handleBiometric = async () => {
         try {
@@ -497,7 +486,7 @@ export default function LoginPage() {
                 {/* Footer Status - Shows after complete */}
                 <div className={`mt-8 text-center space-y-3 transition-all duration-700 ${isLoaded('complete') ? 'opacity-100' : 'opacity-0'}`}>
                     <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-                        {bootComplete ? 'Authorized Use Only • Public Access Restricted • v2.1.0-beta' : ''}
+                        {bootComplete ? 'Authorized Use Only • Public Access Restricted • v2.2.0-beta' : ''}
                     </p>
                     <div
                         className={`inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full ${IS_MOCK
