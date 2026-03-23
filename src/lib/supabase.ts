@@ -5,15 +5,13 @@ import { logger } from './logger';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// MOCK MODE FLAG - Auto-detect based on environment variables OR manual override
-// When VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set, uses real Supabase
-// Otherwise, falls back to Mock Mode for offline development/demo
-
-// SAFETY: For Beta, Force Mock Mode unless explicit Live Access is granted via LocalStorage
-const liveAccess = typeof window !== 'undefined' && window.localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true';
+// MOCK MODE FLAG
+// When VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set → LIVE MODE
+// When missing or VITE_FORCE_MOCK=true → MOCK MODE for development/demo
+const forceMock = import.meta.env.VITE_FORCE_MOCK === 'true';
 
 let client: SupabaseClient<Database> | undefined;
-let isMock = !liveAccess || !supabaseUrl || !supabaseAnonKey;
+let isMock = forceMock || !supabaseUrl || !supabaseAnonKey;
 
 try {
     if (!isMock) {
@@ -40,7 +38,7 @@ let mockSession: any = null;
 
 // Initialize from LocalStorage if available
 if (typeof window !== 'undefined') {
-    const stored = window.localStorage.getItem('PROJECT_VECTOR_MOCK_SESSION');
+    const stored = window.localStorage.getItem('VECTOR_MOCK_SESSION');
     if (stored) {
         try {
             mockSession = JSON.parse(stored);
@@ -63,7 +61,7 @@ const mockSupabase = {
         signInWithPassword: async ({ email, password }: { email: string, password?: string }) => {
             logger.debug('MOCK', 'Auth Attempt:', email);
             
-            const BETA_PASSWORD = 'VectorBeta2026!';
+            const BETA_PASSWORD = import.meta.env.VITE_MOCK_PASSWORD || 'mock_access';
             if (password !== BETA_PASSWORD) {
                 return {
                     data: { user: null, session: null },
@@ -127,7 +125,7 @@ const mockSupabase = {
 
             mockSession = session;
             if (typeof window !== 'undefined') {
-                window.localStorage.setItem('PROJECT_VECTOR_MOCK_SESSION', JSON.stringify(session));
+                window.localStorage.setItem('VECTOR_MOCK_SESSION', JSON.stringify(session));
             }
 
             notifyListeners('SIGNED_IN', session);
@@ -147,7 +145,7 @@ const mockSupabase = {
         signOut: async () => {
             mockSession = null;
             if (typeof window !== 'undefined') {
-                window.localStorage.removeItem('PROJECT_VECTOR_MOCK_SESSION');
+                window.localStorage.removeItem('VECTOR_MOCK_SESSION');
             }
             notifyListeners('SIGNED_OUT', null);
             return { error: null };
@@ -201,6 +199,41 @@ const mockSupabase = {
     rpc: async (_fn: string, args: any) => {
         logger.debug('MOCK', `RPC Call: ${_fn}`, args);
         return { data: null, error: null };
+    },
+    functions: {
+        invoke: async (fn: string, options?: any) => {
+            logger.debug('MOCK', `Edge Function Call: ${fn}`, options);
+            if (fn === 'exchange-token') {
+                const token = options?.body?.token?.toUpperCase();
+                let email = '';
+                if (token === 'ADMIN-01') email = 'admin@vector.mil';
+                else if (token?.startsWith('DOC-')) email = `doc${token.split('-')[1]}@vector.mil`;
+                else if (token?.startsWith('MH-')) email = `mh${token.split('-')[1]}@vector.mil`;
+                else if (token?.startsWith('TECH-')) email = `medtech${token.split('-')[1]}@vector.mil`;
+                else if (token === 'PT-01') email = 'pt1@vector.mil';
+                else if (token?.startsWith('P-') || token?.startsWith('M-')) {
+                    const num = token.split('-')[1];
+                    email = `patient${num.padStart(3, '0')}@vector.mil`;
+                }
+
+                if (!email) {
+                    return { data: { error: 'INVALID ACCESS TOKEN (MOCK)' }, error: null };
+                }
+
+                // Simulate signing in using the mock auth implementation
+                const { data, error } = await mockSupabase.auth.signInWithPassword({ 
+                    email, 
+                    password: import.meta.env.VITE_MOCK_PASSWORD || 'mock_access' 
+                });
+
+                if (error) {
+                    return { data: { error: error.message }, error: null };
+                }
+
+                return { data: { session: data.session }, error: null };
+            }
+            return { data: null, error: new Error('Mock Function not implemented') };
+        }
     }
 };
 

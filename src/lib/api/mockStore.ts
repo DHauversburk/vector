@@ -1,5 +1,8 @@
 import type { Appointment, EncounterNote, HelpRequest, WaitlistEntry, NoteStatistics } from './types';
 
+import { encryptPayload, decryptPayload } from '../crypto';
+
+
 export const mockStore = {
     appointments: [] as Appointment[],
     encounterNotes: [] as EncounterNote[],
@@ -8,11 +11,12 @@ export const mockStore = {
     noteStatistics: [] as NoteStatistics[],
     init: false,
 
-    load: () => {
+    load: async () => {
         if (mockStore.init) return;
         const stored = localStorage.getItem('MOCK_DB_V4');
         if (stored) {
-            const parsed = JSON.parse(stored);
+            const parsed = await decryptPayload(stored);
+
             const now = new Date();
             let changed = false;
 
@@ -42,8 +46,9 @@ export const mockStore = {
             mockStore.init = true;
 
             if (changed) {
-                mockStore.save();
+                await mockStore.save();
             }
+
         } else {
             // Migration from V3
             const oldStored = localStorage.getItem('MOCK_DB_V3');
@@ -55,22 +60,26 @@ export const mockStore = {
                 mockStore.waitlist = parsed.waitlist || [];
                 mockStore.noteStatistics = []; // Initialize empty stats
                 mockStore.init = parsed.init || false;
-                mockStore.save(); // Will save to V4
+                await mockStore.save(); // Will save to V4
                 localStorage.removeItem('MOCK_DB_V3');
+
             }
         }
     },
 
-    save: () => {
-        localStorage.setItem('MOCK_DB_V4', JSON.stringify({
+    save: async () => {
+        const payload = {
             appointments: mockStore.appointments,
             encounterNotes: mockStore.encounterNotes,
             helpRequests: mockStore.helpRequests,
             waitlist: mockStore.waitlist,
             noteStatistics: mockStore.noteStatistics,
             init: mockStore.init
-        }));
+        };
+        const encrypted = await encryptPayload(payload);
+        localStorage.setItem('MOCK_DB_V4', encrypted);
     },
+
 
     reset: () => {
         mockStore.appointments = [];

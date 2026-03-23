@@ -19,8 +19,12 @@ import {
     Shield,
     ChevronRight,
     Activity,
-    HelpCircle
+    HelpCircle,
+    WifiOff,
+    Fingerprint,
+    Zap
 } from 'lucide-react';
+
 
 // Boot sequence for landing page
 const bootSteps = [
@@ -151,11 +155,12 @@ export default function LandingPage() {
                     <div className="flex items-center justify-center gap-3">
                         <span className="h-px w-8 bg-slate-700" />
                         <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
-                            Select Access Type
+                            Operational Entry
                         </span>
                         <span className="h-px w-8 bg-slate-700" />
                     </div>
                 </div>
+
 
                 {/* Entry Point Cards - Vertical Stack */}
                 <div className={`space-y-4 mb-8 transition-all duration-500 ${isLoaded('cards') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
@@ -206,28 +211,70 @@ export default function LandingPage() {
                     })}
                 </div>
 
-                {/* Help Link */}
-                <div className={`text-center transition-all duration-500 ${isLoaded('footer') ? 'opacity-100' : 'opacity-0'}`}>
+                {/* Capabilities Grid */}
+                <div className={`mt-12 grid grid-cols-2 gap-4 transition-all duration-700 delay-500 ${isLoaded('footer') ? 'opacity-100' : 'opacity-0'}`}>
+                    <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-3">
+                            <WifiOff className="w-4 h-4 text-indigo-400" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Resilient Sync</h4>
+                        <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">Tactical outbox for signal-denied clinical entry.</p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
+                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-3">
+                            <Fingerprint className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Zero Trust</h4>
+                        <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">Native biometric layer for session security.</p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
+                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-3">
+                            <Zap className="w-4 h-4 text-amber-400" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Rapid Triage</h4>
+                        <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">Optimized scheduling for high-density units.</p>
+                    </div>
+                    <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
+                        <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center mb-3">
+                            <Activity className="w-4 h-4 text-purple-400" />
+                        </div>
+                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Health Intel</h4>
+                        <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">Real-time diagnostics and member resources.</p>
+                    </div>
+                </div>
+
+                {/* Help Link & Footer */}
+                <div className={`mt-12 text-center transition-all duration-500 ${isLoaded('footer') ? 'opacity-100' : 'opacity-0'}`}>
                     <button
                         onClick={() => navigate('/login?help=token')}
-                        className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-blue-400 transition-colors mb-6"
+                        className="inline-flex items-center gap-2 text-xs font-medium text-slate-500 hover:text-blue-400 transition-colors mb-8 px-4 py-2 rounded-full border border-slate-800 hover:border-slate-700 bg-slate-900/50"
                     >
                         <HelpCircle className="w-4 h-4" />
-                        <span>I don't know which option to choose</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">Entry Assistance Protocol</span>
                     </button>
 
                     {/* Security Footer */}
-                    <div className="flex items-center justify-center gap-2 mb-2">
-                        <Activity className="w-3 h-3 text-emerald-500" />
-                        <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">
-                            Zero PHI • FIPS-140 • AES-256
-                        </span>
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                        <div className="h-px w-4 bg-slate-800" />
+                        <div className="flex items-center gap-2">
+                            <Shield className="w-3 h-3 text-indigo-500" />
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                V2.2.0-BETA ENABLED
+                            </span>
+                        </div>
+                        <div className="h-px w-4 bg-slate-800" />
                     </div>
-                    <p className="text-[9px] text-slate-600 uppercase tracking-wider">
-                        Authorized Use Only • v2.2.0-beta
-                    </p>
+                    
+                    <div className="flex items-center justify-center gap-4 mb-2">
+                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Zero PHI</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-800" />
+                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">FIPS-140-2</span>
+                        <span className="w-1 h-1 rounded-full bg-slate-800" />
+                        <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Authorized Use Only</span>
+                    </div>
                 </div>
             </div>
         </div>
+
     );
 }

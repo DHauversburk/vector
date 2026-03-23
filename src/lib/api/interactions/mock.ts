@@ -66,17 +66,17 @@ export const mockInteractions: IInteractionActions = {
             archived: note.archived || false
         };
 
-        mockStore.load();
+        await mockStore.load();
         mockStore.encounterNotes.push(newNote);
         updateStats(newNote);
-        mockStore.save();
+        await mockStore.save();
         return newNote;
     },
 
     getNoteStatistics: async (months: number = 6): Promise<NoteStatistics[]> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
-        mockStore.load();
+        await mockStore.load();
         return mockStore.noteStatistics
             .filter(s => s.provider_id === user.id)
             .sort((a, b) => b.period.localeCompare(a.period))
@@ -86,7 +86,7 @@ export const mockInteractions: IInteractionActions = {
     getProviderEncounterNotes: async (limit: number = 50, includeArchived: boolean = false): Promise<EncounterNote[]> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
-        mockStore.load();
+        await mockStore.load();
         return mockStore.encounterNotes
             .filter(n => n.provider_id === user.id && (includeArchived || !n.archived))
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -94,62 +94,62 @@ export const mockInteractions: IInteractionActions = {
     },
 
     archiveNote: async (noteId: string): Promise<EncounterNote | null> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.encounterNotes.findIndex(n => n.id === noteId);
         if (idx >= 0) {
             mockStore.encounterNotes[idx].archived = true;
             mockStore.encounterNotes[idx].archived_at = new Date().toISOString();
-            mockStore.save();
+            await mockStore.save();
             return mockStore.encounterNotes[idx];
         }
         return null;
     },
 
     unarchiveNote: async (noteId: string): Promise<EncounterNote | null> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.encounterNotes.findIndex(n => n.id === noteId);
         if (idx >= 0) {
             mockStore.encounterNotes[idx].archived = false;
             mockStore.encounterNotes[idx].archived_at = undefined;
-            mockStore.save();
+            await mockStore.save();
             return mockStore.encounterNotes[idx];
         }
         return null;
     },
 
     updateNoteStatus: async (noteId: string, status: EncounterNote['status']): Promise<EncounterNote | null> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.encounterNotes.findIndex(n => n.id === noteId);
         if (idx >= 0) {
             mockStore.encounterNotes[idx].status = status;
             mockStore.encounterNotes[idx].updated_at = new Date().toISOString();
-            mockStore.save();
+            await mockStore.save();
             return mockStore.encounterNotes[idx];
         }
         return null;
     },
 
     getMemberEncounterNotes: async (memberId: string): Promise<EncounterNote[]> => {
-        mockStore.load();
+        await mockStore.load();
         return mockStore.encounterNotes
             .filter(n => n.member_id === memberId && !n.archived)
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
 
     linkNoteToFollowUp: async (noteId: string, appointmentId: string): Promise<EncounterNote | null> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.encounterNotes.findIndex(n => n.id === noteId);
         if (idx >= 0) {
             mockStore.encounterNotes[idx].follow_up_appointment_id = appointmentId;
             mockStore.encounterNotes[idx].updated_at = new Date().toISOString();
-            mockStore.save();
+            await mockStore.save();
             return mockStore.encounterNotes[idx];
         }
         return null;
     },
 
     updateNote: async (noteId: string, updates: Partial<EncounterNote>): Promise<EncounterNote | null> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.encounterNotes.findIndex(n => n.id === noteId);
         if (idx >= 0) {
             mockStore.encounterNotes[idx] = {
@@ -157,14 +157,14 @@ export const mockInteractions: IInteractionActions = {
                 ...updates,
                 updated_at: new Date().toISOString()
             };
-            mockStore.save();
+            await mockStore.save();
             return mockStore.encounterNotes[idx];
         }
         return null;
     },
 
     bulkArchiveNotes: async (beforeDate: string, providerId?: string): Promise<{ archivedCount: number; notes: EncounterNote[] }> => {
-        mockStore.load();
+        await mockStore.load();
         const cutoffDate = new Date(beforeDate);
         const now = new Date().toISOString();
         let archivedCount = 0;
@@ -182,7 +182,7 @@ export const mockInteractions: IInteractionActions = {
             }
         });
 
-        mockStore.save();
+        await mockStore.save();
         return { archivedCount, notes: archivedNotes };
     },
 
@@ -202,23 +202,23 @@ export const mockInteractions: IInteractionActions = {
             created_at: new Date().toISOString()
         };
 
-        mockStore.load();
+        await mockStore.load();
         mockStore.helpRequests.push(newRequest);
-        mockStore.save();
+        await mockStore.save();
         return newRequest;
     },
 
     getMyHelpRequests: async (): Promise<HelpRequest[]> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
-        mockStore.load();
+        await mockStore.load();
         return mockStore.helpRequests
             .filter(r => r.member_id === user.id)
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
 
     getPendingHelpRequests: async (): Promise<HelpRequest[]> => {
-        mockStore.load();
+        await mockStore.load();
         return mockStore.helpRequests
             .filter(r => r.status === 'pending' || r.status === 'in_progress')
             .sort((a, b) => {
@@ -229,11 +229,11 @@ export const mockInteractions: IInteractionActions = {
     },
 
     updateHelpRequestStatus: async (requestId: string, status: HelpRequest['status']): Promise<HelpRequest | null> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.helpRequests.findIndex(r => r.id === requestId);
         if (idx >= 0) {
             mockStore.helpRequests[idx].status = status;
-            mockStore.save();
+            await mockStore.save();
             return mockStore.helpRequests[idx];
         }
         return null;
@@ -242,21 +242,21 @@ export const mockInteractions: IInteractionActions = {
     resolveHelpRequest: async (requestId: string, resolutionNote: string): Promise<HelpRequest | null> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.helpRequests.findIndex(r => r.id === requestId);
         if (idx >= 0) {
             mockStore.helpRequests[idx].status = 'resolved';
             mockStore.helpRequests[idx].resolved_at = new Date().toISOString();
             mockStore.helpRequests[idx].resolution_note = resolutionNote;
             mockStore.helpRequests[idx].provider_id = user.id;
-            mockStore.save();
+            await mockStore.save();
             return mockStore.helpRequests[idx];
         }
         return null;
     },
 
     getPendingHelpRequestCount: async (): Promise<number> => {
-        mockStore.load();
+        await mockStore.load();
         return mockStore.helpRequests.filter(r => r.status === 'pending').length;
     },
 
@@ -276,35 +276,35 @@ export const mockInteractions: IInteractionActions = {
             created_at: new Date().toISOString()
         };
 
-        mockStore.load();
+        await mockStore.load();
         const existing = mockStore.waitlist.find(w => w.member_id === user.id && w.provider_id === providerId && w.status === 'active');
         if (existing) throw new Error('You are already on the waitlist for this provider.');
 
         mockStore.waitlist.push(entry);
-        mockStore.save();
+        await mockStore.save();
         return entry;
     },
 
     leaveWaitlist: async (entryId: string): Promise<void> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.waitlist.findIndex(w => w.id === entryId);
         if (idx >= 0) {
             mockStore.waitlist[idx].status = 'cancelled';
-            mockStore.save();
+            await mockStore.save();
         }
     },
 
     getMyWaitlist: async (): Promise<WaitlistEntry[]> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
-        mockStore.load();
+        await mockStore.load();
         return mockStore.waitlist
             .filter(w => w.member_id === user.id && w.status === 'active')
             .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
 
     getProviderWaitlist: async (providerId: string): Promise<WaitlistEntry[]> => {
-        mockStore.load();
+        await mockStore.load();
         return mockStore.waitlist
             .filter(w => w.provider_id === providerId && w.status === 'active')
             .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());

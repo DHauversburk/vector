@@ -5,7 +5,9 @@ import { Loader2, Calendar, Clock, Lock, Zap, Video } from 'lucide-react';
 import { ServiceTeamSelector } from './ServiceTeamSelector';
 import { Button } from '../ui/Button';
 import { toast } from 'sonner';
+import { useOffline } from '../../hooks/useOffline';
 import { logger } from '../../lib/logger';
+
 
 interface ProviderInfo {
     id: string;
@@ -37,6 +39,8 @@ export function BookingConsole({
     const [providerId, setProviderId] = useState('');
     const [notes, setNotes] = useState('');
     const [bookingLoading, setBookingLoading] = useState(false);
+    const { executeMutation, isOnline } = useOffline();
+
     const [availableSlots, setAvailableSlots] = useState<Appointment[]>([]);
     const [slotsLoading, setSlotsLoading] = useState(false);
 
@@ -108,12 +112,13 @@ export function BookingConsole({
         setBookingLoading(true);
         try {
             if (isRescheduling && apptToReschedule) {
-                await api.rescheduleAppointmentSwap(apptToReschedule, slotId);
-                toast.success('Appointment Rescheduled Successfully.');
+                await executeMutation('RESCHEDULE_SWAP', { oldApptId: apptToReschedule, newSlotId: slotId });
+                toast.success(isOnline ? 'Appointment Rescheduled Successfully.' : 'Reschedule queued for sync.');
             } else {
-                await api.bookSlot(slotId, notes);
-                toast.success('Appointment Confirmed.');
+                await executeMutation('BOOK_SLOT', { slotId, notes });
+                toast.success(isOnline ? 'Appointment Confirmed.' : 'Booking queued for sync.');
             }
+
 
             setProviderId('');
             setNotes('');

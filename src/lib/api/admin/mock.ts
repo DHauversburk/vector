@@ -44,7 +44,7 @@ export const mockAdmin: IAdminActions = {
     },
 
     getSystemStats: async (): Promise<SystemStats> => {
-        mockStore.load();
+        await mockStore.load();
         const activeAppts = mockStore.appointments.filter(a =>
             a.status !== 'cancelled' && new Date(a.start_time) > new Date()
         ).length;

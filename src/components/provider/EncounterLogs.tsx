@@ -14,6 +14,13 @@ import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { toast } from 'sonner';
 import { logger } from '../../lib/logger';
+import { List } from 'react-window';
+import { AutoSizer } from 'react-virtualized-auto-sizer';
+
+
+
+
+
 
 const categoryIcons: Record<string, LucideIcon> = {
     question: MessageSquare,
@@ -291,110 +298,109 @@ export function EncounterLogs() {
                         </p>
                     </div>
                 ) : (
-                    filteredNotes.map(note => {
-                        const Icon = categoryIcons[note.category] || FileText;
-                        const colors = categoryColors[note.category] || categoryColors.other;
-                        const StatusIcon = statusIcons[note.status] || Clock;
-                        const isArchived = note.archived;
+                    <div className="h-[600px] w-full border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900">
+                        <AutoSizer renderProp={({ height, width }) => {
+                            if (height === undefined || width === undefined) return null;
+                            return (
+                                <List
+                                    style={{ height, width }}
+                                    rowCount={filteredNotes.length}
+                                    rowHeight={165}
+                                    rowProps={{
+                                        notes: filteredNotes,
+                                        handleStatusChange,
+                                        handleArchive,
+                                        handleUnarchive
+                                    }}
+                                    rowComponent={({ index, style, notes, handleStatusChange, handleArchive, handleUnarchive }: any) => {
+                                        const note = notes[index];
+                                        const Icon = categoryIcons[note.category] || FileText;
+                                        const colors = categoryColors[note.category] || categoryColors.other;
+                                        const StatusIcon = statusIcons[note.status] || Clock;
+                                        const isArchived = note.archived;
 
-                        return (
-                            <div
-                                key={note.id}
-                                className={`group relative bg-white dark:bg-slate-900 rounded-xl border shadow-sm hover:shadow-md transition-all overflow-hidden ${isArchived
-                                    ? 'border-slate-300 dark:border-slate-700 opacity-60'
-                                    : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/30'
-                                    }`}
-                            >
-                                <div className="p-5 flex flex-col sm:flex-row sm:items-start gap-4">
-                                    <div className={`w-12 h-12 shrink-0 rounded-xl flex items-center justify-center border ${colors}`}>
-                                        <Icon className="w-6 h-6" />
-                                    </div>
-
-                                    <div className="flex-1 min-w-0 space-y-2">
-                                        <div className="flex flex-wrap items-center justify-between gap-2">
-                                            <div className="flex items-center gap-3">
-                                                <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                                                    {note.member_name || 'Anonymous Patient'}
-                                                </h4>
-                                                {isArchived && (
-                                                    <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-slate-400/30 bg-slate-400/10">
-                                                        Archived
-                                                    </Badge>
-                                                )}
-                                                <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
-                                                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                    <Clock className="w-3 h-3" />
-                                                    {format(parseISO(note.created_at), 'MMM dd, HH:mm')}
+                                        return (
+                                            <div style={style} className="p-2">
+                                                <div className={`h-full group relative bg-white dark:bg-slate-900 rounded-xl border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-center ${isArchived ? 'border-slate-300 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/30'}`}>
+                                                    <div className="p-4 flex flex-col sm:flex-row sm:items-start gap-4 h-full">
+                                                        <div className={`w-12 h-12 shrink-0 rounded-xl flex items-center justify-center border ${colors}`}>
+                                                            <Icon className="w-6 h-6" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0 space-y-1.5 flex flex-col justify-between">
+                                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                                <div className="flex items-center gap-2 lg:gap-3">
+                                                                    <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight truncate max-w-[120px] lg:max-w-none">
+                                                                        {note.member_name || 'Anonymous Patient'}
+                                                                    </h4>
+                                                                    {isArchived && (
+                                                                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-slate-400/30 bg-slate-400/10 hidden lg:inline-flex">
+                                                                            Archived
+                                                                        </Badge>
+                                                                    )}
+                                                                    <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700 hidden lg:block"></span>
+                                                                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
+                                                                        <Clock className="w-3 h-3" />
+                                                                        {format(parseISO(note.created_at), 'MMM dd, HH:mm')}
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    <Badge variant="outline" className={`text-[10px] font-black uppercase tracking-widest ${colors} hidden sm:inline-flex`}>
+                                                                        {note.category.replace('_', ' ')}
+                                                                    </Badge>
+                                                                    {!isArchived && (
+                                                                        <button
+                                                                            onClick={() => handleStatusChange(note.id, note.status)}
+                                                                            className={`flex items-center gap-1 px-2 py-1 rounded-md border transition-all hover:scale-105 active:scale-95 ${note.status === 'requires_action' ? 'bg-amber-500/10 border-amber-500/30 text-amber-500' : note.status === 'resolved' ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-blue-500/10 border-blue-500/30 text-blue-500'}`}
+                                                                            title="Click to cycle status"
+                                                                        >
+                                                                            <StatusIcon className="w-3 h-3" />
+                                                                            <span className="text-[9px] font-bold uppercase hidden sm:inline">
+                                                                                {note.status === 'requires_action' ? 'Action' : note.status}
+                                                                            </span>
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                            <p className={`text-xs leading-relaxed font-medium line-clamp-2 ${isArchived ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}>
+                                                                {note.content}
+                                                            </p>
+                                                            <div className="pt-2 flex items-center gap-4 mt-auto">
+                                                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                                                    <User className="w-3 h-3" />
+                                                                    ID: {note.member_id.split('-')[0]}...
+                                                                </div>
+                                                                <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
+                                                                {/* Action Buttons */}
+                                                                <div className="flex flex-wrap items-center gap-2">
+                                                                    {isArchived ? (
+                                                                        <button onClick={() => handleUnarchive(note.id)} className="text-[10px] font-black uppercase text-emerald-500 hover:text-emerald-600 flex items-center gap-1 transition-colors">
+                                                                            <ArchiveRestore className="w-3 h-3" />
+                                                                            Restore
+                                                                        </button>
+                                                                    ) : (
+                                                                        <button onClick={() => handleArchive(note.id)} className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 flex items-center gap-1 transition-colors">
+                                                                            <Archive className="w-3 h-3" />
+                                                                            Archive
+                                                                        </button>
+                                                                    )}
+                                                                    <span className="w-px h-3 bg-slate-200 dark:bg-slate-700 hidden sm:block"></span>
+                                                                    <button className="text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-600 flex items-center gap-1 transition-colors">
+                                                                        Details <ChevronRight className="w-3 h-3" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {/* Status stripe */}
+                                                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${isArchived ? 'bg-slate-400' : colors.split(' ')[0].replace('text-', 'bg-')}`}></div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
-                                                <Badge variant="outline" className={`text-[10px] font-black uppercase tracking-widest ${colors}`}>
-                                                    {note.category.replace('_', ' ')}
-                                                </Badge>
-                                                {!isArchived && (
-                                                    <button
-                                                        onClick={() => handleStatusChange(note.id, note.status)}
-                                                        className={`flex items-center gap-1 px-2 py-1 rounded-md border transition-all hover:scale-105 active:scale-95 ${note.status === 'requires_action'
-                                                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-500'
-                                                            : note.status === 'resolved'
-                                                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500'
-                                                                : 'bg-blue-500/10 border-blue-500/30 text-blue-500'
-                                                            }`}
-                                                        title="Click to cycle status"
-                                                    >
-                                                        <StatusIcon className="w-3 h-3" />
-                                                        <span className="text-[9px] font-bold uppercase">
-                                                            {note.status === 'requires_action' ? 'Action' : note.status}
-                                                        </span>
-                                                    </button>
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        <p className={`text-xs leading-relaxed font-medium ${isArchived ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}>
-                                            {note.content}
-                                        </p>
-
-                                        <div className="pt-2 flex items-center gap-4">
-                                            <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                                <User className="w-3 h-3" />
-                                                ID: {note.member_id.split('-')[0]}...
-                                            </div>
-                                            <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
-
-                                            {/* Action Buttons */}
-                                            <div className="flex items-center gap-2">
-                                                {isArchived ? (
-                                                    <button
-                                                        onClick={() => handleUnarchive(note.id)}
-                                                        className="text-[10px] font-black uppercase text-emerald-500 hover:text-emerald-600 flex items-center gap-1 transition-colors"
-                                                    >
-                                                        <ArchiveRestore className="w-3 h-3" />
-                                                        Restore
-                                                    </button>
-                                                ) : (
-                                                    <button
-                                                        onClick={() => handleArchive(note.id)}
-                                                        className="text-[10px] font-black uppercase text-slate-400 hover:text-slate-600 flex items-center gap-1 transition-colors"
-                                                    >
-                                                        <Archive className="w-3 h-3" />
-                                                        Archive
-                                                    </button>
-                                                )}
-                                                <span className="w-px h-3 bg-slate-200 dark:bg-slate-700"></span>
-                                                <button className="text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-600 flex items-center gap-1 transition-colors">
-                                                    Details <ChevronRight className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Status stripe */}
-                                <div className={`absolute left-0 top-0 bottom-0 w-1 ${isArchived ? 'bg-slate-400' : colors.split(' ')[0].replace('text-', 'bg-')}`}></div>
-                            </div>
-                        );
-                    })
+                                        );
+                                    }
+                                } />
+                            );
+                        }} />
+                    </div>
                 )}
             </div>
 

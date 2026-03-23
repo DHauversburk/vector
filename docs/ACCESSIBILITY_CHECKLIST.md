@@ -76,8 +76,10 @@
 - [ ] Verify 3:1 ratio for UI components
 
 ### Form Accessibility (1.3.5, 3.3.2)
-- [ ] All form inputs have associated labels
-- [ ] Error messages linked via `aria-describedby`
+- [x] **WCAG 2.1 AA Compliance** (Inputs linked with labels correctly)
+- [x] **Semantic Landmarks** (Login tablist, Navigation)
+- [x] **Error States** (Accessible error messages with `aria-describedby`)
+- [x] **High-Security Re-Auth** (Biometric Lock via WebAuthn)
 - [ ] Required fields marked with `aria-required`
 - [ ] Inline validation feedback
 

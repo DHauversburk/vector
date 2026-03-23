@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense } from 'react';
-import { api, type Appointment, type WaitlistEntry } from '../lib/api';
+import { type Appointment, type WaitlistEntry } from '../lib/api';
 import { swrFetcher } from '../lib/api/swr-fetcher';
 import useSWR, { useSWRConfig } from 'swr';
 import { toast } from 'sonner';
@@ -8,6 +8,8 @@ import { useAuth } from '../hooks/useAuth';
 import { format, parseISO, differenceInMinutes } from 'date-fns';
 import { DashboardLayout, type NavItem } from '../components/layout/DashboardLayout';
 import { WelcomeModal } from '../components/onboarding/WelcomeModal';
+import { useOffline } from '../hooks/useOffline';
+
 import {
     Card,
     CardContent,
@@ -44,6 +46,8 @@ const FeatureLoading = () => (
 export default function MemberDashboard() {
     const { user, signOut } = useAuth();
     const { mutate } = useSWRConfig();
+    const { executeMutation, isOnline } = useOffline();
+
     
     // Remote Data via SWR (Caching + Deduplication)
     const { data: rawAppointments = [], isLoading: apptsLoading } = useSWR('appointments', swrFetcher);
@@ -112,11 +116,12 @@ export default function MemberDashboard() {
             }
         }
 
-        const toastId = toast.loading('Neutralizing appointment entry...');
+        const toastId = toast.loading(isOnline ? 'Neutralizing appointment entry...' : 'Queueing cancellation request...');
         try {
-            await api.cancelAppointment(id);
-            toast.success('Appointment entry neutralized.', { id: toastId });
+            await executeMutation('CANCEL_APPOINTMENT', { id });
+            toast.success(isOnline ? 'Appointment entry neutralized.' : 'Cancellation queued for sync.', { id: toastId });
             mutate('appointments');
+
         } catch (error: any) {
             logger.error('MemberDashboard', 'Cancellation error:', error);
             toast.error(`Cancellation Failed: ${error.message || 'Unknown protocol error'}`, { id: toastId });

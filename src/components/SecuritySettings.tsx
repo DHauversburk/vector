@@ -5,6 +5,7 @@ import { Input } from './ui/Input';
 import { api } from '../lib/api';
 import { webauthn } from '../lib/webauthn';
 import { useAuth } from '../hooks/useAuth';
+import { IS_MOCK } from '../lib/supabase';
 
 export const SecuritySettings: React.FC = () => {
     const [pin, setPin] = useState('');
@@ -185,7 +186,7 @@ export const SecuritySettings: React.FC = () => {
                             variant="secondary"
                             onClick={() => {
                                 api.mockStore.reset();
-                                localStorage.removeItem('PROJECT_VECTOR_MOCK_SESSION');
+                                localStorage.removeItem('VECTOR_MOCK_SESSION');
                                 window.location.reload();
                             }}
                             className="w-full h-10 text-[10px] font-black uppercase tracking-[0.2em] bg-red-600 hover:bg-red-700 text-white"
@@ -216,30 +217,23 @@ export const SecuritySettings: React.FC = () => {
                             <div className="flex items-center justify-between p-3 bg-black/40 rounded-lg border border-white/10">
                                 <div className="flex flex-col">
                                     <span className="text-[10px] font-black uppercase tracking-widest text-white">System Mode</span>
-                                    <span className={localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true' ? "text-[9px] font-bold text-red-400" : "text-[9px] font-bold text-emerald-400"}>
-                                        {localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true' ? 'LIVE PRODUCTION' : 'MOCK / SIMULATION'}
+                                    <span className={IS_MOCK ? "text-[9px] font-bold text-emerald-400" : "text-[9px] font-bold text-red-400"}>
+                                        {IS_MOCK ? 'MOCK / SIMULATION' : 'LIVE PRODUCTION'}
                                     </span>
                                 </div>
-                                <div className={`w-3 h-3 rounded-full animate-pulse ${localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true' ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
+                                <div className={`w-3 h-3 rounded-full animate-pulse ${IS_MOCK ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
                             </div>
 
                             <Button
                                 onClick={() => {
-                                    const current = localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true';
-                                    if (current) {
-                                        localStorage.removeItem('PROJECT_VECTOR_LIVE_ACCESS');
-                                    } else {
-                                        if (!confirm('ENABLE LIVE PRODUCTION MODE?\n\nThis will connect to the real Supabase database. Data changes will be permanent.')) return;
-                                        localStorage.setItem('PROJECT_VECTOR_LIVE_ACCESS', 'true');
-                                    }
-                                    window.location.reload();
+                                    alert('Mode switching is now controlled via the VITE_FORCE_MOCK environment variable.\n\nSet VITE_FORCE_MOCK=true in .env for mock mode.\nRemove it for live mode.');
                                 }}
-                                className={`w-full h-10 text-[10px] font-black uppercase tracking-[0.2em] border transition-all ${localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true'
-                                    ? 'bg-transparent border-emerald-500 text-emerald-500 hover:bg-emerald-500/10'
-                                    : 'bg-red-600 hover:bg-red-700 border-red-600 text-white'
+                                className={`w-full h-10 text-[10px] font-black uppercase tracking-[0.2em] border transition-all ${IS_MOCK
+                                    ? 'bg-red-600 hover:bg-red-700 border-red-600 text-white'
+                                    : 'bg-transparent border-emerald-500 text-emerald-500 hover:bg-emerald-500/10'
                                     }`}
                             >
-                                {localStorage.getItem('PROJECT_VECTOR_LIVE_ACCESS') === 'true' ? 'Switch to Simulation' : 'Enable Live System'}
+                                {IS_MOCK ? 'Running Mock Mode' : 'Running Live System'}
                             </Button>
                         </div>
                     </div>

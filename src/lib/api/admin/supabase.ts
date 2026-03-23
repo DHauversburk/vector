@@ -21,7 +21,18 @@ export const supabaseAdmin: IAdminActions = {
     },
 
     adminResetUserSecurity: async (userId: string): Promise<boolean> => {
+        // Delete from server-side user_pins table
+        const { error } = await supabase
+            .from('user_pins')
+            .delete()
+            .eq('user_id', userId);
+
+        // Also clear any local fallback
         localStorage.removeItem(`TACTICAL_PIN_${userId}`);
+
+        if (error) {
+            console.warn('Failed to reset user PIN in Supabase:', error);
+        }
         return true;
     },
 

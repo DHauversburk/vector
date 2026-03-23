@@ -2,7 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
-import { supabase } from './lib/supabase';
+import { supabase, IS_MOCK } from './lib/supabase';
 import { logger } from './lib/logger';
 
 // Extend Window interface for debug utilities
@@ -18,21 +18,16 @@ if (typeof window !== 'undefined') {
   window.supabase = supabase;
 
   window.toggleRealMode = () => {
-    const isMockVar = localStorage.getItem('PROJECT_VECTOR_DEMO_MODE');
-    if (isMockVar) {
-      localStorage.removeItem('PROJECT_VECTOR_DEMO_MODE');
-      logger.info('MODE', '🟢 SWITCHING TO REAL MODE (Live Database)...');
-    } else {
-      localStorage.setItem('PROJECT_VECTOR_DEMO_MODE', 'true');
-      logger.warn('MODE', '🟡 SWITCHING TO SIMULATION MODE (Browser Mock)...');
-    }
-    setTimeout(() => window.location.reload(), 1000);
+    logger.info('MODE', `Current mode: ${IS_MOCK ? 'MOCK' : 'LIVE'}`);
+    logger.info('MODE', 'Mode is now controlled via VITE_FORCE_MOCK environment variable.');
+    logger.info('MODE', 'Set VITE_FORCE_MOCK=true in .env for mock mode, remove it for live.');
   };
 
   logger.debug('INIT', `
     [VECTOR DEBUG] 🛸
+    - Mode: ${IS_MOCK ? 'MOCK / SIMULATION' : 'LIVE PRODUCTION'}
     - window.supabase is now available.
-    - Run window.toggleRealMode() to switch between Mock/Real data.
+    - Run window.toggleRealMode() for mode info.
     `);
 }
 

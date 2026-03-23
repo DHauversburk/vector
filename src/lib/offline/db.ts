@@ -24,7 +24,7 @@ let dbPromise: Promise<IDBPDatabase<VectorOfflineDB>> | null = null;
 
 export const getDB = () => {
     if (!dbPromise) {
-        dbPromise = openDB<VectorOfflineDB>('project_vector_offline', 1, {
+        dbPromise = openDB<VectorOfflineDB>('vector_offline', 1, {
             upgrade(db) {
                 // Mutation Queue Store
                 if (!db.objectStoreNames.contains('mutation_queue')) {

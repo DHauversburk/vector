@@ -113,7 +113,20 @@ export const supabaseAppointments: IAppointmentActions = {
         return data as Appointment;
     },
 
-    submitFeedback: async (_appointmentId: string, _rating: number, _comment?: string): Promise<{ success: boolean }> => {
+    submitFeedback: async (appointmentId: string, rating: number, comment?: string): Promise<{ success: boolean }> => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
+        const { error } = await supabase
+            .from('feedback')
+            .insert({
+                appointment_id: appointmentId,
+                rating,
+                comment: comment || null,
+                created_at: new Date().toISOString(),
+            });
+
+        if (error) throw error;
         return { success: true };
     },
 

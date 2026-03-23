@@ -160,42 +160,25 @@ export default function LoginPage() {
             let loginPassword = password;
 
             if (mode === 'token') {
-                // Expanded Beta Token Map
-                const tokenMap: Record<string, string> = {
-                    'ADMIN-01': 'admin@vector.mil',
-                    'DOC-01': 'doc1@vector.mil',
-                    'DOC-02': 'doc2@vector.mil',
-                    'DOC-03': 'doc3@vector.mil',
-                    'MH-01': 'mh1@vector.mil',
-                    'MH-02': 'mh2@vector.mil',
-                    'MH-03': 'mh3@vector.mil',
-                    'TECH-01': 'medtech1@vector.mil',
-                    'TECH-02': 'medtech2@vector.mil',
-                    'TECH-03': 'medtech3@vector.mil',
-                    'PT-01': 'pt1@vector.mil',
-                    // Backwards compat
-                    'PATIENT-01': 'patient001@vector.mil',
-                    'M-8821-X4': 'patient001@vector.mil',
-                };
+                const { data, error } = await supabase.functions.invoke('exchange-token', {
+                    body: { token }
+                });
 
-                const key = (token || '').trim().toUpperCase();
-                const mappedEmail = tokenMap[key];
-                
-                if (mappedEmail) {
-                    loginEmail = mappedEmail;
-                } else if (/^P-(\d{1,3})$/.test(key)) {
-                    const num = key.replace('P-', '');
-                    loginEmail = `patient${num.padStart(3, '0')}@vector.mil`;
-                } else if (/^M-(\d{1,3})$/.test(key)) {
-                    const num = key.replace('M-', '');
-                    loginEmail = `patient${num.padStart(3, '0')}@vector.mil`;
-                }
-
-                if (!loginEmail) {
-                    throw new Error('INVALID ACCESS TOKEN: Please use a valid Beta code (e.g., DOC-01, ADMIN-01, or P-001)');
+                if (error) {
+                    throw new Error(error.message || 'Verification Failed');
                 }
                 
-                loginPassword = 'VectorBeta2026!';
+                if (data?.error) {
+                    throw new Error(data.error);
+                }
+
+                if (data?.session) {
+                    const { error: sessionError } = await supabase.auth.setSession(data.session);
+                    if (sessionError) throw sessionError;
+                    return; // Login complete
+                } else {
+                    throw new Error('Authentication failed: No session returned');
+                }
             }
 
             const { error } = await supabase.auth.signInWithPassword({

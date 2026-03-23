@@ -9,11 +9,12 @@ export const mockAppointments: IAppointmentActions = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
-        mockStore.load();
+        await mockStore.load();
 
         if (!mockStore.init) {
-            seedInitialData(user.id);
+            await seedInitialData(user.id);
         }
+
 
         let myAppts = mockStore.appointments.filter(a => a.member_id === user.id);
         if (startDate) myAppts = myAppts.filter(a => a.start_time >= startDate);
@@ -35,7 +36,7 @@ export const mockAppointments: IAppointmentActions = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
-        mockStore.load();
+        await mockStore.load();
         if (slotId.startsWith('mock-slot')) {
             let pId = 'mock-provider-jameson';
             let idx = 0;
@@ -71,7 +72,7 @@ export const mockAppointments: IAppointmentActions = {
             };
 
             mockStore.appointments.push(newAppt);
-            mockStore.save();
+            await mockStore.save();
             return newAppt;
         }
 
@@ -91,23 +92,23 @@ export const mockAppointments: IAppointmentActions = {
                 };
             }
 
-            mockStore.save();
+            await mockStore.save();
             return appt;
         }
         throw new Error('Mock Appointment Not Found');
     },
 
     deleteAppointment: async (appointmentId: string): Promise<void> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.appointments.findIndex(a => a.id === appointmentId);
         if (idx >= 0) {
             mockStore.appointments.splice(idx, 1);
-            mockStore.save();
+            await mockStore.save();
         }
     },
 
     cancelAppointment: async (appointmentId: string, reason?: string): Promise<void> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.appointments.findIndex(a => a.id === appointmentId);
         if (idx >= 0) {
             const appt = mockStore.appointments[idx];
@@ -115,23 +116,23 @@ export const mockAppointments: IAppointmentActions = {
             if (reason) {
                 appt.notes = (appt.notes || '') + ` | CANCEL_REASON: ${reason}`;
             }
-            mockStore.save();
+            await mockStore.save();
         }
     },
 
     providerCancelAppointment: async (appointmentId: string, reason: string): Promise<void> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.appointments.findIndex(a => a.id === appointmentId);
         if (idx >= 0) {
             const appt = mockStore.appointments[idx];
             appt.status = 'cancelled';
             appt.notes = (appt.notes || '') + ` | CANCEL_REASON: ${reason}`;
-            mockStore.save();
+            await mockStore.save();
         }
     },
 
     directBook: async (slotId: string, memberId: string): Promise<Appointment> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.appointments.findIndex(a => a.id === slotId);
         if (idx >= 0) {
             const updated = {
@@ -142,7 +143,7 @@ export const mockAppointments: IAppointmentActions = {
                 notes: ''
             };
             mockStore.appointments[idx] = updated;
-            mockStore.save();
+            await mockStore.save();
             return updated as Appointment;
         }
 
@@ -166,7 +167,7 @@ export const mockAppointments: IAppointmentActions = {
                 provider: { token_alias: 'Dr. Jameson', service_type: 'MH_GREEN' }
             };
             mockStore.appointments.push(newAppt);
-            mockStore.save();
+            await mockStore.save();
             return newAppt;
         }
         throw new Error('Mock Appointment Not Found');
@@ -177,7 +178,7 @@ export const mockAppointments: IAppointmentActions = {
     },
 
     rescheduleAppointmentSwap: async (oldApptId: string, newSlotId: string): Promise<boolean> => {
-        mockStore.load();
+        await mockStore.load();
         const oldApptIndex = mockStore.appointments.findIndex(a => a.id === oldApptId);
         if (oldApptIndex === -1) throw new Error('Mock: Old appointment not found');
 
@@ -205,12 +206,12 @@ export const mockAppointments: IAppointmentActions = {
 
         mockStore.appointments.splice(oldApptIndex, 1);
         mockStore.appointments.push(newAppt);
-        mockStore.save();
+        await mockStore.save();
         return true;
     },
 
     updateAppointmentStatus: async (id: string, status: Appointment['status']): Promise<Appointment> => {
-        mockStore.load();
+        await mockStore.load();
         const idx = mockStore.appointments.findIndex(a => a.id === id);
         if (idx >= 0) {
             const isBooked = ['confirmed', 'completed', 'blocked'].includes(status);
@@ -220,14 +221,14 @@ export const mockAppointments: IAppointmentActions = {
                 is_booked: isBooked
             };
             mockStore.appointments[idx] = updated;
-            mockStore.save();
+            await mockStore.save();
             return updated as Appointment;
         }
         throw new Error('Appointment Not Found');
     },
 
     getAllAppointments: async (): Promise<Appointment[]> => {
-        mockStore.load();
+        await mockStore.load();
         return mockStore.appointments;
     },
 
@@ -240,7 +241,7 @@ export const mockAppointments: IAppointmentActions = {
         const end = new Date(date);
         end.setHours(23, 59, 59, 999);
 
-        mockStore.load();
+        await mockStore.load();
         return !mockStore.appointments.some(a =>
             a.member_id === user.id &&
             new Date(a.start_time) >= start &&
@@ -258,13 +259,14 @@ export const mockAppointments: IAppointmentActions = {
             provider: { token_alias: 'Provider', service_type: 'PRIMARY' }
         };
         mockStore.appointments.push(newAppt);
-        mockStore.save();
+        await mockStore.save();
         return newAppt;
     }
 };
 
-function seedInitialData(userId: string) {
+async function seedInitialData(userId: string) {
     logger.debug('MOCK', 'Seeding initial dataset...');
+
     const seedAppointments: Appointment[] = [];
     const now = new Date();
     const providerIds = [
@@ -351,5 +353,5 @@ function seedInitialData(userId: string) {
 
     mockStore.appointments = seedAppointments;
     mockStore.init = true;
-    mockStore.save();
+    await mockStore.save();
 }

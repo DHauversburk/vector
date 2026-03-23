@@ -4,7 +4,21 @@ import { OfflineQueue } from '../lib/offline/queue';
 import { api } from '../lib/api';
 import { logger } from '../lib/logger';
 
-type MutationType = 'CREATE_NOTE' | 'UPDATE_NOTE' | 'ARCHIVE_NOTE' | 'CREATE_APPOINTMENT' | 'CANCEL_APPOINTMENT' | 'LINK_NOTE_FOLLOWUP' | 'TOGGLE_SLOT_BLOCK' | 'CREATE_HELP_REQUEST';
+type MutationType = 
+    | 'CREATE_NOTE' 
+    | 'UPDATE_NOTE' 
+    | 'ARCHIVE_NOTE' 
+    | 'CREATE_APPOINTMENT' 
+    | 'CANCEL_APPOINTMENT' 
+    | 'LINK_NOTE_FOLLOWUP' 
+    | 'TOGGLE_SLOT_BLOCK' 
+    | 'CREATE_HELP_REQUEST'
+    | 'BOOK_SLOT'
+    | 'JOIN_WAITLIST'
+    | 'RESCHEDULE_SWAP'
+    | 'SUBMIT_FEEDBACK'
+    | 'UPDATE_APPOINTMENT_STATUS';
+
 
 
 interface OfflineContextType {
@@ -103,6 +117,17 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
                 return await api.toggleSlotBlock(payload.id, payload.isBlocked);
             case 'CREATE_HELP_REQUEST':
                 return await api.createHelpRequest(payload);
+            case 'BOOK_SLOT':
+                return await api.bookSlot(payload.slotId, payload.notes);
+            case 'JOIN_WAITLIST':
+                return await api.joinWaitlist(payload.providerId, payload.serviceType, payload.note, payload.preferredDays);
+            case 'RESCHEDULE_SWAP':
+                return await api.rescheduleAppointmentSwap(payload.oldApptId, payload.newSlotId);
+            case 'SUBMIT_FEEDBACK':
+                return await api.submitFeedback(payload.appointmentId, payload.rating, payload.comment);
+            case 'UPDATE_APPOINTMENT_STATUS':
+                return await api.updateAppointmentStatus(payload.id, payload.status);
+
             default:
                 throw new Error(`Unknown mutation type: ${type}`);
         }

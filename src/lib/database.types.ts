@@ -103,6 +103,69 @@ export type Database = {
           },
         ]
       }
+      encounter_notes: {
+        Row: {
+          archived: boolean | null
+          archived_at: string | null
+          category: string
+          content: string
+          created_at: string
+          follow_up_appointment_id: string | null
+          id: string
+          member_id: string
+          member_name: string | null
+          provider_id: string
+          resolved: boolean | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          archived_at?: string | null
+          category: string
+          content: string
+          created_at?: string
+          follow_up_appointment_id?: string | null
+          id?: string
+          member_id: string
+          member_name?: string | null
+          provider_id: string
+          resolved?: boolean | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          archived_at?: string | null
+          category?: string
+          content?: string
+          created_at?: string
+          follow_up_appointment_id?: string | null
+          id?: string
+          member_id?: string
+          member_name?: string | null
+          provider_id?: string
+          resolved?: boolean | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encounter_notes_follow_up_appointment_id_fkey"
+            columns: ["follow_up_appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encounter_notes_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feedback: {
         Row: {
           appointment_id: string
@@ -131,6 +194,56 @@ export type Database = {
             columns: ["appointment_id"]
             isOneToOne: false
             referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      help_requests: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          member_id: string
+          member_name: string | null
+          message: string
+          provider_id: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          member_id: string
+          member_name?: string | null
+          message: string
+          provider_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          status?: string
+          subject: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          member_id?: string
+          member_name?: string | null
+          message?: string
+          provider_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          status?: string
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "help_requests_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -165,50 +278,26 @@ export type Database = {
         }
         Relationships: []
       }
-      slots: {
+      user_pins: {
         Row: {
-          booked_by_user_id: string | null
-          end_time: string
-          id: string
-          is_booked: boolean | null
-          provider_id: string | null
-          service_type: string
-          start_time: string
+          created_at: string
+          pin_hash: string
+          updated_at: string | null
+          user_id: string
         }
         Insert: {
-          booked_by_user_id?: string | null
-          end_time: string
-          id?: string
-          is_booked?: boolean | null
-          provider_id?: string | null
-          service_type: string
-          start_time: string
+          created_at?: string
+          pin_hash: string
+          updated_at?: string | null
+          user_id: string
         }
         Update: {
-          booked_by_user_id?: string | null
-          end_time?: string
-          id?: string
-          is_booked?: boolean | null
-          provider_id?: string | null
-          service_type?: string
-          start_time?: string
+          created_at?: string
+          pin_hash?: string
+          updated_at?: string | null
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "slots_booked_by_user_id_fkey"
-            columns: ["booked_by_user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "slots_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       users: {
         Row: {
@@ -242,6 +331,50 @@ export type Database = {
           {
             foreignKeyName: "users_created_by_fkey"
             columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waitlist: {
+        Row: {
+          created_at: string
+          id: string
+          member_id: string
+          member_name: string | null
+          note: string | null
+          preferred_days: number[] | null
+          provider_id: string
+          service_type: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_id: string
+          member_name?: string | null
+          note?: string | null
+          preferred_days?: number[] | null
+          provider_id: string
+          service_type?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_id?: string
+          member_name?: string | null
+          note?: string | null
+          preferred_days?: number[] | null
+          provider_id?: string
+          service_type?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_provider_id_fkey"
+            columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -516,4 +649,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

@@ -8,6 +8,8 @@ import { cn } from '../../lib/utils';
 import CommandPalette from '../ui/CommandPalette';
 import { KeyboardShortcutsModal } from '../ui/KeyboardShortcutsModal';
 import { useSessionTimeout } from '../../hooks/useSessionTimeout';
+import { BiometricLockOverlay } from '../auth/BiometricLockOverlay';
+
 
 export interface NavItem {
     id: string;
@@ -60,8 +62,9 @@ export function DashboardLayout({
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile state
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
-    // Initialize global session timeout
-    useSessionTimeout();
+    // Initialize global session timeout and lock state
+    const { isLocked, unlock } = useSessionTimeout();
+
 
     // Show bottom nav if explicitly set, or if 5 or fewer nav items
     const shouldShowBottomNav = showMobileBottomNav ?? navItems.length <= 5;
@@ -240,7 +243,16 @@ export function DashboardLayout({
 
             <CommandPalette />
             <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+            
+            {/* High-Security Biometric Lock Screen */}
+            <BiometricLockOverlay 
+                isOpen={isLocked} 
+                onUnlock={unlock} 
+                onSignOut={onSignOut}
+                userName={user?.user_metadata?.token_alias || user?.email}
+            />
         </div>
+
     );
 }
 

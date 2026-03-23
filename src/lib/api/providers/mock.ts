@@ -15,7 +15,7 @@ export const mockProviders: IProviderActions = {
     },
 
     getProviderOpenSlots: async (providerId: string, startDate?: string): Promise<Appointment[]> => {
-        mockStore.load();
+        await mockStore.load();
         const minTime = startDate ? new Date(startDate).getTime() : Date.now();
         const openSlots = mockStore.appointments.filter(a => {
             const t = new Date(a.start_time).getTime();
@@ -31,7 +31,7 @@ export const mockProviders: IProviderActions = {
     },
 
     getProviderSchedule: async (providerId: string, startDate: string, endDate: string): Promise<Appointment[]> => {
-        mockStore.load();
+        await mockStore.load();
         return mockStore.appointments
             .filter(a => a.provider_id === providerId && a.start_time >= startDate && a.start_time <= endDate)
             .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
@@ -41,7 +41,7 @@ export const mockProviders: IProviderActions = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
-        mockStore.load();
+        await mockStore.load();
         const [sYear, sMonth, sDay] = startDate.split('-').map(Number);
         const startD = new Date(sYear, sMonth - 1, sDay);
         const [eYear, eMonth, eDay] = endDate.split('-').map(Number);
@@ -105,24 +105,24 @@ export const mockProviders: IProviderActions = {
                 }
             }
         }
-        mockStore.save();
+        await mockStore.save();
         return true;
     },
 
     clearSchedule: async (startDate: string, endDate: string, includeBooked: boolean = false): Promise<{ count?: number; deleted?: number; success?: boolean; method?: string }> => {
-        mockStore.load();
+        await mockStore.load();
         const initialCount = mockStore.appointments.length;
         mockStore.appointments = mockStore.appointments.filter(a => {
             if (a.start_time < startDate || a.start_time > endDate) return true;
             if (a.member_id) return !includeBooked;
             return false;
         });
-        mockStore.save();
+        await mockStore.save();
         return { count: initialCount - mockStore.appointments.length };
     },
 
     toggleSlotBlock: async (slotId: string, isBlocked: boolean, notes: string | null = null): Promise<Appointment> => {
-        mockStore.load();
+        await mockStore.load();
         if (slotId.startsWith('mock-')) {
             if (isBlocked) {
                 const { data: { user } } = await supabase.auth.getUser();
@@ -146,7 +146,7 @@ export const mockProviders: IProviderActions = {
                     created_at: new Date().toISOString()
                 };
                 mockStore.appointments.push(blockedAppt);
-                mockStore.save();
+                await mockStore.save();
                 return blockedAppt;
             }
         }
@@ -156,7 +156,7 @@ export const mockProviders: IProviderActions = {
             mockStore.appointments[idx].is_booked = isBlocked;
             mockStore.appointments[idx].status = isBlocked ? 'blocked' : 'pending';
             mockStore.appointments[idx].notes = notes;
-            mockStore.save();
+            await mockStore.save();
             return mockStore.appointments[idx];
         }
         throw new Error('Slot Not Found');
@@ -164,7 +164,7 @@ export const mockProviders: IProviderActions = {
 
     getAnalytics: async (): Promise<{ appointments: Appointment[]; feedback: Feedback[]; noteStats: NoteStatistics[] }> => {
         const noteStats = await interactionActions.getNoteStatistics(6);
-        mockStore.load();
+        await mockStore.load();
         return { appointments: mockStore.appointments, feedback: [], noteStats };
     },
 
@@ -224,7 +224,7 @@ export const mockProviders: IProviderActions = {
     getAvailableResources: async (): Promise<{ provider: string, resources: ProviderResource[] }[]> => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return [];
-        mockStore.load();
+        await mockStore.load();
         const appointments = mockStore.appointments.filter(a => a.member_id === user.id);
         const providerIds = [...new Set(appointments.map(a => a.provider_id))];
         const stored = localStorage.getItem('PROVIDER_RESOURCES');

@@ -1,4 +1,6 @@
 import { getDB } from './db';
+import { encryptPayload, decryptPayload } from '../crypto';
+
 
 export interface OfflineRequest {
     id?: number;
@@ -13,8 +15,13 @@ export interface OfflineRequest {
 export class OfflineQueue {
     static async enqueue(request: Omit<OfflineRequest, 'id' | 'timestamp' | 'retryCount'>): Promise<number> {
         const db = await getDB();
+        
+        // Encrypt the sensitive payload body before writing to disk
+        const encryptedBody = await encryptPayload(request.body);
+
         const entry: OfflineRequest = {
             ...request,
+            body: encryptedBody,
             timestamp: Date.now(),
             retryCount: 0
         };
@@ -22,16 +29,28 @@ export class OfflineQueue {
         return id as number;
     }
 
+
     static async peek(): Promise<OfflineRequest | undefined> {
         const db = await getDB();
         const cursor = await db.transaction('mutation_queue').store.openCursor(null, 'next');
-        return cursor?.value;
+        if (cursor?.value) {
+            cursor.value.body = await decryptPayload(cursor.value.body);
+            return cursor.value;
+        }
+        return undefined;
     }
 
     static async getAll(): Promise<OfflineRequest[]> {
         const db = await getDB();
-        return db.getAllFromIndex('mutation_queue', 'by-timestamp');
+        const items = await db.getAllFromIndex('mutation_queue', 'by-timestamp');
+        
+        // Decrypt all payloads in memory
+        for (const item of items) {
+            item.body = await decryptPayload(item.body);
+        }
+        return items;
     }
+
 
     static async remove(id: number): Promise<void> {
         const db = await getDB();

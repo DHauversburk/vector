@@ -9,7 +9,8 @@
 import { useState } from 'react';
 import { X, Clock, CheckCircle, Loader2, Bell } from 'lucide-react';
 import { Button } from './Button';
-import { api } from '../../lib/api';
+import { useOffline } from '../../hooks/useOffline';
+import { toast } from 'sonner';
 import type { WaitlistEntry } from '../../lib/api';
 import { logger } from '../../lib/logger';
 
@@ -36,6 +37,7 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
     const [note, setNote] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const { executeMutation, isOnline } = useOffline();
 
     if (!isOpen) return null;
 
@@ -52,8 +54,9 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
         setError('');
 
         try {
-            const entry = await api.joinWaitlist(providerId, serviceType, note, preferredDays);
-            onSuccess?.(entry);
+            const entry = await executeMutation('JOIN_WAITLIST', { providerId, serviceType, note, preferredDays });
+            toast.success(isOnline ? 'Joined waitlist successfully!' : 'Waitlist request queued for sync.');
+            onSuccess?.(entry as WaitlistEntry);
             onClose();
         } catch (err) {
             const error = err as Error;
@@ -69,16 +72,20 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
             onClick={onClose}
         >
-            <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" />
+            <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" aria-hidden="true" />
             <div
                 className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl animate-scale-in"
                 onClick={e => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="waitlist-modal-title"
             >
                 {/* Header */}
                 <div className="p-6 pb-4 border-b border-slate-800 relative">
                     <button
                         onClick={onClose}
                         className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
+                        aria-label="Close waitlist dialog"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -88,7 +95,7 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
                             <Clock className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white">Join Waitlist</h2>
+                            <h2 id="waitlist-modal-title" className="text-lg font-bold text-white uppercase tracking-tight">Join Waitlist</h2>
                             <p className="text-xs text-slate-400">Get notified when a slot opens up</p>
                         </div>
                     </div>
@@ -98,7 +105,7 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
                 <div className="p-6 space-y-6">
                     {/* Info Box */}
                     <div className="bg-amber-950/30 border border-amber-500/20 rounded-lg p-3 flex gap-3">
-                        <Bell className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                        <Bell className="w-5 h-5 text-amber-500 flex-shrink-0" aria-hidden="true" />
                         <p className="text-xs text-amber-200">
                             You'll receive a notification if an appointment becomes available matching your preferences.
                         </p>
@@ -109,13 +116,15 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
                         <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
                             Preferred Days
                         </label>
-                        <div className="flex justify-between gap-1">
+                        <div className="flex justify-between gap-1" role="group" aria-label="Day selection">
                             {DAYS_OF_WEEK.map(day => {
                                 const isSelected = preferredDays.includes(day.value);
                                 return (
                                     <button
                                         key={day.value}
+                                        type="button"
                                         onClick={() => toggleDay(day.value)}
+                                        aria-pressed={isSelected}
                                         className={`w-10 h-10 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${isSelected
                                             ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/20 scale-105'
                                             : 'bg-slate-800 text-slate-500 hover:bg-slate-700 hover:text-slate-300'
@@ -130,10 +139,11 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
 
                     {/* Notes */}
                     <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                        <label htmlFor="waitlist-note" className="text-xs font-bold uppercase tracking-widest text-slate-400">
                             Notes <span className="text-slate-600">(Optional)</span>
                         </label>
                         <textarea
+                            id="waitlist-note"
                             value={note}
                             onChange={e => setNote(e.target.value)}
                             placeholder="Any specific time preferences or urgency?"
@@ -144,7 +154,7 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
 
                     {/* Error */}
                     {error && (
-                        <div className="p-3 bg-red-950/50 border border-red-500/50 text-red-400 text-xs rounded-lg">
+                        <div role="alert" className="p-3 bg-red-950/50 border border-red-500/50 text-red-400 text-xs rounded-lg">
                             {error}
                         </div>
                     )}

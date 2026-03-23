@@ -25,6 +25,8 @@ import {
 import { Button } from '../ui/Button';
 import { format, formatDistanceToNow } from 'date-fns';
 import { logger } from '../../lib/logger';
+import { supabase } from '../../lib/supabase';
+import { toast } from 'sonner';
 
 const categoryConfig: Record<HelpRequest['category'], { icon: typeof HelpCircle; color: string; label: string }> = {
     question: { icon: MessageSquare, color: 'blue', label: 'Question' },
@@ -56,7 +58,22 @@ export function PendingRequests() {
     useEffect(() => {
         loadRequests();
         const interval = setInterval(loadRequests, 30000);
-        return () => clearInterval(interval);
+
+        // Realtime Subscription
+        const channel = supabase.channel('help_requests_changes')
+            .on('postgres_changes', 
+                { event: 'INSERT', schema: 'public', table: 'help_requests' }, 
+                (payload) => {
+                    toast.info(`New Request Received: ${payload.new.subject}`);
+                    loadRequests();
+                }
+            )
+            .subscribe();
+
+        return () => {
+            clearInterval(interval);
+            supabase.removeChannel(channel);
+        };
     }, [loadRequests]);
 
     const handleResolve = async () => {
