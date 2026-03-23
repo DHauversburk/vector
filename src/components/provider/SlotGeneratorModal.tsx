@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/Button';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { Input } from '../ui/Input';
 import { X } from 'lucide-react';
 import { addDays } from 'date-fns';
@@ -26,6 +27,8 @@ export function SlotGeneratorModal({ isOpen, onClose, onSuccess }: SlotGenerator
     const [days] = useState<number[]>([1, 2, 3, 4, 5]);
     const [isBlockMode, setIsBlockMode] = useState(false);
     const [blockReason, setBlockReason] = useState('');
+
+    const containerRef = useFocusTrap(isOpen, { onEscape: onClose });
 
     if (!isOpen) return null;
 
@@ -57,7 +60,7 @@ export function SlotGeneratorModal({ isOpen, onClose, onSuccess }: SlotGenerator
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div ref={containerRef} role="dialog" aria-modal="true" className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-950">
                     <div>
                         <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Availability Generator</h3>

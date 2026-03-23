@@ -59,10 +59,13 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
         };
     }, []);
 
-    // Sync Engine
+    // Sync Engine with Exponential Backoff & Retry Policies
     const processQueue = useCallback(async () => {
-        if (isSyncing) return;
+        if (isSyncing || !isOnline) return;
         setIsSyncing(true);
+
+        const MAX_RETRIES = 5;
+        const BASE_WAIT = 30000; // 30 seconds
 
         try {
             const queue = await OfflineQueue.getAll();
@@ -72,31 +75,65 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
                 return;
             }
 
+            const now = Date.now();
+
             for (const req of queue) {
+                if (!req.id) continue;
+
+                // Check Backoff: Only retry if enough time has passed
+                if (req.retryCount > 0 && req.lastAttempt) {
+                    const waitTime = Math.min(BASE_WAIT * Math.pow(2, req.retryCount - 1), 3600000); // Exponential wait capped at 1hr
+                    if (now - req.lastAttempt < waitTime) {
+                        logger.debug('Sync', `Backoff: Skipping ${req.operationName} (Retry #${req.retryCount} pending)`);
+                        continue;
+                    }
+                }
+
+                // Skip if reached max retries
+                if (req.retryCount >= MAX_RETRIES) {
+                    if (req.status !== 'failed') {
+                        await OfflineQueue.update(req.id, { status: 'failed', error: 'MAX_RETRIES_REACHED' });
+                    }
+                    continue;
+                }
+
                 try {
-                    logger.debug('Sync', `Processing ${req.operationName}...`, req.body);
+                    logger.debug('Sync', `Processing ${req.operationName} (Attempt ${req.retryCount + 1})...`, req.body);
+                    
+                    // Update state to syncing
+                    await OfflineQueue.update(req.id, { status: 'syncing', lastAttempt: Date.now() });
+                    
                     await performOperation(req.operationName as MutationType, req.body);
-                    if (req.id) await OfflineQueue.remove(req.id);
-                } catch (error) {
+                    
+                    // Success! Remove from disk
+                    await OfflineQueue.remove(req.id);
+                } catch (error: any) {
                     logger.error('Sync', `Failed ${req.operationName}`, error);
-                    // Decide whether to remove or retry. For now, keep it if it's a network error, remove if logic error?
-                    // Assuming retry logic happens elsewhere or manual.
+                    
+                    // Increment retry count and update status
+                    await OfflineQueue.update(req.id, { 
+                        status: 'pending', 
+                        retryCount: req.retryCount + 1,
+                        lastAttempt: Date.now(),
+                        error: error.message || 'NETWORK_ERROR'
+                    });
+
+                    // If it's a 400-level error (not network/server), maybe fail it immediately?
+                    if (error.status >= 400 && error.status < 500 && error.status !== 429) {
+                        await OfflineQueue.update(req.id, { status: 'failed', retryCount: MAX_RETRIES });
+                    }
                 }
             }
 
             // Refresh count
             const count = await OfflineQueue.getCount();
             setPendingCount(count);
-
-            if (count === 0) {
-                toast.success("All offline changes synced!");
-            }
         } catch (error) {
-            logger.error('OfflineContext', "Sync Engine Error:", error);
+            logger.error('OfflineContext', "Sync Engine Critical Error:", error);
         } finally {
             setIsSyncing(false);
         }
-    }, [isSyncing]);
+    }, [isSyncing, isOnline]);
 
     // Operation Router
     const performOperation = async (type: MutationType, payload: any) => {

@@ -49,8 +49,8 @@ export default function AdminDashboard() {
                 <div className="flex h-14 items-center px-4 md:px-6 gap-4">
                     {/* Brand / Logo */}
                     <div className="flex items-center gap-3 mr-4">
-                        <img src="/pwa-192x192.png" alt="Vector" className="w-8 h-8 rounded shrink-0" />
-                        <span className="text-xl font-black tracking-tight text-slate-900 dark:text-white" data-tour="dashboard-title">VECTOR</span>
+                        <img src="/pwa-192x192.png" alt="" aria-hidden="true" className="w-8 h-8 rounded shrink-0" />
+                        <h1 className="text-xl font-black tracking-tight text-slate-900 dark:text-white" data-tour="dashboard-title">VECTOR Admin</h1>
                     </div>
 
                     {/* Operational Breadcrumb */}

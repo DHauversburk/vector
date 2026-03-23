@@ -248,6 +248,42 @@ export type Database = {
           },
         ]
       }
+      note_statistics: {
+        Row: {
+          by_category: Json | null
+          created_at: string | null
+          id: string
+          period: string
+          provider_id: string
+          requires_action_count: number | null
+          total_encounters: number | null
+          unique_patients: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          by_category?: Json | null
+          created_at?: string | null
+          id?: string
+          period: string
+          provider_id: string
+          requires_action_count?: number | null
+          total_encounters?: number | null
+          unique_patients?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          by_category?: Json | null
+          created_at?: string | null
+          id?: string
+          period?: string
+          provider_id?: string
+          requires_action_count?: number | null
+          total_encounters?: number | null
+          unique_patients?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       resources: {
         Row: {
           category: string

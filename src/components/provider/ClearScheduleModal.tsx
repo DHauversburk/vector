@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/Button';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { Input } from '../ui/Input';
 import { ShieldAlert } from 'lucide-react';
 import { addDays } from 'date-fns';
@@ -18,6 +19,8 @@ export function ClearScheduleModal({ isOpen, onClose, onSuccess }: ClearSchedule
     const [cleanBooked, setCleanBooked] = useState(false);
     const [clearStart, setClearStart] = useState(new Date().toISOString().split('T')[0]);
     const [clearEnd, setClearEnd] = useState(addDays(new Date(), 14).toISOString().split('T')[0]);
+
+    const containerRef = useFocusTrap(isOpen, { onEscape: onClose });
 
     if (!isOpen) return null;
 
@@ -44,7 +47,7 @@ export function ClearScheduleModal({ isOpen, onClose, onSuccess }: ClearSchedule
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-800">
+            <div ref={containerRef} role="dialog" aria-modal="true" className="bg-white dark:bg-slate-900 rounded-xl shadow-2xl w-full max-w-md border border-slate-200 dark:border-slate-800">
                 <div className="p-6 border-b border-slate-200 dark:border-slate-800">
                     <h3 className="text-lg font-black text-red-600 uppercase tracking-tight flex items-center gap-2">
                         <ShieldAlert className="w-5 h-5" />

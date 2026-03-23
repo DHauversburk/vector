@@ -10,6 +10,9 @@ interface VectorOfflineDB extends DBSchema {
             body: any;
             timestamp: number;
             retryCount: number;
+            lastAttempt?: number;
+            status: 'pending' | 'failed' | 'syncing';
+            error?: string;
             operationName: string; // Friendly name for UI e.g. "Create Note"
         };
         indexes: { 'by-timestamp': number };

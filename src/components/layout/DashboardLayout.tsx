@@ -1,9 +1,12 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { useTheme } from '../../hooks/useTheme';
 import { useOffline } from '../../hooks/useOffline';
-import {
-    Menu, X, Sun, Moon, LogOut, ChevronLeft, ChevronRight, User, Keyboard as KeyboardIcon, CloudOff, RefreshCcw
+import { 
+    Menu, X, LogOut, CloudOff, RefreshCcw,
+    ChevronRight, ChevronLeft,
+    Sun, Moon, User, Keyboard as KeyboardIcon
 } from 'lucide-react';
+import { SyncManager } from '../offline/SyncManager';
 import { cn } from '../../lib/utils';
 import CommandPalette from '../ui/CommandPalette';
 import { KeyboardShortcutsModal } from '../ui/KeyboardShortcutsModal';
@@ -57,10 +60,11 @@ export function DashboardLayout({
     headerActions
 }: DashboardLayoutProps) {
     const { theme, setTheme } = useTheme();
-    const { isOnline, pendingCount, syncNow } = useOffline();
+    const { isOnline, pendingCount } = useOffline();
     const [sidebarOpen, setSidebarOpen] = useState(true); // Desktop state
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // Mobile state
     const [shortcutsOpen, setShortcutsOpen] = useState(false);
+    const [syncOpen, setSyncOpen] = useState(false);
 
     // Initialize global session timeout and lock state
     const { isLocked, unlock } = useSessionTimeout();
@@ -93,17 +97,24 @@ export function DashboardLayout({
     }, []);
 
     const OfflineIndicator = (
-        (!isOnline || pendingCount > 0) ? (
+        pendingCount > 0 || !isOnline ? (
             <button
-                onClick={syncNow}
+                onClick={() => setSyncOpen(true)}
                 className={cn(
-                    "flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all mr-2",
-                    !isOnline ? "bg-rose-500/10 text-rose-500 border border-rose-500/20" : "bg-amber-500/10 text-amber-600 border border-amber-500/20 animate-pulse"
+                    "flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all mr-2 group",
+                    !isOnline
+                        ? "bg-rose-500/10 text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white"
+                        : "bg-amber-500/10 text-amber-600 border border-amber-500/20 animate-pulse hover:bg-amber-500 hover:text-white"
                 )}
-                title={!isOnline ? "You are offline" : "Syncing data..."}
+                title={!isOnline ? "You are offline. Click to manage outbox." : "Syncing data. Click to manage outbox."}
             >
                 {!isOnline ? <CloudOff className="w-3.5 h-3.5" /> : <RefreshCcw className="w-3.5 h-3.5 animate-spin" />}
-                {pendingCount > 0 ? `${pendingCount} Syncing` : 'Offline'}
+                {pendingCount > 0 ? (
+                    <span className="flex items-center gap-1.5">
+                        {pendingCount} Pending
+                        <ChevronRight className="w-2.5 h-2.5 opacity-50 group-hover:translate-x-0.5 transition-transform" />
+                    </span>
+                ) : 'Offline'}
             </button>
         ) : null
     );
@@ -145,7 +156,7 @@ export function DashboardLayout({
                 sidebarOpen ? 'left-64' : 'left-20'
             )}>
                 <div className="flex items-center gap-4">
-                    <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{navItems.find(i => i.id === activeTab)?.label || title}</h2>
+                    <h1 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{navItems.find(i => i.id === activeTab)?.label || title}</h1>
                 </div>
                 <div className="flex items-center gap-4">
                     {OfflineIndicator}
@@ -172,8 +183,8 @@ export function DashboardLayout({
                 'pt-[env(safe-area-inset-top)]'
             )}>
                 <div className="flex items-center gap-3">
-                    <img src="/pwa-192x192.png" alt="Logo" className="w-8 h-8 rounded" />
-                    <h1 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{title}</h1>
+                    <img src="/pwa-192x192.png" alt="" aria-hidden="true" className="w-8 h-8 rounded" />
+                    <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">{title}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     {OfflineIndicator}
@@ -243,6 +254,7 @@ export function DashboardLayout({
 
             <CommandPalette />
             <KeyboardShortcutsModal open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
+            <SyncManager isOpen={syncOpen} onClose={() => setSyncOpen(false)} />
             
             {/* High-Security Biometric Lock Screen */}
             <BiometricLockOverlay 
@@ -289,8 +301,8 @@ function SidebarInner({
         <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800 text-slate-300 relative">
             <div className={cn('h-16 flex items-center border-b border-slate-800', (sidebarOpen || mobile) ? 'px-6' : 'justify-center')}>
                 <div className="flex items-center gap-3">
-                    <img src="/pwa-192x192.png" alt="Logo" className="w-8 h-8 rounded shrink-0" />
-                    {(sidebarOpen || mobile) && <h1 className="text-sm font-black text-white uppercase tracking-tight whitespace-nowrap">{title}</h1>}
+                    <img src="/pwa-192x192.png" alt="" aria-hidden="true" className="w-8 h-8 rounded shrink-0" />
+                    {(sidebarOpen || mobile) && <span className="text-sm font-black text-white uppercase tracking-tight whitespace-nowrap">{title}</span>}
                 </div>
             </div>
 

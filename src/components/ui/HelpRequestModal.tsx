@@ -10,6 +10,7 @@
 import { useState, useEffect } from 'react';
 import { X, HelpCircle, MessageSquare, Calendar, AlertTriangle, Wrench, Send, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from './Button';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useOffline } from '../../hooks/useOffline';
 // Force Refresh
 import { type HelpRequest } from '../../lib/api';
@@ -76,6 +77,8 @@ export function HelpRequestModal({ isOpen, onClose, onSuccess, patientName }: He
             setError('');
         }
     }, [isOpen]);
+
+    const containerRef = useFocusTrap(isOpen, { onEscape: onClose });
 
     if (!isOpen) return null;
 
@@ -168,6 +171,10 @@ export function HelpRequestModal({ isOpen, onClose, onSuccess, patientName }: He
             >
                 <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" />
                 <div
+                    ref={containerRef}
+                    role="dialog"
+                aria-labelledby="modal-title"
+                    aria-modal="true"
                     className="relative w-full max-w-sm bg-slate-900 border border-emerald-500/50 rounded-2xl shadow-2xl p-8 text-center animate-scale-in"
                     onClick={e => e.stopPropagation()}
                 >
@@ -198,6 +205,10 @@ export function HelpRequestModal({ isOpen, onClose, onSuccess, patientName }: He
 
             {/* Modal */}
             <div
+                ref={containerRef}
+                role="dialog"
+                aria-labelledby="modal-title"
+                aria-modal="true"
                 className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl animate-scale-in overflow-hidden max-h-[90vh] overflow-y-auto"
                 onClick={e => e.stopPropagation()}
             >
@@ -215,7 +226,7 @@ export function HelpRequestModal({ isOpen, onClose, onSuccess, patientName }: He
                             <HelpCircle className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white">Request Help</h2>
+                            <h2 id="modal-title" className="text-lg font-bold text-white">Request Help</h2>
                             <p className="text-xs text-slate-400">A provider will respond to your request</p>
                         </div>
                     </div>

@@ -35,55 +35,30 @@ export const supabaseInteractions: IInteractionActions = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
-        // Compute note statistics from encounter_notes via client-side aggregation
+        // Optimized backend fetch from aggregate table
         const cutoff = new Date();
         cutoff.setMonth(cutoff.getMonth() - months);
+        const periodCutoff = `${cutoff.getFullYear()}-${String(cutoff.getMonth() + 1).padStart(2, '0')}`;
 
-        const { data: notes, error } = await supabase
-            .from('encounter_notes')
+        const { data, error } = await supabase
+            .from('note_statistics')
             .select('*')
             .eq('provider_id', user.id)
-            .gte('created_at', cutoff.toISOString())
-            .order('created_at', { ascending: false });
+            .gte('period', periodCutoff)
+            .order('period', { ascending: false });
 
         if (error) throw error;
 
-        // Aggregate by month
-        const statsMap = new Map<string, NoteStatistics>();
-        for (const note of (notes || [])) {
-            const d = new Date(note.created_at);
-            const period = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-
-            if (!statsMap.has(period)) {
-                statsMap.set(period, {
-                    period,
-                    provider_id: user.id,
-                    total_encounters: 0,
-                    by_category: { question: 0, counseling: 0, reschedule: 0, follow_up: 0, routine: 0, urgent: 0, administrative: 0, other: 0 },
-                    unique_patients: 0,
-                    requires_action_count: 0,
-                    created_at: new Date().toISOString(),
-                });
-            }
-            const stats = statsMap.get(period)!;
-            stats.total_encounters++;
-            if (stats.by_category[note.category as keyof typeof stats.by_category] !== undefined) {
-                stats.by_category[note.category as keyof typeof stats.by_category]++;
-            }
-            if (note.status === 'requires_action') stats.requires_action_count++;
-        }
-
-        // Count unique patients per period
-        for (const [period, stats] of statsMap) {
-            const periodNotes = (notes || []).filter(n => {
-                const d = new Date(n.created_at);
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` === period;
-            });
-            const uniqueMembers = new Set(periodNotes.map(n => n.member_id));
-            stats.unique_patients = uniqueMembers.size;
-        }
-
-        return Array.from(statsMap.values()).sort((a, b) => b.period.localeCompare(a.period));
+        // Ensure types match front-end expectation
+        return (data || []).map(stats => ({
+            period: stats.period,
+            provider_id: stats.provider_id,
+            total_encounters: stats.total_encounters,
+            by_category: stats.by_category,
+            unique_patients: stats.unique_patients,
+            requires_action_count: stats.requires_action_count,
+            created_at: stats.created_at
+        })) as NoteStatistics[];
     },
 
     getProviderEncounterNotes: async (limit: number = 50, includeArchived: boolean = false): Promise<EncounterNote[]> => {

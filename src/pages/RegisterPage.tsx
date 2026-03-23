@@ -72,8 +72,8 @@ export default function RegisterPage() {
 
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] shadow-2xl p-8 space-y-6 shadow-slate-200/50 dark:shadow-none transition-colors">
                     {error && (
-                        <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-100 rounded text-red-700 animate-in fade-in zoom-in-95">
-                            <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" />
+                        <div role="alert" className="flex items-start gap-3 p-3 bg-red-50 border border-red-100 rounded text-red-700 animate-in fade-in zoom-in-95">
+                            <ShieldCheck className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
                             <p className="text-[10px] font-black uppercase leading-tight tracking-tight">{error}</p>
                         </div>
                     )}
@@ -81,59 +81,67 @@ export default function RegisterPage() {
                     <form onSubmit={handleRegister} className="space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Patient Alias</label>
+                                <label htmlFor="alias" className="text-[9px] font-black uppercase tracking-widest text-slate-500">Patient Alias</label>
                                 <div className="relative">
                                     <Input
+                                        id="alias"
                                         placeholder="GHOST-01"
                                         value={alias}
                                         onChange={(e) => setAlias(e.target.value.toUpperCase())}
                                         required
+                                        aria-required="true"
                                         className="h-11 text-xs font-bold uppercase pl-9 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
                                     />
-                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                    <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Security PIN</label>
+                                <label htmlFor="pin" className="text-[9px] font-black uppercase tracking-widest text-slate-500">Security PIN</label>
                                 <div className="relative">
                                     <Input
+                                        id="pin"
                                         type="password"
                                         placeholder="1234"
                                         maxLength={4}
                                         value={pin}
                                         onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
                                         required
+                                        aria-required="true"
                                         className="h-11 text-xs font-bold pl-9 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 tracking-[0.5em]"
                                     />
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                                 </div>
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Email Address</label>
+                            <label htmlFor="email" className="text-[9px] font-black uppercase tracking-widest text-slate-500">Email Address</label>
                             <div className="relative">
                                 <Input
+                                    id="email"
                                     type="email"
                                     placeholder="operator@vector.net"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
+                                    aria-required="true"
                                     className="h-11 text-xs font-bold pl-9 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
                                 />
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                             </div>
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Account Password</label>
+                            <label htmlFor="password" className="text-[9px] font-black uppercase tracking-widest text-slate-500">Account Password</label>
                             <Input
+                                id="password"
                                 type="password"
                                 placeholder="••••••••••••"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
+                                aria-required="true"
                                 className="h-11 text-xs border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950"
                             />
                         </div>

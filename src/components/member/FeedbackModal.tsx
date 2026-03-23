@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '../ui/Button';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { api } from '../../lib/api';
 import { logger } from '../../lib/logger';
 
@@ -15,6 +16,8 @@ export function FeedbackModal({ isOpen, appointmentId, onClose, onSuccess }: Fee
     const [rating, setRating] = useState(5);
     const [comment, setComment] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const containerRef = useFocusTrap(isOpen, { onEscape: onClose });
 
     if (!isOpen || !appointmentId) return null;
 
@@ -36,9 +39,9 @@ export function FeedbackModal({ isOpen, appointmentId, onClose, onSuccess }: Fee
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in">
-            <div className="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <div ref={containerRef} role="dialog" aria-modal="true" aria-labelledby="modal-title" className="w-full max-w-sm bg-white dark:bg-slate-900 p-6 rounded-lg shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
                 <div className="border-b border-slate-100 dark:border-slate-800 pb-3 text-center">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Visit Feedback</h3>
+                    <h3 id="modal-title" className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Visit Feedback</h3>
                     <p className="text-[10px] font-bold text-slate-400 uppercase mt-1">Secure confidential report</p>
                 </div>
 

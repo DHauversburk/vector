@@ -43,9 +43,11 @@ export const TacticalPinField: React.FC<TacticalPinFieldProps> = ({ onComplete, 
     // Clear and refocus on error - using useLayoutEffect for synchronous DOM updates
     useLayoutEffect(() => {
         if (error && error !== prevErrorRef.current) {
-            // Only clear if there are values to clear
-            setPin(prev => prev.every(v => v === '') ? prev : ['', '', '', '']);
-            setTimeout(() => focusInput(0), 100);
+            // Reset async to avoid synchronous set-state-in-effect cascading renders
+            setTimeout(() => {
+                setPin(prev => prev.every(v => v === '') ? prev : ['', '', '', '']);
+                focusInput(0);
+            }, 100);
         }
         prevErrorRef.current = error;
     }, [error, focusInput, pin]);

@@ -150,15 +150,16 @@ export default function MemberDashboard() {
             user={user}
             role="Member"
             onSignOut={signOut}
-            title="VECTOR"
+            title="Member Dashboard"
         >
             <WelcomeModal role="member" userName={user?.user_metadata?.token_alias || user?.email} />
             <div className="max-w-4xl mx-auto px-4 py-4 md:py-8 space-y-4 md:space-y-8 pb-20">
                 {activeTab === 'ops' && (
                     <div className="space-y-4 md:space-y-8 animate-in fade-in duration-500">
                         <header data-tour="dashboard-title">
-                            <h2 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Member Dashboard</h2>
-                            <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase">Manage your care and appointments securely</p>
+                            {/* Hidden on desktop since it's in the header h1, visible on mobile as section description */}
+                            <h2 className="md:hidden text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Activities</h2>
+                            <p className="text-[10px] md:text-xs font-bold text-slate-500 uppercase mt-2 md:mt-0">Manage your care and appointments securely</p>
                         </header>
 
                         {/* Upcoming Session Countdown */}

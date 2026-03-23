@@ -444,13 +444,14 @@ Empower field providers to operate seamlessly in disconnected environments (DIL 
 **So that** I can move to the next patient immediately.
 
 **Acceptance Criteria:**
-- [ ] Create persistent local "Mutation Queue" (IndexedDB).
-- [ ] All write operations (POST/PUT/DELETE) go to Queue first.
-- [ ] "Sync Engine" processes queue when online.
-- [ ] Retry mechanism with exponential backoff for failed syncs.
+- [x] Create persistent local "Mutation Queue" (IndexedDB).
+- [x] All write operations (POST/PUT/DELETE) go to Queue first.
+- [x] "Sync Engine" processes queue when online.
+- [x] Retry mechanism with exponential backoff for failed syncs.
 
 **Story Points:** 8
 **Priority:** CRITICAL
+**Status:** ✅ COMPLETE
 
 ---
 
@@ -465,12 +466,13 @@ Elevate security posture to meet strict DoD impact levels. Implement "Zero Trust
 **So that** I don't have to type my long password repeatedly while ensuring security.
 
 **Acceptance Criteria:**
-- [ ] Implement WebAuthn API.
-- [ ] "Unlock" screen overlays app after 5 mins inactivity.
-- [ ] Fallback to PIN/Password if biometrics fail.
+- [x] Implement WebAuthn API.
+- [x] "Unlock" screen overlays app after 5 mins inactivity.
+- [x] Fallback to PIN/Password if biometrics fail.
 
 **Story Points:** 5
 **Priority:** HIGH
+**Status:** ✅ COMPLETE
 
 ### User Story 5.2: Client-Side Data Encryption
 **As a** security officer,
@@ -478,23 +480,24 @@ Elevate security posture to meet strict DoD impact levels. Implement "Zero Trust
 **So that** physical device theft doesn't compromise patient data.
 
 **Acceptance Criteria:**
-- [ ] Encrypt all "Rest" data in IndexedDB (AES-GCM).
-- [ ] Encryption key derived from user session (not stored plain text).
-- [ ] Clear sensitive data on explicit logout.
+- [x] Encrypt all "Rest" data in IndexedDB (AES-GCM).
+- [x] Encryption key derived from user session (not stored plain text).
+- [x] Clear sensitive data on explicit logout.
 
 **Story Points:** 8
 **Priority:** HIGH
+**Status:** ✅ COMPLETE
 
 ---
 
 ## 🛠️ Technical Debt & Infrastructure
 
-| Item | Description | Impact | Priority |
-|------|-------------|--------|----------|
-| **Virtualization** | Implement virtualized lists (react-window) for Encounter Logs. | Mobile performance crashes with >100 items. | HIGH |
-| **A11y Audit** | WCAG 2.1 AA Compliance Check (High Contrast, Screen Reader). | Compliance requirement for Gov apps. | MEDIUM |
-| **E2E Testing** | Implement Playwright suite for critical paths (Login -> Note -> Sync). | Prevents regression in complex sync logic. | HIGH |
-| **Error Boundary** | Global error boundary with Sentry integration. | Observability of field crashes. | MEDIUM |
+| Item | Description | Impact | Priority | Status |
+|------|-------------|--------|----------|--------|
+| **Virtualization** | Implement virtualized lists (react-window) for Encounter Logs. | Mobile performance crashes with >100 items. | HIGH | ✅ |
+| **A11y Audit** | WCAG 2.1 AA Compliance Check (High Contrast, Screen Reader). | Compliance requirement for Gov apps. | MEDIUM | ✅ |
+| **E2E Testing** | Implement Playwright suite for critical paths (Login -> Note -> Sync). | Prevents regression in complex sync logic. | HIGH | 🔄 |
+| **Error Boundary** | Global error boundary with Sentry integration. | Observability of field crashes. | MEDIUM | 🔄 |
 
 ---
 

@@ -22,6 +22,9 @@
 - [x] `aria-expanded` on collapsible elements (sidebar, mobile menu)
 - [x] `aria-hidden="true"` on decorative icons
 - [x] `aria-controls` linking buttons to their controlled elements
+- [x] Provide descriptive `alt` text for informative images.
+- [x] Use empty `alt` text (`alt=""`) and `aria-hidden="true"` for decorative images.
+- [x] Audit logo usage across all layouts and splash screens.
 
 ### 3. Focus Indicators (WCAG 2.1 AA - 2.4.7)
 - [x] Enhanced `focus-visible` styles with ring effects
@@ -59,39 +62,42 @@
 - [x] Disables all animations for affected users
 - [x] Transitions reduced to 0.01ms
 
+### 8. Keyboard Navigation (WCAG 2.1 A/AA - 2.1.1, 2.1.2)
+- [x] Tab order audit across all pages
+- [x] Focus trapping in modals (`useFocusTrap` hook)
+- [x] Escape key closes all modals
+- [x] Modal focus restoration on close
+
+### 9. Heading Structure & Imagery (WCAG 2.1 A - 1.1.1, 1.3.1)
+- [x] Single `<h1>` per page (the main page title)
+- [x] Logical heading order (`<h1>` through `<h6>`) without skipping levels
+- [x] Informative image `alt` text
+- [x] Decorative image `alt=""` and `aria-hidden="true"`
+- [x] Sidebar and Mobile brand logo audit
+
+### 10. Form Accessibility (WCAG 2.1 AA - 1.3.5, 3.3.2)
+- [x] Labels associated with inputs via `htmlFor`/`id`
+- [x] `aria-required="true"` on mandatory fields
+- [x] `aria-invalid` and `aria-describedby` for error states
+- [x] `role="alert"` for form-level error messages
+
 ---
 
 ## 🔄 In Progress / Future Improvements
 
-### Keyboard Navigation (2.1.1, 2.1.2)
-- [ ] Tab order audit across all pages
-- [ ] Trap focus in modals when open
-- [ ] Escape key closes modals
-- [ ] Arrow key navigation in menus
+### Keyboard Navigation (Future)
+- [ ] Arrow key navigation in complex menus
+- [ ] Keyboard shortcuts documentation (in-app modal)
 
-### Color Contrast (1.4.3)
-- [ ] Full color contrast audit
-- [ ] Verify 4.5:1 ratio for normal text
-- [ ] Verify 3:1 ratio for large text
-- [ ] Verify 3:1 ratio for UI components
-
-### Form Accessibility (1.3.5, 3.3.2)
-- [x] **WCAG 2.1 AA Compliance** (Inputs linked with labels correctly)
-- [x] **Semantic Landmarks** (Login tablist, Navigation)
-- [x] **Error States** (Accessible error messages with `aria-describedby`)
-- [x] **High-Security Re-Auth** (Biometric Lock via WebAuthn)
-- [ ] Required fields marked with `aria-required`
-- [ ] Inline validation feedback
-
-### Images (1.1.1)
-- [ ] Alt text audit for all images
-- [ ] Decorative images marked with `alt=""`
-
-### Heading Structure (1.3.1)
-- [ ] Single `<h1>` per page
-- [ ] Proper heading hierarchy (no skipping levels)
+### Color Contrast (WCAG 2.1 AA/AAA - 1.4.3, 1.4.6)
+- [ ] Full color contrast automated audit
+- [ ] Verify 4.5:1 ratio for normal text (AA)
+- [ ] Verify 7:1 ratio for normal text (AAA target)
+- [ ] Verify 3:1 ratio for graphical UI components
 
 ---
+
+## 📋 Accessibility Testing Protocol
 
 ## 🧪 Testing Tools Recommended
 

@@ -134,7 +134,8 @@ export default function LandingPage() {
                         <div className="relative w-16 h-16 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center shadow-2xl">
                             <img
                                 src="/pwa-192x192.png"
-                                alt="Vector"
+                                alt=""
+                                aria-hidden="true"
                                 className="w-10 h-10"
                             />
                         </div>
@@ -196,9 +197,9 @@ export default function LandingPage() {
 
                                 {/* Content */}
                                 <div className="flex-1 text-left min-w-0">
-                                    <h3 className="text-base font-bold text-white mb-0.5">
+                                    <h2 className="text-base font-bold text-white mb-0.5">
                                         {entry.title}
-                                    </h3>
+                                    </h2>
                                     <p className="text-xs text-slate-400 truncate">
                                         {entry.subtitle} • {entry.description}
                                     </p>
@@ -217,28 +218,28 @@ export default function LandingPage() {
                         <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center mb-3">
                             <WifiOff className="w-4 h-4 text-indigo-400" />
                         </div>
-                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Resilient Sync</h4>
+                        <h3 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Resilient Sync</h3>
                         <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">Tactical outbox for signal-denied clinical entry.</p>
                     </div>
                     <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
                         <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-3">
                             <Fingerprint className="w-4 h-4 text-emerald-400" />
                         </div>
-                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Zero Trust</h4>
+                        <h3 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Zero Trust</h3>
                         <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">Native biometric layer for session security.</p>
                     </div>
                     <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
                         <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center mb-3">
                             <Zap className="w-4 h-4 text-amber-400" />
                         </div>
-                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Rapid Triage</h4>
+                        <h3 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Rapid Triage</h3>
                         <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">Optimized scheduling for high-density units.</p>
                     </div>
                     <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/40 backdrop-blur-sm">
                         <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center mb-3">
                             <Activity className="w-4 h-4 text-purple-400" />
                         </div>
-                        <h4 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Health Intel</h4>
+                        <h3 className="text-[10px] font-black uppercase text-white tracking-widest mb-1">Health Intel</h3>
                         <p className="text-[9px] font-bold text-slate-500 leading-relaxed uppercase">Real-time diagnostics and member resources.</p>
                     </div>
                 </div>

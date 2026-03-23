@@ -9,6 +9,7 @@
 import { useState } from 'react';
 import { X, Clock, CheckCircle, Loader2, Bell } from 'lucide-react';
 import { Button } from './Button';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { useOffline } from '../../hooks/useOffline';
 import { toast } from 'sonner';
 import type { WaitlistEntry } from '../../lib/api';
@@ -38,6 +39,8 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const { executeMutation, isOnline } = useOffline();
+
+    const containerRef = useFocusTrap(isOpen, { onEscape: onClose });
 
     if (!isOpen) return null;
 
@@ -74,6 +77,9 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
         >
             <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" aria-hidden="true" />
             <div
+                ref={containerRef}
+                role="dialog"
+                aria-modal="true"
                 className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl animate-scale-in"
                 onClick={e => e.stopPropagation()}
                 role="dialog"

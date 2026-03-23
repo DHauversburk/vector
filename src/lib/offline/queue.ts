@@ -9,11 +9,14 @@ export interface OfflineRequest {
     body: any;
     timestamp: number;
     retryCount: number;
+    lastAttempt?: number;
+    status: 'pending' | 'failed' | 'syncing';
+    error?: string;
     operationName: string;
 }
 
 export class OfflineQueue {
-    static async enqueue(request: Omit<OfflineRequest, 'id' | 'timestamp' | 'retryCount'>): Promise<number> {
+    static async enqueue(request: Omit<OfflineRequest, 'id' | 'timestamp' | 'retryCount' | 'status' | 'lastAttempt' | 'error'>): Promise<number> {
         const db = await getDB();
         
         // Encrypt the sensitive payload body before writing to disk
@@ -23,7 +26,8 @@ export class OfflineQueue {
             ...request,
             body: encryptedBody,
             timestamp: Date.now(),
-            retryCount: 0
+            retryCount: 0,
+            status: 'pending'
         };
         const id = await db.add('mutation_queue', entry);
         return id as number;
@@ -65,5 +69,23 @@ export class OfflineQueue {
     static async getCount(): Promise<number> {
         const db = await getDB();
         return db.count('mutation_queue');
+    }
+
+    static async update(id: number, updates: Partial<OfflineRequest>): Promise<void> {
+        const db = await getDB();
+        const existing = await db.get('mutation_queue', id);
+        if (existing) {
+            await db.put('mutation_queue', { ...existing, ...updates });
+        }
+    }
+
+    static async getById(id: number): Promise<OfflineRequest | undefined> {
+        const db = await getDB();
+        const entry = await db.get('mutation_queue', id);
+        if (entry) {
+            entry.body = await decryptPayload(entry.body);
+            return entry;
+        }
+        return undefined;
     }
 }

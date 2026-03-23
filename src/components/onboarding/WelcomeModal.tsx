@@ -104,17 +104,17 @@ export function WelcomeModal({ role, userName }: WelcomeModalProps) {
                     'relative p-8 pb-12 text-center',
                     `bg-gradient-to-br ${config.gradient}`
                 )}>
-                    {/* Close button */}
+                    {/* Close button - Elevated z-index and increased hit area */}
                     <button
                         onClick={handleSkip}
-                        className="absolute top-4 right-4 p-2 text-white/70 hover:text-white transition-colors rounded-lg hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+                        className="absolute top-4 right-4 z-20 p-3 text-white/70 hover:text-white transition-all rounded-xl hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent active:scale-90"
                         aria-label="Close welcome dialog"
                     >
-                        <X className="w-5 h-5" aria-hidden="true" />
+                        <X className="w-6 h-6" aria-hidden="true" />
                     </button>
 
-                    {/* Decorative elements */}
-                    <div className="absolute inset-0 overflow-hidden">
+                    {/* Decorative elements - Added pointer-events-none to prevent click blocking */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
                         <div className="absolute -top-20 -right-20 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
                         <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/10 rounded-full blur-xl" />
                     </div>

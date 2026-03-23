@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { X, FileText, MessageSquare, Calendar, CalendarPlus, UserCheck, Settings, HelpCircle, Loader2, Mic, CheckCircle, Zap, History, Hash, MicOff, AlertTriangle, Clock } from 'lucide-react';
 import { Button } from './Button';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 import { api, type EncounterNote, type EncounterNoteCategory, type EncounterNoteStatus } from '../../lib/api';
 import { toast } from 'sonner';
 import { useDevice } from '../../hooks/useDevice';
@@ -58,7 +59,6 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
     const [dragY, setDragY] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
     const dragStartY = useRef(0);
-    const modalRef = useRef<HTMLDivElement>(null);
     const recognitionRef = useRef<SpeechRecognition | null>(null);
 
     // Follow-up scheduling state
@@ -128,6 +128,8 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
             setIsDragging(false);
         }
     }, [isOpen]);
+
+    const containerRef = useFocusTrap(isOpen, { onEscape: onClose });
 
     if (!isOpen) return null;
 
@@ -312,7 +314,10 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
             />
 
             <div
-                ref={modalRef}
+                ref={containerRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-title"
                 className={`relative w-full bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden ${isMobile
                     ? 'max-h-[90vh] rounded-t-3xl animate-slide-in-from-bottom'
                     : 'max-w-lg rounded-2xl animate-scale-in'
@@ -347,7 +352,7 @@ export function QuickNoteModal({ isOpen, onClose, onSuccess, preselectedMember }
                             <FileText className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white">Quick Encounter Note</h2>
+                            <h2 id="modal-title" className="text-lg font-bold text-white">Quick Encounter Note</h2>
                             <p className="text-xs text-slate-400">Document a brief patient interaction</p>
                         </div>
                     </div>

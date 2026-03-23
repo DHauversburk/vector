@@ -171,11 +171,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
 
                     {/* Logo container */}
                     <div className="relative w-24 h-24 rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 flex items-center justify-center shadow-2xl">
-                        <img
-                            src="/pwa-192x192.png"
-                            alt="VECTOR"
-                            className="w-14 h-14 drop-shadow-lg"
-                        />
+                        <img src="/pwa-192x192.png" alt="" aria-hidden="true" className="w-8 h-8 rounded shrink-0" />
                     </div>
                 </div>
 

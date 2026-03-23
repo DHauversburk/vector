@@ -107,7 +107,7 @@ export default function ProviderDashboard() {
             user={{ ...user, user_metadata: { token_alias: 'PROVIDER' } }}
             role="Provider"
             onSignOut={signOut}
-            title="Provider Portal"
+            title="Provider Dashboard"
             headerActions={
                 <Button
                     onClick={() => setQuickNoteOpen(true)}

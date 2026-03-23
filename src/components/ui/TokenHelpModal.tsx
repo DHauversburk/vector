@@ -14,6 +14,7 @@
 
 import { X, CreditCard, Phone, ArrowRight } from 'lucide-react';
 import { Button } from './Button';
+import { useFocusTrap } from '../../hooks/useFocusTrap';
 
 interface TokenHelpModalProps {
     isOpen: boolean;
@@ -22,6 +23,8 @@ interface TokenHelpModalProps {
 }
 
 export function TokenHelpModal({ isOpen, onClose, onContinue }: TokenHelpModalProps) {
+    const containerRef = useFocusTrap(isOpen, { onEscape: onClose });
+
     if (!isOpen) return null;
 
     return (
@@ -34,6 +37,10 @@ export function TokenHelpModal({ isOpen, onClose, onContinue }: TokenHelpModalPr
 
             {/* Modal */}
             <div
+                ref={containerRef}
+                role="dialog"
+                aria-labelledby="modal-title"
+                aria-modal="true"
                 className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl animate-scale-in overflow-hidden"
                 onClick={e => e.stopPropagation()}
             >
@@ -41,9 +48,10 @@ export function TokenHelpModal({ isOpen, onClose, onContinue }: TokenHelpModalPr
                 <div className="relative p-6 pb-4 border-b border-slate-800">
                     <button
                         onClick={onClose}
-                        className="absolute top-4 right-4 p-2 text-slate-500 hover:text-white transition-colors rounded-lg hover:bg-slate-800"
+                        className="absolute top-4 right-4 z-20 p-3 text-slate-500 hover:text-white transition-all rounded-xl hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 active:scale-90"
+                        aria-label="Close help"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-6 h-6" />
                     </button>
 
                     <div className="flex items-center gap-3">
@@ -51,7 +59,7 @@ export function TokenHelpModal({ isOpen, onClose, onContinue }: TokenHelpModalPr
                             <CreditCard className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-bold text-white">Access Help</h2>
+                            <h2 id="modal-title" className="text-lg font-bold text-white">Access Help</h2>
                             <p className="text-xs text-slate-400">Which login option is right for me?</p>
                         </div>
                     </div>
