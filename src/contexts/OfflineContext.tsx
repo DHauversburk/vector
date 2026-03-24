@@ -4,7 +4,7 @@ import { OfflineQueue } from '../lib/offline/queue';
 import { api } from '../lib/api';
 import { logger } from '../lib/logger';
 
-type MutationType = 
+export type MutationType = 
     | 'CREATE_NOTE' 
     | 'UPDATE_NOTE' 
     | 'ARCHIVE_NOTE' 

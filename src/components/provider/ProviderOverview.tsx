@@ -1,60 +1,29 @@
-import { useEffect, useState, useCallback } from 'react';
-import { api, type Appointment, type EncounterNote } from '../../lib/api';
-import { useAuth } from '../../hooks/useAuth';
-import { format, parseISO, isAfter, isBefore, isValid } from 'date-fns';
+import { useProviderOverview } from '../../hooks/useProviderOverview';
+import { format, isAfter, isBefore, isValid, parseISO } from 'date-fns';
 import {
     LayoutDashboard, Users, Clock, AlertCircle,
     ArrowRight, Bell, AlertTriangle
 } from 'lucide-react';
 import { generatePatientCodename } from '../../lib/codenames';
-import { toast } from 'sonner';
 import { PendingRequests } from './PendingRequests';
 import { WaitlistManager } from './WaitlistManager';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { MetricCard } from '../ui/MetricCard';
 import { TodayAgenda } from './TodayAgenda';
-import { logger } from '../../lib/logger';
 
-export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) => void }) => {
-    const { user } = useAuth();
-    const [todayAppts, setTodayAppts] = useState<Appointment[]>([]);
-    const [helpRequestCount, setHelpRequestCount] = useState(0);
-    const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
-    const [confirmModal, setConfirmModal] = useState<{ open: boolean; apptId: string | null }>({ open: false, apptId: null });
-    const [confirmLoading, setConfirmLoading] = useState(false);
-    const [actionNotes, setActionNotes] = useState<EncounterNote[]>([]);
-
-    const load = useCallback(async () => {
-        if (!user) return;
-        const now = new Date();
-        const start = new Date(now);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(now);
-        end.setHours(23, 59, 59, 999);
-
-        try {
-            const [schedule, requests, notes] = await Promise.all([
-                api.getProviderSchedule(user.id, start.toISOString(), end.toISOString()),
-                api.getPendingHelpRequests(),
-                api.getProviderEncounterNotes(20, false)
-            ]);
-            setTodayAppts(schedule.sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime()));
-            setHelpRequestCount(requests.length);
-            // Filter to only notes requiring action
-            setActionNotes(notes.filter(n => n.status === 'requires_action').slice(0, 5));
-        } catch (err) {
-            logger.error('ProviderOverview', "Failed to load overview data", err);
-        } finally {
-            setLoading(false);
-        }
-    }, [user]);
-
-    useEffect(() => {
-        load();
-        const interval = setInterval(load, 30000); // 30s refresh
-        return () => clearInterval(interval);
-    }, [load]);
+export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
+    const {
+        todayAppts,
+        helpRequestCount,
+        loading,
+        searchTerm,
+        setSearchTerm,
+        confirmModal,
+        setConfirmModal,
+        confirmLoading,
+        actionNotes,
+        handleNoShow
+    } = useProviderOverview();
 
     const safeParse = (dateStr: string) => {
         try {
@@ -62,22 +31,6 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
             return isValid(d) ? d : new Date();
         } catch {
             return new Date();
-        }
-    };
-
-    const handleNoShow = async () => {
-        if (!confirmModal.apptId) return;
-        setConfirmLoading(true);
-        try {
-            await api.providerCancelAppointment(confirmModal.apptId, 'Patient No-Show recorded by provider');
-            toast.success('Patient marked as no-show');
-            load();
-            setConfirmModal({ open: false, apptId: null });
-        } catch (err) {
-            logger.error('ProviderOverview', err);
-            toast.error('Failed to update status');
-        } finally {
-            setConfirmLoading(false);
         }
     };
 
@@ -94,11 +47,13 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
         return codename.includes(search) || notes.includes(search);
     });
 
-    if (loading) return <div className="p-8 flex items-center justify-center h-full"><div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div></div>;
+    if (loading) return (
+        <div className="p-8 flex items-center justify-center h-full">
+            <div className="animate-spin w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
+        </div>
+    );
 
     const shiftEnd = todayAppts.length > 0 ? format(safeParse(todayAppts[todayAppts.length - 1].end_time), 'HH:mm') : null;
-
-    // ...
 
     return (
         <div className="space-y-4 md:space-y-6 max-w-7xl mx-auto p-4 sm:p-6 animate-in fade-in duration-500">
@@ -116,11 +71,11 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
                         </h2>
                     </div>
 
-                    <p className="hidden md:block text-slate-600 dark:text-slate-300 font-medium mt-1 uppercase tracking-wide text-xs">
+                    <div className="hidden md:block text-slate-600 dark:text-slate-300 font-medium mt-1 uppercase tracking-wide text-xs">
                         {format(now, 'EEEE, MMMM do')}
                         <span className="text-indigo-600 dark:text-indigo-400 font-bold mx-2">OpDay {format(now, 'dd')}</span>
                         {shiftEnd && <span className="text-slate-400"> • Ends {shiftEnd}</span>}
-                    </p>
+                    </div>
                     {/* Mobile Subtext */}
                     <p className="md:hidden text-[10px] text-slate-400 font-bold uppercase tracking-wide mt-0.5">
                         {format(now, 'EEEE')} {shiftEnd ? `• Ends ${shiftEnd}` : ''}
@@ -198,26 +153,20 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="flex-1 min-w-0">
-                                                <div className="text-[10px] uppercase font-black tracking-wider text-rose-600 dark:text-rose-400 mb-1">
-                                                    {note.member_name || 'Patient'}
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">
+                                                        {format(parseISO(note.created_at), 'HH:mm')} • {note.category}
+                                                    </span>
                                                 </div>
-                                                <div className="text-xs text-slate-700 dark:text-slate-300 line-clamp-2 font-medium">
-                                                    {note.content}
-                                                </div>
+                                                <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase truncate">
+                                                    {generatePatientCodename(note.member_id)}
+                                                </p>
                                             </div>
-                                            <ArrowRight className="w-4 h-4 text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 mt-1" />
+                                            <ArrowRight className="w-3 h-3 text-rose-400 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </button>
                                 ))}
                             </div>
-                            {actionNotes.length >= 5 && (
-                                <button
-                                    onClick={() => onNavigate('logs')}
-                                    className="w-full mt-3 text-center text-[10px] uppercase font-black tracking-wider text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
-                                >
-                                    View All ({actionNotes.length}+)
-                                </button>
-                            )}
                         </div>
                     )}
 
@@ -230,10 +179,9 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
                 onClose={() => setConfirmModal({ open: false, apptId: null })}
                 onConfirm={handleNoShow}
                 loading={confirmLoading}
-                variant="destructive"
                 title="Mark as No-Show?"
-                description="This will cancel the patient's appointment and update their clinical record. This action cannot be reversed."
-                confirmLabel="Confirm No-Show"
+                description="This will register the patient as a no-show and notify the operations team."
+                variant="destructive"
             />
         </div>
     );

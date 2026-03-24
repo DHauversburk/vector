@@ -57,7 +57,7 @@ export default function CommandPalette() {
             icon: <Calendar className="w-4 h-4" />,
             shortcut: 'G S',
             category: 'Navigation',
-            action: () => navigate('/schedule')
+            action: () => window.dispatchEvent(new CustomEvent('vector-navigate', { detail: 'schedule' }))
         },
         {
             id: 'profile',
@@ -65,7 +65,7 @@ export default function CommandPalette() {
             icon: <User className="w-4 h-4" />,
             shortcut: 'G P',
             category: 'Navigation',
-            action: () => navigate('/profile')
+            action: () => window.dispatchEvent(new CustomEvent('vector-navigate', { detail: 'security' }))
         },
         {
             id: 'theme',
@@ -89,7 +89,13 @@ export default function CommandPalette() {
             label: 'Admin Station',
             icon: <Shield className="w-4 h-4" />,
             category: 'Navigation',
-            action: () => navigate('/admin')
+            action: () => {
+                 if (user?.role === 'admin') {
+                     window.dispatchEvent(new CustomEvent('vector-navigate', { detail: 'schedule' }))
+                 } else {
+                     navigate('/dashboard')
+                 }
+            }
         });
     }
 

@@ -77,6 +77,16 @@ export default function ProviderDashboard() {
         if (view === 'tokens') loadMembers();
     }, [view, memberSearch, loadMembers]);
 
+    useEffect(() => {
+        const handleNav = (e: Event) => {
+            const ce = e as CustomEvent;
+            if (['overview', 'schedule', 'tokens', 'logs', 'resources', 'analytics', 'security'].includes(ce.detail)) {
+                setView(ce.detail as typeof view);
+            }
+        };
+        window.addEventListener('vector-navigate', handleNav);
+        return () => window.removeEventListener('vector-navigate', handleNav);
+    }, []);
 
 
     const navItems: NavItem[] = [

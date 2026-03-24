@@ -82,8 +82,6 @@ export function WaitlistModal({ isOpen, onClose, providerId, serviceType, onSucc
                 aria-modal="true"
                 className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl animate-scale-in"
                 onClick={e => e.stopPropagation()}
-                role="dialog"
-                aria-modal="true"
                 aria-labelledby="waitlist-modal-title"
             >
                 {/* Header */}
