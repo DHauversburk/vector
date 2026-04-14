@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security disclosure
+    url: https://github.com/DHauversburk/project-vector-beta/security/advisories/new
+    about: Report suspected vulnerabilities privately via GitHub Security Advisories. Do NOT open a public issue for security findings.
+  - name: Enterprise roadmap
+    url: https://github.com/DHauversburk/project-vector-beta/blob/main/docs/ENTERPRISE_ROADMAP.md
+    about: Read the authoritative roadmap before filing a new epic request.

@@ -1,0 +1,91 @@
+# Dependabot configuration — see docs/ENTERPRISE_ROADMAP.md §5 P1 and
+# Sprint 18 / P1.3 for the full vulnerability-management rollout.
+#
+# Grouped updates reduce PR noise: one weekly PR per ecosystem for
+# "minor and patch" updates; major bumps stay individual so the
+# review includes the breaking-change changelog.
+version: 2
+updates:
+  # npm runtime + dev dependencies.
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/New_York'
+    open-pull-requests-limit: 5
+    reviewers:
+      - 'OWNER' # TODO(Sprint 13): replace with GitHub handle
+    labels:
+      - 'dependencies'
+      - 'npm'
+    commit-message:
+      prefix: 'chore(deps)'
+      prefix-development: 'chore(deps-dev)'
+      include: 'scope'
+    groups:
+      # Test tooling moves together.
+      test-tooling:
+        patterns:
+          - 'vitest'
+          - '@vitest/*'
+          - '@testing-library/*'
+          - '@playwright/*'
+          - '@axe-core/*'
+          - '@lhci/*'
+          - 'jsdom'
+      # Lint + format tooling.
+      lint-tooling:
+        patterns:
+          - 'eslint'
+          - 'eslint-*'
+          - '@eslint/*'
+          - 'typescript-eslint'
+          - 'prettier'
+          - 'lint-staged'
+          - 'husky'
+          - '@commitlint/*'
+      # Types can flood — group them.
+      types:
+        patterns:
+          - '@types/*'
+      # React + React ecosystem — review together.
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - 'react-*'
+          - '@tanstack/*'
+      # Supabase client + helpers.
+      supabase:
+        patterns:
+          - '@supabase/*'
+      # Vite + build tools.
+      vite:
+        patterns:
+          - 'vite'
+          - 'vite-*'
+          - '@vitejs/*'
+          - 'rollup'
+          - 'rollup-*'
+
+  # GitHub Actions dependencies (workflow `uses:` entries).
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'America/New_York'
+    open-pull-requests-limit: 3
+    labels:
+      - 'dependencies'
+      - 'github-actions'
+    commit-message:
+      prefix: 'chore(ci)'
+      include: 'scope'
+    groups:
+      actions:
+        patterns:
+          - '*'
