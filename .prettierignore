@@ -1,0 +1,39 @@
+# Build output
+dist/
+dev-dist/
+build/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Generated / derived
+*.log
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# IDE / editor
+.vscode/
+.idea/
+
+# Tooling
+.husky/_
+.claude/
+
+# Supabase generated types (maintained by supabase gen types)
+src/lib/database.types.ts
+
+# Temp / misc
+tmp/
+build_output.txt
+eslint_output.txt
+patch.py
+check_h.py
+
+# Files prettier cannot format meaningfully
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
