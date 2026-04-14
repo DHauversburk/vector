@@ -1,8 +1,9 @@
 # Branch Protection — `main`
 
 **Status:** Recommended configuration. Not yet enforced. Enable in the
-GitHub Settings UI after Sprint 13 ships and `@OWNER` placeholders in
-`.github/CODEOWNERS` are replaced with real handles.
+GitHub Settings UI after Sprint 13 ships. `.github/CODEOWNERS` is
+already populated with `@DHauversburk` as of the Sprint 14 planning
+branch, so code-owner review is ready to flip on.
 
 **Owner:** Repo admin.
 
@@ -31,7 +32,7 @@ Rule applies to: `main`.
 - [x] Require a pull request before merging
   - [x] **Require approvals:** 1 (raise to 2 after headcount allows)
   - [x] **Dismiss stale pull request approvals when new commits are pushed** — forces re-review after force-push or rebase
-  - [x] **Require review from Code Owners** — activates `.github/CODEOWNERS` (replace `@OWNER` first)
+  - [x] **Require review from Code Owners** — activates `.github/CODEOWNERS` (already populated with `@DHauversburk`)
   - [ ] ~~Allow specified actors to bypass required pull requests~~ — leave off
 
 ### 2. Require status checks to pass before merging
@@ -116,13 +117,13 @@ After enabling, confirm:
 Because turning on all of these at once will break any live dev
 work, stagger them:
 
-| Date              | What                               | Why                                                      |
-| ----------------- | ---------------------------------- | -------------------------------------------------------- |
-| Sprint 13 end     | Required PR + required CI check    | Closes the "merge anything" hole immediately             |
-| Sprint 13 end +7d | Require code-owner review          | Needs `@OWNER` replacement in `.github/CODEOWNERS` first |
-| Sprint 14 start   | Require signed commits             | Contributors need time to set up signing                 |
-| Sprint 14 end     | Linear history                     | After team adjusts to squash-merge workflow              |
-| Sprint 15         | Include administrators / no bypass | Last — once everyone is bought in                        |
+| Date              | What                               | Why                                               |
+| ----------------- | ---------------------------------- | ------------------------------------------------- |
+| Sprint 13 end     | Required PR + required CI check    | Closes the "merge anything" hole immediately      |
+| Sprint 13 end +7d | Require code-owner review          | CODEOWNERS already populated with `@DHauversburk` |
+| Sprint 14 start   | Require signed commits             | Contributors need time to set up signing          |
+| Sprint 14 end     | Linear history                     | After team adjusts to squash-merge workflow       |
+| Sprint 15         | Include administrators / no bypass | Last — once everyone is bought in                 |
 
 ---
 

@@ -246,7 +246,7 @@ These block or gate the sprint. Ordered by urgency.
 
 ### Day 0 (before sprint starts)
 
-1. **Replace `@OWNER` in `.github/CODEOWNERS` and `.github/dependabot.yml`** with the real GitHub handle. Without this, Dependabot PRs will fail on open, and the CODEOWNERS review enforcement is inert.
+1. ~~**Replace `@OWNER` in `.github/CODEOWNERS` and `.github/dependabot.yml`.**~~ _Done on this branch: substituted with `@DHauversburk`._
 2. **Confirm the sprint-width option** (A/B/C above). Recommendation: A.
 3. **Confirm scope of SEC-001 Phase 3** (history purge). Default: defer to after Phase 2 audit. Only required if `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_FUNCTION_PEPPER` are confirmed in history.
 
