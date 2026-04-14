@@ -24,9 +24,13 @@ export default defineConfig({
         'src/lib/database.types.ts',
         'src/scripts/**',
       ],
-      // TODO(Sprint 13, follow-up PR): set thresholds to measured baseline then
-      // ratchet +5 points per sprint per docs/ENTERPRISE_ROADMAP.md §8 Risk #5.
-      // Start at 0 so CI does not red-wall on day one.
+      // TODO(Sprint 14): baseline is currently UNMEASURABLE — `npm run test:coverage`
+      // fails 16 of 22 tests because the corpus calls supabase.auth.signInWithPassword
+      // with credentials the harness does not inject. See docs/ENTERPRISE_ROADMAP.md
+      // §8 Risk #9 and docs/SPRINT_14_KICKOFF.md for the triage plan (fixture creds
+      // from staging post-P9, or mark broken tests .skip with a rewrite-debt ticket).
+      // Once the suite runs green, record the measured baseline here and start the
+      // +5 points / sprint ratchet per Risk #5. Start at 0 so CI does not red-wall.
       thresholds: {
         lines: 0,
         branches: 0,
