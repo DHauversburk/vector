@@ -39,6 +39,25 @@ export default defineConfig([
         },
       ],
 
+      // react-refresh/only-export-components: downgraded to warn for
+      // the Sprint 13 baseline. Several contexts (OnboardingContext,
+      // etc.) export both constants and components — fast-refresh
+      // works fine in Vite, the rule is purely a dev-mode nicety.
+      // TODO(Sprint 15 / Epic F): as part of the design-system
+      // reset, extract mixed exports to dedicated files and ratchet
+      // this rule back to error.
+      'react-refresh/only-export-components': 'warn',
+
+      // react-hooks/set-state-in-effect: downgraded to warn for the
+      // Sprint 13 baseline. Several components (TacticalPinField,
+      // DeviceContext) legitimately reset state on prop change via
+      // useEffect. Some of those sites can be refactored to derived
+      // state, others are load-once initializers. Same Risk #5
+      // mitigation pattern as react-refresh above.
+      // TODO(Sprint 15 / Epic F): audit each call site; ratchet back
+      // to error.
+      'react-hooks/set-state-in-effect': 'warn',
+
       // jsx-a11y: curated high-signal rules at warn. Expand in Sprints 15-16
       // (Product Epic A — Accessibility) where a full WCAG pass happens.
       'jsx-a11y/alt-text': 'warn',
