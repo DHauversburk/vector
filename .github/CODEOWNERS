@@ -1,0 +1,29 @@
+# CODEOWNERS — auto-assigns reviewers when PRs touch matching paths.
+# Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+#
+# TODO(Sprint 13): replace @OWNER with the actual GitHub handle (or team
+# slug, e.g. @org/engineering) before enabling branch protection that
+# requires code-owner review.
+
+# Default owner for everything not matched below.
+*                           @OWNER
+
+# Supabase infrastructure — migrations and edge functions have higher review bar.
+/supabase/                  @OWNER
+
+# Vercel deploy surface — CSP, headers, rewrites.
+/vercel.json                @OWNER
+
+# CI/CD and release machinery.
+/.github/                   @OWNER
+/.husky/                    @OWNER
+/package.json               @OWNER
+/package-lock.json          @OWNER
+
+# Enterprise roadmap + runbooks — changes to these affect the whole team.
+/docs/ENTERPRISE_ROADMAP.md @OWNER
+/docs/ON_CALL_RUNBOOK.md    @OWNER
+/docs/ROLLBACK_RUNBOOK.md   @OWNER
+/docs/RELEASE_CHECKLIST.md  @OWNER
+/docs/ENVIRONMENTS.md       @OWNER
+/docs/BRANCH_PROTECTION.md  @OWNER
