@@ -31,3 +31,9 @@ dist-ssr
 
 # Vercel
 .vercel
+
+# Claude Code / local agent tool state (per-user, not shared)
+.claude/
+
+# Test coverage output (generated)
+coverage/
