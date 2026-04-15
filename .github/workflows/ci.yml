@@ -30,6 +30,20 @@ jobs:
         with:
           fetch-depth: 0 # required by release-please (Sprint 20 / P8) later
 
+      # SEC-001 guard — fails the PR if any .env file appears in the index.
+      # The check runs before setup-node so a violation fails in seconds.
+      # See docs/SEC-001-env-in-git.md.
+      - name: Verify no .env file is tracked
+        run: |
+          TRACKED=$(git ls-files '.env' '.env.local' '.env.production' '.env.staging' 2>/dev/null || true)
+          if [ -n "$TRACKED" ]; then
+            echo "::error::The following .env files are tracked in git (see docs/SEC-001-env-in-git.md):"
+            echo "$TRACKED" | sed 's/^/  - /'
+            echo "::error::Only .env.example may be committed. Run 'git rm --cached <file>' and recommit."
+            exit 1
+          fi
+          echo "OK — no real .env files tracked."
+
       - name: Setup Node.js ${{ matrix.node }}
         uses: actions/setup-node@v4
         with:
