@@ -1,117 +1,135 @@
-import { useState, useCallback, useEffect } from 'react';
-import { swrFetcher } from '../lib/api/swr-fetcher';
-import useSWR, { useSWRConfig } from 'swr';
-import { toast } from 'sonner';
-import { useAuth } from './useAuth';
-import { useOffline } from './useOffline';
-import { parseISO, differenceInMinutes } from 'date-fns';
-import { type Appointment, type WaitlistEntry } from '../lib/api';
-import { logger } from '../lib/logger';
+import { useState, useCallback, useEffect } from 'react'
+import { swrFetcher } from '../lib/api/swr-fetcher'
+import useSWR, { useSWRConfig } from 'swr'
+import { toast } from 'sonner'
+import { useAuth } from './useAuth'
+import { useOffline } from './useOffline'
+import { parseISO, differenceInMinutes } from 'date-fns'
+import { type Appointment, type WaitlistEntry } from '../lib/api'
+import { logger } from '../lib/logger'
 
 export function useMemberDashboard() {
-    const { user, signOut } = useAuth();
-    const { mutate } = useSWRConfig();
-    const { executeMutation, isOnline } = useOffline();
+  const { user, signOut } = useAuth()
+  const { mutate } = useSWRConfig()
+  const { executeMutation, isOnline } = useOffline()
 
-    // Remote Data via SWR
-    const { data: rawAppointments = [], isLoading: apptsLoading } = useSWR('appointments', swrFetcher);
-    const { data: rawProviders = [], isLoading: providersLoading } = useSWR('providers', swrFetcher);
-    const { data: rawWaitlist = [], isLoading: waitlistLoading } = useSWR('waitlist', swrFetcher);
+  // Remote Data via SWR
+  const { data: rawAppointments = [], isLoading: apptsLoading } = useSWR('appointments', swrFetcher)
+  const { data: rawProviders = [], isLoading: providersLoading } = useSWR('providers', swrFetcher)
+  const { data: rawWaitlist = [], isLoading: waitlistLoading } = useSWR('waitlist', swrFetcher)
 
-    const loading = apptsLoading || providersLoading || waitlistLoading;
-    const appointments = rawAppointments as Appointment[];
-    const myWaitlist = rawWaitlist as WaitlistEntry[];
+  const loading = apptsLoading || providersLoading || waitlistLoading
+  const appointments = rawAppointments as Appointment[]
+  const myWaitlist = rawWaitlist as WaitlistEntry[]
 
-    // Unique Providers Filter
-    const providers = (rawProviders as any[] || []).filter((item, index, self) => 
-        index === self.findIndex((t) => (
-            t.token_alias === item.token_alias && t.service_type === item.service_type
-        ))
-    ) as { id: string, token_alias: string, service_type: string }[];
+  // Unique Providers Filter
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pre-existing; tracked by P2 epic
+  const providers = ((rawProviders as any[]) || []).filter(
+    (item, index, self) =>
+      index ===
+      self.findIndex(
+        (t) => t.token_alias === item.token_alias && t.service_type === item.service_type,
+      ),
+  ) as { id: string; token_alias: string; service_type: string }[]
 
-    // UI States
-    const [bookingOpen, setBookingOpen] = useState(false);
-    const [isRescheduling, setIsRescheduling] = useState(false);
-    const [apptToReschedule, setApptToReschedule] = useState<string | null>(null);
-    const [feedbackOpen, setFeedbackOpen] = useState(false);
-    const [feedbackApptId, setFeedbackApptId] = useState<string | null>(null);
-    const [waitlistOpen, setWaitlistOpen] = useState(false);
-    const [waitlistProviderId, setWaitlistProviderId] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<'ops' | 'resources' | 'security'>('ops');
-    const [helpModalOpen, setHelpModalOpen] = useState(false);
+  // UI States
+  const [bookingOpen, setBookingOpen] = useState(false)
+  const [isRescheduling, setIsRescheduling] = useState(false)
+  const [apptToReschedule, setApptToReschedule] = useState<string | null>(null)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackApptId, setFeedbackApptId] = useState<string | null>(null)
+  const [waitlistOpen, setWaitlistOpen] = useState(false)
+  const [waitlistProviderId, setWaitlistProviderId] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<'ops' | 'resources' | 'security'>('ops')
+  const [helpModalOpen, setHelpModalOpen] = useState(false)
 
-    useEffect(() => {
-        const handleNav = (e: Event) => {
-            const ce = e as CustomEvent;
-            if (['ops', 'resources', 'security'].includes(ce.detail)) {
-                setActiveTab(ce.detail as any);
-            } else if (ce.detail === 'schedule') {
-                setActiveTab('ops');
-            }
-        };
-        window.addEventListener('vector-navigate', handleNav);
-        return () => window.removeEventListener('vector-navigate', handleNav);
-    }, []);
+  useEffect(() => {
+    const handleNav = (e: Event) => {
+      const ce = e as CustomEvent
+      if (['ops', 'resources', 'security'].includes(ce.detail)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pre-existing; tracked by P2 epic
+        setActiveTab(ce.detail as any)
+      } else if (ce.detail === 'schedule') {
+        setActiveTab('ops')
+      }
+    }
+    window.addEventListener('vector-navigate', handleNav)
+    return () => window.removeEventListener('vector-navigate', handleNav)
+  }, [])
 
-    const startReschedule = useCallback((apptId: string) => {
-        setIsRescheduling(true);
-        setApptToReschedule(apptId);
-        setBookingOpen(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, []);
+  const startReschedule = useCallback((apptId: string) => {
+    setIsRescheduling(true)
+    setApptToReschedule(apptId)
+    setBookingOpen(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
 
-    const cancelReschedule = useCallback(() => {
-        setIsRescheduling(false);
-        setApptToReschedule(null);
-        setBookingOpen(false);
-    }, []);
+  const cancelReschedule = useCallback(() => {
+    setIsRescheduling(false)
+    setApptToReschedule(null)
+    setBookingOpen(false)
+  }, [])
 
-    const handleBookingComplete = useCallback(() => {
-        setBookingOpen(false);
-        setIsRescheduling(false);
-        setApptToReschedule(null);
-        mutate('appointments');
-    }, [mutate]);
+  const handleBookingComplete = useCallback(() => {
+    setBookingOpen(false)
+    setIsRescheduling(false)
+    setApptToReschedule(null)
+    mutate('appointments')
+  }, [mutate])
 
-    const handleCancel = async (id: string) => {
-        const appt = appointments.find(a => a.id === id);
-        if (appt) {
-            const minutesUntil = differenceInMinutes(parseISO(appt.start_time), new Date());
-            if (minutesUntil < 30) {
-                toast.error('LATE CANCELLATION FORBIDDEN: Cannot cancel within 30 minutes of mission start.');
-                return;
-            }
-        }
+  const handleCancel = async (id: string) => {
+    const appt = appointments.find((a) => a.id === id)
+    if (appt) {
+      const minutesUntil = differenceInMinutes(parseISO(appt.start_time), new Date())
+      if (minutesUntil < 30) {
+        toast.error("Can't cancel within 30 minutes of your appointment.")
+        return
+      }
+    }
 
-        const toastId = toast.loading(isOnline ? 'Neutralizing appointment entry...' : 'Queueing cancellation request...');
-        try {
-            await executeMutation('CANCEL_APPOINTMENT', { id });
-            toast.success(isOnline ? 'Appointment entry neutralized.' : 'Cancellation queued for sync.', { id: toastId });
-            mutate('appointments');
-        } catch (error: any) {
-            logger.error('useMemberDashboard', 'Cancellation error:', error);
-            toast.error(`Cancellation Failed: ${error.message || 'Unknown protocol error'}`, { id: toastId });
-        }
-    };
+    const toastId = toast.loading(
+      isOnline ? 'Cancelling appointment...' : 'Queueing cancellation...',
+    )
+    try {
+      await executeMutation('CANCEL_APPOINTMENT', { id })
+      toast.success(isOnline ? 'Appointment cancelled.' : 'Cancellation queued for sync.', {
+        id: toastId,
+      })
+      mutate('appointments')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- pre-existing; tracked by P2 epic
+    } catch (error: any) {
+      logger.error('useMemberDashboard', 'Cancellation error:', error)
+      toast.error(`Couldn't cancel: ${error.message || 'unknown error'}`, { id: toastId })
+    }
+  }
 
-    return {
-        user,
-        signOut,
-        appointments,
-        providers,
-        myWaitlist,
-        loading,
-        bookingOpen, setBookingOpen,
-        isRescheduling, apptToReschedule,
-        startReschedule, cancelReschedule,
-        feedbackOpen, setFeedbackOpen,
-        feedbackApptId, setFeedbackApptId,
-        waitlistOpen, setWaitlistOpen,
-        waitlistProviderId, setWaitlistProviderId,
-        activeTab, setActiveTab,
-        helpModalOpen, setHelpModalOpen,
-        handleCancel,
-        handleBookingComplete,
-        isOnline
-    };
+  return {
+    user,
+    signOut,
+    appointments,
+    providers,
+    myWaitlist,
+    loading,
+    bookingOpen,
+    setBookingOpen,
+    isRescheduling,
+    apptToReschedule,
+    startReschedule,
+    cancelReschedule,
+    feedbackOpen,
+    setFeedbackOpen,
+    feedbackApptId,
+    setFeedbackApptId,
+    waitlistOpen,
+    setWaitlistOpen,
+    waitlistProviderId,
+    setWaitlistProviderId,
+    activeTab,
+    setActiveTab,
+    helpModalOpen,
+    setHelpModalOpen,
+    handleCancel,
+    handleBookingComplete,
+    isOnline,
+  }
 }

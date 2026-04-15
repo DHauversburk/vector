@@ -1,54 +1,61 @@
-import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { AlertTriangle, RefreshCcw, Home } from 'lucide-react';
-import { Button } from './Button';
-import { logger } from '../../lib/logger';
+import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { AlertTriangle, RefreshCcw, Home } from 'lucide-react'
+import { Button } from './Button'
+import { logger } from '../../lib/logger'
 
 interface Props {
-  children: ReactNode;
-  fallback?: ReactNode;
-  name?: string;
+  children: ReactNode
+  fallback?: ReactNode
+  name?: string
 }
 
 interface State {
-  hasError: boolean;
-  error: Error | null;
+  hasError: boolean
+  error: Error | null
 }
 
 /**
- * ErrorBoundary - Captures runtime errors in child components
- * 
- * Provides a "Tactical Failure" UI when a component crashes,
- * allowing the user to retry or return home instead of seeing a blank screen.
- * 
+ * ErrorBoundary - Captures runtime errors in child components.
+ *
+ * Shows a plain "Something went wrong" UI with Home / Try-again buttons
+ * instead of a blank screen. Sole error boundary in the app — the previous
+ * duplicate at /components/ErrorBoundary.tsx was deleted in Sprint 14
+ * streamline pass.
+ *
  * @component
  */
 export class ErrorBoundary extends Component<Props, State> {
   public state: State = {
     hasError: false,
-    error: null
-  };
+    error: null,
+  }
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    logger.error(`ErrorBoundary:${this.props.name || 'Global'}`, 'Uncaught error:', error, errorInfo);
+    logger.error(
+      `ErrorBoundary:${this.props.name || 'Global'}`,
+      'Uncaught error:',
+      error,
+      errorInfo,
+    )
   }
 
   private handleReset = () => {
-    this.setState({ hasError: false, error: null });
-    window.location.reload();
-  };
+    this.setState({ hasError: false, error: null })
+    window.location.reload()
+  }
 
   private handleGoHome = () => {
-    window.location.href = '/';
-  };
+    window.location.href = '/'
+  }
 
   public render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback;
+        return this.props.fallback
       }
 
       return (
@@ -62,52 +69,45 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-white">
-                Component Failure
-              </h2>
-              <p className="text-slate-400 text-sm font-medium leading-relaxed">
-                A non-critical module has encountered a runtime exception. 
-                Internal diagnostics have been captured.
+              <h2 className="text-2xl font-semibold text-white">Something went wrong</h2>
+              <p className="text-slate-400 text-sm leading-relaxed">
+                This part of the page didn&rsquo;t load. Try again, or go home.
               </p>
             </div>
 
             {import.meta.env.DEV && this.state.error && (
-                <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 text-left overflow-auto max-h-40">
-                    <code className="text-[10px] text-red-400 font-mono italic">
-                        {this.state.error.message}
-                        <br />
-                        {this.state.error.stack}
-                    </code>
-                </div>
+              <div className="p-4 bg-slate-900 rounded-xl border border-slate-800 text-left overflow-auto max-h-40">
+                <code className="text-[10px] text-red-400 font-mono italic">
+                  {this.state.error.message}
+                  <br />
+                  {this.state.error.stack}
+                </code>
+              </div>
             )}
 
             <div className="flex flex-col sm:flex-row gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex-1 border-slate-700 text-slate-400"
                 onClick={this.handleGoHome}
               >
                 <Home className="w-4 h-4 mr-2" />
-                Return Base
+                Home
               </Button>
-              <Button 
-                variant="default" 
+              <Button
+                variant="default"
                 className="flex-1 bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/20"
                 onClick={this.handleReset}
               >
                 <RefreshCcw className="w-4 h-4 mr-2" />
-                Retry Module
+                Try again
               </Button>
             </div>
-
-            <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-600">
-               Error Reference: {Math.random().toString(36).substr(2, 9).toUpperCase()}
-            </p>
           </div>
         </div>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }

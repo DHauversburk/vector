@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { CheckCircle2 } from 'lucide-react'
 import { supabase, IS_MOCK } from '../lib/supabase'
 import { webauthn } from '../lib/webauthn'
 import { api } from '../lib/api'
@@ -24,8 +23,7 @@ interface AuthenticationError {
 
 export default function LoginPage() {
   // Boot sequence state (Now managed by hook)
-  const { isLoaded, isLoading, currentLoadingText, bootComplete, showBootSequence } =
-    useBootSequence()
+  const { isLoaded, isLoading, currentLoadingText, bootComplete } = useBootSequence()
 
   // Auth state
   const [stage, setStage] = useState<'auth' | 'pin' | 'setup' | 'reset'>('auth')
@@ -63,17 +61,17 @@ export default function LoginPage() {
     setPinLoading(true)
     setError('')
     try {
-      if (!currentUserId) throw new Error('SESSION INVALID')
+      if (!currentUserId) throw new Error('Your session expired. Sign in again.')
       const isValid = await api.verifyTacticalPin(currentUserId, enteredPin)
       if (isValid) {
         verifyPin()
         navigate('/dashboard')
       } else {
-        setError('ACCESS DENIED: INVALID SECURITY PIN')
+        setError('Wrong PIN. Try again.')
         setPinLoading(false)
       }
     } catch {
-      setError('PIN VERIFICATION ERROR')
+      setError("Couldn't verify your PIN. Try again.")
       setPinLoading(false)
     }
   }
@@ -81,12 +79,12 @@ export default function LoginPage() {
   const handlePinSetup = async (newPin: string) => {
     setPinLoading(true)
     try {
-      if (!currentUserId) throw new Error('SESSION INVALID')
+      if (!currentUserId) throw new Error('Your session expired. Sign in again.')
       await api.setTacticalPin(currentUserId, newPin)
       verifyPin()
       navigate('/dashboard')
     } catch {
-      setError('FAILED TO INITIALIZE SECURITY PIN')
+      setError("Couldn't save your PIN. Try again.")
       setPinLoading(false)
     }
   }
@@ -102,7 +100,7 @@ export default function LoginPage() {
       setStage('setup')
       setError('')
     } else {
-      setError('INVALID RESET TOKEN')
+      setError('Invalid reset code.')
     }
   }
 
@@ -118,7 +116,7 @@ export default function LoginPage() {
             body: { token },
           })
 
-          if (error) throw new Error(error.message || 'Verification Failed')
+          if (error) throw new Error(error.message || 'Sign-in failed. Check your token.')
           if (data?.error) throw new Error(data.error)
 
           if (data?.session) {
@@ -126,7 +124,7 @@ export default function LoginPage() {
             if (sessionError) throw sessionError
             return
           } else {
-            throw new Error('Authentication failed: No session returned')
+            throw new Error('Sign-in failed. Try again.')
           }
         }
 
@@ -186,7 +184,7 @@ export default function LoginPage() {
       setError('')
       const isSupported = await webauthn.isSupported()
       if (!isSupported) {
-        setError('BIO-SENSOR UNAVAILABLE ON THIS TERMINAL')
+        setError("Biometric sign-in isn't available on this device.")
         return
       }
       const assertion = await webauthn.authenticate()
@@ -199,16 +197,17 @@ export default function LoginPage() {
       }
     } catch (err) {
       const error = err as AuthenticationError
-      setError(error.message || 'BIOMETRIC LOGIN FAILED')
+      setError(error.message || "Biometric sign-in didn't work. Try your token.")
     }
   }
 
   return (
     <LoginBackground isLoaded={isLoaded}>
-      {/* Background loading state (Blackout Overlay) */}
+      {/* Background loading state — never renders now that useBootSequence is instant,
+          but kept defensively in case a future async dependency reintroduces a phase. */}
       {!isLoaded('background') && (
         <div className="absolute inset-0 bg-slate-950 flex items-center justify-center z-[100]">
-          <LoadingPlaceholder text={currentLoadingText || 'INITIALIZING...'} visible={true} />
+          <LoadingPlaceholder text={currentLoadingText} visible={true} />
         </div>
       )}
 
@@ -286,23 +285,20 @@ export default function LoginPage() {
                 setStage('reset')
                 setError('')
               }}
-              className="w-full mb-6 text-center text-xs font-bold uppercase tracking-[0.2em] text-slate-600 hover:text-blue-400 transition-colors"
+              className="w-full mb-6 text-center text-sm text-slate-400 hover:text-blue-400 transition-colors"
             >
-              Forgot PIN? Recover Access
+              Forgot your PIN?
             </button>
           )}
 
-          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">
-            {bootComplete ? 'Authorized Use Only • Public Access Restricted • v2.2.0-beta' : ''}
-          </p>
-          <div
-            className={`inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest px-4 py-2 rounded-full ${IS_MOCK ? 'text-amber-400 bg-amber-950/50 border border-amber-900/50' : 'text-emerald-400 bg-emerald-950/50 border border-emerald-900/50'}`}
-          >
-            <span
-              className={`w-2 h-2 rounded-full ${IS_MOCK ? 'bg-amber-400' : 'bg-emerald-400'} animate-pulse`}
-            />
-            {IS_MOCK ? 'Simulation Mode' : 'Live System'}
-          </div>
+          {/* Mock-mode badge — only shown when running against the in-memory client.
+              In live builds nothing renders here (cleaner footer). */}
+          {IS_MOCK && (
+            <div className="inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full text-amber-400 bg-amber-950/50 border border-amber-900/50">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              Demo mode
+            </div>
+          )}
 
           {IS_MOCK && bootComplete && (
             <button
@@ -312,19 +308,12 @@ export default function LoginPage() {
                   window.location.reload()
                 }
               }}
-              className="block mx-auto mt-3 px-4 py-2 border border-red-900/50 rounded-lg text-xs font-black uppercase tracking-widest text-red-400 bg-red-950/30 hover:bg-red-950/50 transition-all"
+              className="block mx-auto mt-3 px-4 py-2 border border-red-900/50 rounded-lg text-xs text-red-400 bg-red-950/30 hover:bg-red-950/50 transition-all"
             >
-              Reset Demo Data
+              Reset demo data
             </button>
           )}
         </div>
-
-        {bootComplete && !showBootSequence && (
-          <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex items-center gap-2 text-emerald-400 animate-fade-in">
-            <CheckCircle2 className="w-4 h-4" />
-            <span className="text-[10px] font-mono uppercase tracking-widest">System Ready</span>
-          </div>
-        )}
       </div>
 
       <TokenHelpModal isOpen={showTokenHelp} onClose={() => setShowTokenHelp(false)} />

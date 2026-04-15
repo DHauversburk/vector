@@ -298,9 +298,9 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                 onChange={(e) => setServiceType(e.target.value as ServiceType)}
                 className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-md px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-indigo-500/20 outline-none h-10 transition-all cursor-pointer"
               >
-                <option value="PT_BLUE">PHYSICAL THERAPY (BLUE)</option>
-                <option value="MH_GREEN">MENTAL HEALTH (GREEN)</option>
-                <option value="PCM_RED">OPERATIONAL MEDICINE (RED)</option>
+                <option value="PT_BLUE">Physical Therapy</option>
+                <option value="MH_GREEN">Mental Health</option>
+                <option value="PCM_RED">Primary Care</option>
               </select>
             </div>
 
@@ -391,7 +391,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                   <option value="ALL">All Services</option>
                   <option value="PT_BLUE">Physical Therapy</option>
                   <option value="MH_GREEN">Mental Health</option>
-                  <option value="PCM_RED">Operational Medicine</option>
+                  <option value="PCM_RED">Primary Care</option>
                 </select>
                 <select
                   className="h-8 rounded border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-2 text-[10px] font-bold uppercase outline-none focus:ring-2 focus:ring-indigo-500/10 text-slate-700 dark:text-slate-300"
@@ -671,7 +671,7 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
                       }`}
                     >
                       {lastBatch.serviceType === 'PCM_RED'
-                        ? 'OPERATIONAL MEDICINE'
+                        ? 'PRIMARY CARE'
                         : lastBatch.serviceType.replace('_', ' ')}
                     </span>
                     <span className="text-[8px] font-bold text-slate-300 uppercase">

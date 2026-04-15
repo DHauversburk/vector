@@ -1,9 +1,12 @@
+> **STATUS: Historic record.** This document captures Phase-2 product intent through Sprint 8. Forward sprints (13+) are tracked in [`docs/ENTERPRISE_ROADMAP.md`](./ENTERPRISE_ROADMAP.md). Kept as the source for user-story archaeology and completed-work accounting.
+
+---
+
 # VECTOR: Product Backlog
 
 ## User Personas, Epics & User Stories
 
-**Version:** 2.0.0 (Phase 2 Roadmap)  
-**Last Updated:** 2026-01-31 (Sprint 8 Complete)  
+**Version captured:** 2.0.0 · **Last meaningful update:** 2026-01-31 (Sprint 8 Complete)  
 **Sprint Alignment:** Sprint 9 Planning - The Bunker (Offline PWA)
 
 ---
@@ -597,11 +600,11 @@ Elevate security posture to meet strict DoD impact levels. Implement "Zero Trust
 
 ## 📎 Related Documents
 
-- `BETA_2_ROADMAP.md` - Current roadmap
-- `ARCHITECTURE.md` - System architecture
-- `TEST_SCENARIOS.md` - Testing guide
+- [`ENTERPRISE_ROADMAP.md`](./ENTERPRISE_ROADMAP.md) — authoritative forward roadmap (supersedes `BETA_2_ROADMAP.md`)
+- [`../ARCHITECTURE.md`](../ARCHITECTURE.md) — system architecture
+- [`../CONTRIBUTING.md`](../CONTRIBUTING.md) — dev workflow + copy conventions
 
 ---
 
 **Document Owner:** Product Team  
-**Next Review:** Weekly sprint planning
+**Status:** Historic record — see banner at top of file.

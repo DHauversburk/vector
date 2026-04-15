@@ -125,14 +125,14 @@ export const TOUR_SEQUENCES: Record<string, TourStep[]> = {
     {
       id: 'welcome',
       targetSelector: '[data-tour="dashboard-title"]',
-      title: 'Admin Command Center 🎛️',
-      description: 'Full system control at your fingertips.',
+      title: 'Admin dashboard',
+      description: 'Everything you need to manage users, schedules, and audit logs.',
       position: 'bottom',
     },
     {
       id: 'tokens',
       targetSelector: '[data-tour="nav-tokens"]',
-      title: 'Token Station',
+      title: 'Tokens',
       description: 'Generate and manage patient access tokens here.',
       position: 'right',
     },
