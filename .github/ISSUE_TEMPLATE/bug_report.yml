@@ -1,0 +1,126 @@
+name: Bug report
+description: Report a defect in Project Vector (app, edge function, or infra).
+title: '[bug] '
+labels: ['bug', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. This template collects the surface-aware
+        context we need to triage quickly (GitHub / Supabase / Vercel —
+        see docs/ENTERPRISE_ROADMAP.md §2). Please do **not** paste PII,
+        PHI, auth tokens, or real patient data. Use role labels only.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: One or two sentences.
+      placeholder: 'Provider schedule view shows duplicate appointment rows when ...'
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered list. Minimal sequence that reliably triggers the issue.
+      placeholder: |
+        1. Log in as provider
+        2. Go to /provider/schedule
+        3. Click "Today"
+        4. Duplicate rows appear
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include console errors, network status codes, Supabase error payloads. Redact PHI.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Primary surface
+      description: Which deployment surface is this on?
+      options:
+        - Vercel (frontend / SPA)
+        - Supabase (Postgres / RLS / RPC)
+        - Supabase (Edge Function)
+        - GitHub (CI / workflow)
+        - Unclear / multiple
+    validations:
+      required: true
+
+  - type: dropdown
+    id: role
+    attributes:
+      label: User role
+      options:
+        - Member
+        - Provider
+        - Admin
+        - N/A (infra)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environment
+      options:
+        - Production
+        - Preview (Vercel PR preview)
+        - Staging (post-P9)
+        - Local dev
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: App version / tag
+      description: From /version endpoint (post-P8) or package.json.
+      placeholder: '2.2.0-beta or commit SHA'
+    validations:
+      required: false
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser + OS
+      placeholder: 'Chrome 125 on Windows 11'
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: |
+        For edge-function bugs, include Supabase Logs Explorer output.
+        For frontend bugs, include console + network tab.
+        Redact tokens, anon keys, user PII.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety checks
+      options:
+        - label: I have not pasted any PII, PHI, auth tokens, or service-role keys.
+          required: true
+        - label: I have searched existing issues and this is not a duplicate.
+          required: true

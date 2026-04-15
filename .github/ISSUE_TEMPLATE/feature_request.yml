@@ -1,0 +1,99 @@
+name: Feature request
+description: Propose a new capability, change, or enhancement.
+title: '[feat] '
+labels: ['enhancement', 'triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose product or platform features.
+        Every request will be evaluated against the enterprise roadmap
+        (docs/ENTERPRISE_ROADMAP.md) — please indicate which epic it
+        belongs to, or propose a new one.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / user need
+      description: What user pain or system gap does this solve? Who is blocked today?
+      placeholder: "Providers can't export a CSV of their own schedule for reporting to the BAA auditor ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: High-level shape. UI sketches welcome but optional.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Why is the proposal better than doing nothing / using an existing feature?
+    validations:
+      required: false
+
+  - type: dropdown
+    id: epic
+    attributes:
+      label: Roadmap epic
+      description: See docs/ENTERPRISE_ROADMAP.md §4–5.
+      options:
+        - 'Product A — Accessibility'
+        - 'Product B — Communications'
+        - 'Product C — Analytics & Reporting'
+        - 'Product D — Client-Side Encryption / HIPAA'
+        - 'Product E — Pre-Visit Workflow'
+        - 'Product F — UX Foundation & Design System'
+        - 'Platform P1 — CI/CD'
+        - 'Platform P2 — Toolchain'
+        - 'Platform P3 — Supabase IaC'
+        - 'Platform P4 — Edge Functions'
+        - 'Platform P5 — Test Strategy'
+        - 'Platform P6 — Observability'
+        - 'Platform P7 — CSP / Vercel'
+        - 'Platform P8 — Release Engineering'
+        - 'Platform P9 — Staging'
+        - 'New epic (describe in Problem field)'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface(s) does this change?
+      multiple: true
+      options:
+        - Vercel (frontend / SPA)
+        - Supabase (schema / RLS / RPC)
+        - Supabase (Edge Function)
+        - GitHub (CI / automation)
+        - Documentation only
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Proposed priority
+      options:
+        - P0 — blocks a sprint / release
+        - P1 — important, near-term
+        - P2 — nice-to-have
+        - P3 — someday
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Concrete, testable bullets. "Given / When / Then" format welcomed.
+      placeholder: |
+        - Given provider role, when I click "Export CSV" on /provider/schedule, then a CSV downloads with columns: date, time, member_code, appointment_type, status.
+        - CSV contains no PII; member_code is the pseudonymized identifier.
+    validations:
+      required: true

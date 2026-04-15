@@ -1,48 +1,69 @@
-# VECTOR - High-Level Architecture
+# VECTOR — Architecture
 
 ## Overview
-VECTOR is a modern, enterprise-grade healthcare portal designed for high-security environments. It features a cinematic user experience, PWA capabilities, and a robust role-based access control system.
 
-## Tech Stack
-- **Frontend**: React 19, TypeScript 5, Vite 7
-- **Styling**: Tailwind CSS 3 (utility-first)
-- **Backend**: Supabase (PostgreSQL, Auth, RPCs)
-- **State Management**: React Context (Auth, Theme, Onboarding)
-- **Icons**: Lucide React
-- **Time/Dates**: date-fns
+VECTOR is an anonymous medical scheduling PWA for high-compliance environments. Three user roles (patient, provider, admin) share a single React app that talks to Supabase for auth, data, and RPCs. The app also runs without a backend (mock mode) for local development and demos.
 
-## Key Design Patterns
+## Stack
 
-### 1. Dual-Mode API (Mock vs. Real)
-The application implements a "Dual Mode" strategy in `src/lib/api.ts` (and its modular friends in `src/lib/api/`):
-- **Mock Mode**: Enabled when `VITE_SUPABASE_URL` is missing or `IS_MOCK` is forced. Uses an in-memory `mockStore` that persists to `localStorage`.
-- **Real Mode**: Connects to Supabase production environment.
-- **Auto-Automation**: The mock store includes logic to automatically detect no-shows and complete past appointments on load, simulating a living system.
+- **Frontend:** React 19, TypeScript 5, Vite 7
+- **Styling:** Tailwind CSS 3
+- **Backend:** Supabase (Postgres, Auth, RPCs, Edge Functions)
+- **Client state:** React Context (auth, theme) + SWR for server cache
+- **PWA:** `vite-plugin-pwa` (Workbox under the hood)
 
-### 2. Operational Role-Based Routing
-Access is governed by the `AuthContext` and enforced at the routing level.
-- **Admin**: "Mission Control" - System-wide monitoring and user provisioning.
-- **Provider**: "Clinical Node" - Schedule management and patient documentation.
-- **Member**: "Patient Portal" - Token-based booking and resource access.
+## Key patterns
 
-### 3. Tactical UI Component Library
-Optimized for high-density information and touch interfaces:
-- **Button/Input**: Primitive components with custom glow and focus states.
-- **Badge**: Status management (Confirmed, Blocked, Urgent).
-- **TacticalPinField**: A specialized component for 4-digit security PINs.
+### Dual-mode API
 
-### 4. PWA & Service Worker
-The application uses `vite-plugin-pwa` to provide:
-- **Offline Mode**: Core assets are cached for offline access.
-- **Background Sync**: (Planned) To handle documentation sync in low-connectivity areas.
-- **Installability**: Provides an app-like experience on mobile devices.
+`src/lib/api/` switches between a mock in-memory store and Supabase based on `IS_MOCK` (exported from `src/lib/supabase.ts`). Each domain (`admin`, `appointments`, `auth`, `interactions`, `providers`) has a `mock.ts` and a `supabase.ts`; the sibling `<domain>.ts` picks the right strategy at import time.
 
-## Performance Strategies
-- **Code Splitting**: Routes are lazily loaded via `React.lazy` and `Suspense`.
-- **Bundle Optimization**: Minification and chunking to keep core modules responsive.
-- **Optimistic UI**: (Implementation in progress) Ensuring interactions feel instantaneous.
+Mock mode is selected when `VITE_SUPABASE_URL` or `VITE_SUPABASE_ANON_KEY` are missing, or when `VITE_FORCE_MOCK=true`. Data is persisted in `localStorage`.
 
-## Security Controls
-- **Token-Alias Auth**: Patients authenticate via physical token aliases, minimizing email exposure.
-- **Tactical PIN**: An additional security layer (4-digit PIN) required for dashboard access.
-- **Audit Logging**: All critical actions (logins, bookings, clinical notes) are logged.
+### Role-based routing
+
+`AuthContext` resolves the user's role (`admin` / `provider` / `member`) and the router guards each dashboard:
+
+- `/dashboard` — member (patient) view
+- `/provider` — provider view
+- `/admin` — admin view
+
+### UI primitives
+
+`src/components/ui/` holds the primitives (Button, Input, Badge, Card, TacticalPinField, etc.). Feature-specific components live in `src/components/<feature>/` (auth, offline, dashboard).
+
+### PWA
+
+`vite-plugin-pwa` handles service-worker registration and offline caching. Sync and notification logic lives in `src/sw.ts` and `src/components/offline/`.
+
+## Performance
+
+- **Code splitting:** routes use `React.lazy` + `Suspense`.
+- **Server cache:** SWR dedupes and caches RPC responses.
+- **Virtualised lists:** `react-window` for long appointment / user lists.
+
+## Security
+
+- **Token-alias auth:** patients sign in with a short token instead of an email.
+- **PIN:** 4-digit PIN on every sign-in.
+- **Biometric:** optional WebAuthn unlock after the first PIN.
+- **RLS:** row-level security policies enforce role boundaries in Postgres.
+- **Audit log:** `log_event` RPC records every write path.
+
+## Source layout
+
+```
+src/
+├── components/   # UI (primitives in ui/, feature-specific in <feature>/)
+├── contexts/     # Auth, Theme, Onboarding
+├── hooks/        # Reusable hooks (useMemberDashboard, useBootSequence, …)
+├── lib/          # api/, supabase.ts, logger, crypto, utils
+├── pages/        # Top-level routes
+└── main.tsx      # Entry
+```
+
+## Related docs
+
+- [`../README.md`](../README.md) — quickstart
+- [`../DEPLOY.md`](../DEPLOY.md) — deployment
+- [`docs/ENTERPRISE_ROADMAP.md`](./docs/ENTERPRISE_ROADMAP.md) — forward roadmap

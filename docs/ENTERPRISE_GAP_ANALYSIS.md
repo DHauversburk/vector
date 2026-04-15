@@ -1,9 +1,14 @@
+> **STATUS: Contributing input.** The authoritative forward roadmap is [`docs/ENTERPRISE_ROADMAP.md`](./ENTERPRISE_ROADMAP.md). The Sprint 10–12 proposals in this document (Compliance Ready / Connected Care / Data Command) are superseded by Sprints 15, 17, and 19 in the authoritative roadmap — scope carries forward, numbering is reset. This document remains the source for the PICK analysis and product-feature prioritization that fed the roadmap.
+
+---
+
 # VECTOR: Enterprise Medical Scheduling Gap Analysis
+
 ## PICK Framework Analysis - Beta 2 → Production Readiness
 
-**Analysis Date:** 2026-02-07  
-**Reference Standards:** Epic MyChart, Cerner, HIPAA, WCAG 2.1 AA/AAA  
-**Current Version:** 2.0.0-beta (Sprint 9 Complete)
+**Analysis Date:** 2026-02-07
+**Reference Standards:** Epic MyChart, Cerner, HIPAA, WCAG 2.1 AA/AAA
+**Current Version:** 2.2.0-beta (see `ENTERPRISE_ROADMAP.md` for forward sprint numbering; Sprints 9–12 are historic)
 
 ---
 
@@ -13,15 +18,15 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 
 ### Overall Readiness Score: **78%** (Target: 95%)
 
-| Category | Current | Enterprise Standard | Gap |
-|----------|---------|---------------------|-----|
-| Core Scheduling | ✅ 90% | - | Low |
-| Patient Self-Service | ✅ 85% | - | Low |
-| Accessibility (WCAG) | ⚠️ 40% | WCAG 2.1 AA | **HIGH** |
-| Security/Compliance | ⚠️ 65% | HIPAA Ready | MEDIUM |
-| Communications | ⚠️ 55% | Industry Standard | MEDIUM |
-| Analytics & Reporting | ⚠️ 50% | Data-Driven Ops | MEDIUM |
-| Provider Workflow | ✅ 80% | - | Low |
+| Category              | Current | Enterprise Standard | Gap      |
+| --------------------- | ------- | ------------------- | -------- |
+| Core Scheduling       | ✅ 90%  | -                   | Low      |
+| Patient Self-Service  | ✅ 85%  | -                   | Low      |
+| Accessibility (WCAG)  | ⚠️ 40%  | WCAG 2.1 AA         | **HIGH** |
+| Security/Compliance   | ⚠️ 65%  | HIPAA Ready         | MEDIUM   |
+| Communications        | ⚠️ 55%  | Industry Standard   | MEDIUM   |
+| Analytics & Reporting | ⚠️ 50%  | Data-Driven Ops     | MEDIUM   |
+| Provider Workflow     | ✅ 80%  | -                   | Low      |
 
 ---
 
@@ -29,15 +34,15 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 
 ### **P - Possible** (High Value, Low Effort) → DO FIRST
 
-| Feature | Industry Standard | Our Status | Effort | Impact |
-|---------|------------------|------------|--------|--------|
-| **ARIA Labels on All Interactive Elements** | WCAG 2.1 AA Required | ❌ Minimal coverage (~15%) | 4h | HIGH |
-| **Skip Navigation Links** | WCAG 2.1 A Required | ❌ Missing | 1h | HIGH |
-| **Focus Visible Indicators** | WCAG 2.1 AA Required | ⚠️ Partial | 2h | MEDIUM |
-| **Appointment Confirmation Toast + Sound** | Epic MyChart standard | ⚠️ Toast exists, no sound option | 1h | LOW |
-| **Pre-Visit Digital Check-in Reminder** | Industry standard | ❌ Missing | 3h | HIGH |
-| **Keyboard Navigation (Tab Order)** | WCAG 2.1 A Required | ⚠️ Not audited | 3h | HIGH |
-| **Visit Type Color Coding** | Cerner/Epic standard | ⚠️ Partial (service types) | 2h | MEDIUM |
+| Feature                                     | Industry Standard     | Our Status                       | Effort | Impact |
+| ------------------------------------------- | --------------------- | -------------------------------- | ------ | ------ |
+| **ARIA Labels on All Interactive Elements** | WCAG 2.1 AA Required  | ❌ Minimal coverage (~15%)       | 4h     | HIGH   |
+| **Skip Navigation Links**                   | WCAG 2.1 A Required   | ❌ Missing                       | 1h     | HIGH   |
+| **Focus Visible Indicators**                | WCAG 2.1 AA Required  | ⚠️ Partial                       | 2h     | MEDIUM |
+| **Appointment Confirmation Toast + Sound**  | Epic MyChart standard | ⚠️ Toast exists, no sound option | 1h     | LOW    |
+| **Pre-Visit Digital Check-in Reminder**     | Industry standard     | ❌ Missing                       | 3h     | HIGH   |
+| **Keyboard Navigation (Tab Order)**         | WCAG 2.1 A Required   | ⚠️ Not audited                   | 3h     | HIGH   |
+| **Visit Type Color Coding**                 | Cerner/Epic standard  | ⚠️ Partial (service types)       | 2h     | MEDIUM |
 
 **Estimated Total: 16 hours**
 
@@ -45,18 +50,18 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 
 ### **I - Implement** (High Value, Medium Effort) → SPRINT CANDIDATES
 
-| Feature | Industry Standard | Our Status | Effort | Impact |
-|---------|------------------|------------|--------|--------|
-| **SMS/Email Appointment Reminders** | 95%+ of competitors offer | ❌ Missing (Supabase Edge fn) | 8h | **CRITICAL** |
-| **Two-Way Secure Messaging (Patient↔Provider)** | Epic MyChart core feature | ❌ Missing | 16h | HIGH |
-| **Patient-Side Pre-Visit Notes/Questionnaire** | Modern patient portals | ❌ Missing | 8h | HIGH |
-| **Fast Pass / Smart Waitlist Notifications** | Epic "Fast Pass" feature | ⚠️ Waitlist exists, no auto-notify | 6h | HIGH |
-| **No-Show Rate Tracking & Dashboard** | Provider analytics standard | ❌ Missing | 8h | MEDIUM |
-| **Appointment Type Templates** | Provider workflow standard | ⚠️ Reason dropdown only | 10h | MEDIUM |
-| **Multi-Language Support (i18n)** | VA/DoD healthcare standard | ❌ Missing | 20h | MEDIUM |
-| **Screen Reader Announcements** | WCAG 2.1 AA | ❌ Missing live regions | 6h | HIGH |
-| **High Contrast Mode Toggle** | WCAG AAA / accessibility | ⚠️ Dark mode only | 4h | MEDIUM |
-| **Form Error Prevention & Guidance** | Enterprise UX standard | ⚠️ Basic validation | 6h | MEDIUM |
+| Feature                                         | Industry Standard           | Our Status                         | Effort | Impact       |
+| ----------------------------------------------- | --------------------------- | ---------------------------------- | ------ | ------------ |
+| **SMS/Email Appointment Reminders**             | 95%+ of competitors offer   | ❌ Missing (Supabase Edge fn)      | 8h     | **CRITICAL** |
+| **Two-Way Secure Messaging (Patient↔Provider)** | Epic MyChart core feature   | ❌ Missing                         | 16h    | HIGH         |
+| **Patient-Side Pre-Visit Notes/Questionnaire**  | Modern patient portals      | ❌ Missing                         | 8h     | HIGH         |
+| **Fast Pass / Smart Waitlist Notifications**    | Epic "Fast Pass" feature    | ⚠️ Waitlist exists, no auto-notify | 6h     | HIGH         |
+| **No-Show Rate Tracking & Dashboard**           | Provider analytics standard | ❌ Missing                         | 8h     | MEDIUM       |
+| **Appointment Type Templates**                  | Provider workflow standard  | ⚠️ Reason dropdown only            | 10h    | MEDIUM       |
+| **Multi-Language Support (i18n)**               | VA/DoD healthcare standard  | ❌ Missing                         | 20h    | MEDIUM       |
+| **Screen Reader Announcements**                 | WCAG 2.1 AA                 | ❌ Missing live regions            | 6h     | HIGH         |
+| **High Contrast Mode Toggle**                   | WCAG AAA / accessibility    | ⚠️ Dark mode only                  | 4h     | MEDIUM       |
+| **Form Error Prevention & Guidance**            | Enterprise UX standard      | ⚠️ Basic validation                | 6h     | MEDIUM       |
 
 **Estimated Total: 92 hours**
 
@@ -64,16 +69,16 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 
 ### **C - Challenge** (High Value, High Effort) → STRATEGIC PLANNING
 
-| Feature | Industry Standard | Our Status | Effort | Impact |
-|---------|------------------|------------|--------|--------|
-| **Full HIPAA Audit Trail w/ Export** | HIPAA Required | ⚠️ Local audit_logs table | 24h | **CRITICAL** |
-| **Client-Side Data Encryption (AES-GCM)** | HIPAA "Data at Rest" | ❌ Missing | 32h | CRITICAL |
-| **Biometric Re-Authentication (WebAuthn)** | Modern security standard | ⚠️ Scaffolding only | 24h | HIGH |
-| **Offline Mutation Queue (IndexedDB)** | PWA best practice | ❌ Missing | 32h | HIGH |
-| **Report Export (PDF/CSV)** | Enterprise analytics | ❌ Missing | 16h | MEDIUM |
-| **EHR/EMR Integration Readiness (FHIR)** | Healthcare interop | ❌ Not planned | 80h+ | STRATEGIC |
-| **Payment Processing Integration** | Modern scheduling | ❌ Not applicable (Military) | N/A | N/A |
-| **Automated Conflict Detection** | Epic scheduling | ⚠️ Basic 1-per-day rule | 12h | MEDIUM |
+| Feature                                    | Industry Standard        | Our Status                   | Effort | Impact       |
+| ------------------------------------------ | ------------------------ | ---------------------------- | ------ | ------------ |
+| **Full HIPAA Audit Trail w/ Export**       | HIPAA Required           | ⚠️ Local audit_logs table    | 24h    | **CRITICAL** |
+| **Client-Side Data Encryption (AES-GCM)**  | HIPAA "Data at Rest"     | ❌ Missing                   | 32h    | CRITICAL     |
+| **Biometric Re-Authentication (WebAuthn)** | Modern security standard | ⚠️ Scaffolding only          | 24h    | HIGH         |
+| **Offline Mutation Queue (IndexedDB)**     | PWA best practice        | ❌ Missing                   | 32h    | HIGH         |
+| **Report Export (PDF/CSV)**                | Enterprise analytics     | ❌ Missing                   | 16h    | MEDIUM       |
+| **EHR/EMR Integration Readiness (FHIR)**   | Healthcare interop       | ❌ Not planned               | 80h+   | STRATEGIC    |
+| **Payment Processing Integration**         | Modern scheduling        | ❌ Not applicable (Military) | N/A    | N/A          |
+| **Automated Conflict Detection**           | Epic scheduling          | ⚠️ Basic 1-per-day rule      | 12h    | MEDIUM       |
 
 **Estimated Total: 220+ hours**
 
@@ -81,23 +86,25 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 
 ### **K - Kill** (Low Value, Any Effort) → DEPRIORITIZE
 
-| Feature | Reason to Deprioritize |
-|---------|----------------------|
-| Drag-and-Drop Schedule Builder | Nice-to-have; current grid works well |
-| External Calendar Sync (Google/Outlook) | Security concern for military context |
-| AI-Powered Conversational Triage | Out of scope for Beta 2 |
-| Video Visit Platform (Native) | Recommend external integration (Teams/Zoom) |
-| Custom Branding/White-Label | Single-tenant app |
+| Feature                                 | Reason to Deprioritize                      |
+| --------------------------------------- | ------------------------------------------- |
+| Drag-and-Drop Schedule Builder          | Nice-to-have; current grid works well       |
+| External Calendar Sync (Google/Outlook) | Security concern for military context       |
+| AI-Powered Conversational Triage        | Out of scope for Beta 2                     |
+| Video Visit Platform (Native)           | Recommend external integration (Teams/Zoom) |
+| Custom Branding/White-Label             | Single-tenant app                           |
 
 ---
 
 ## 🔴 Critical Gaps for Enterprise Quality
 
 ### 1. **Accessibility (WCAG 2.1 AA) - CRITICAL**
+
 **Current State:** ~40% compliant  
 **Enterprise Standard:** 100% WCAG 2.1 AA (DoD/VA mandate)
 
 **Missing Elements:**
+
 - [ ] `aria-label` on all buttons, links, inputs
 - [ ] `aria-live` regions for dynamic content updates
 - [ ] Skip-to-main-content link
@@ -112,10 +119,12 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 ---
 
 ### 2. **Automated Communications - HIGH**
+
 **Current State:** None  
 **Enterprise Standard:** SMS/Email reminders reduce no-shows by 30-40%
 
 **Missing Elements:**
+
 - [ ] Appointment reminder 24h before
 - [ ] Appointment reminder 1h before
 - [ ] Cancellation confirmation
@@ -127,10 +136,12 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 ---
 
 ### 3. **Patient Pre-Visit Workflow - MEDIUM-HIGH**
+
 **Current State:** Basic booking only  
 **Enterprise Standard:** Digital intake, e-check-in, pre-visit questionnaire
 
 **Missing Elements:**
+
 - [ ] Pre-visit notes field (patient can add)
 - [ ] Insurance verification step (placeholder for military)
 - [ ] Demographics confirmation
@@ -141,10 +152,12 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 ---
 
 ### 4. **Security Hardening - MEDIUM**
+
 **Current State:** Token-based auth, PIN, RLS  
 **Enterprise Standard:** HIPAA-compliant data handling
 
 **Current Strengths:**
+
 - ✅ Row-Level Security (RLS) in Supabase
 - ✅ Token anonymity (Zero PHI design)
 - ✅ PIN-based device security
@@ -152,6 +165,7 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 - ✅ Audit logging table exists
 
 **Gaps:**
+
 - [ ] Client-side encryption for IndexedDB/localStorage
 - [ ] Failed login attempt lockout (implemented but not visible)
 - [ ] Session activity logging (detailed)
@@ -162,63 +176,66 @@ Based on comprehensive research of enterprise medical scheduling best practices 
 
 ## ✅ What We're Doing Right (Industry-Leading)
 
-| Feature | Comparison |
-|---------|------------|
-| **Anonymous Token System** | Exceeds typical patient identification (Zero PHI) |
-| **Mobile-First Responsive Design** | Matches Epic MyChart mobile app |
-| **Waitlist Management** | On par with Epic Fast Pass concept |
-| **Provider Schedule Generation** | Comparable to Cerner bulk scheduling |
-| **Visual Appointment Cards** | Premium UX, exceeds basic systems |
-| **Offline PWA Shell** | Service worker caching implemented |
-| **Real-Time Countdown** | Premium feature not in most portals |
+| Feature                            | Comparison                                        |
+| ---------------------------------- | ------------------------------------------------- |
+| **Anonymous Token System**         | Exceeds typical patient identification (Zero PHI) |
+| **Mobile-First Responsive Design** | Matches Epic MyChart mobile app                   |
+| **Waitlist Management**            | On par with Epic Fast Pass concept                |
+| **Provider Schedule Generation**   | Comparable to Cerner bulk scheduling              |
+| **Visual Appointment Cards**       | Premium UX, exceeds basic systems                 |
+| **Offline PWA Shell**              | Service worker caching implemented                |
+| **Real-Time Countdown**            | Premium feature not in most portals               |
 
 ---
 
 ## 📋 Recommended Sprint Priorities
 
 ### **Sprint 10: "Compliance Ready" (Accessibility & Security)**
-*Duration: 1 week*
 
-| Story | Effort | Type |
-|-------|--------|------|
-| 10.1 ARIA labels on all interactive elements | 4h | Accessibility |
-| 10.2 Skip navigation link + keyboard Nav audit | 4h | Accessibility |
-| 10.3 Focus management after modal actions | 3h | Accessibility |
-| 10.4 Screen reader live region announcements | 6h | Accessibility |
-| 10.5 Color contrast fix + High Contrast mode | 4h | Accessibility |
-| 10.6 Touch target size audit (44px minimum) | 2h | Mobile/a11y |
-| 10.7 Failed login lockout UI feedback | 2h | Security |
+_Duration: 1 week_
+
+| Story                                          | Effort | Type          |
+| ---------------------------------------------- | ------ | ------------- |
+| 10.1 ARIA labels on all interactive elements   | 4h     | Accessibility |
+| 10.2 Skip navigation link + keyboard Nav audit | 4h     | Accessibility |
+| 10.3 Focus management after modal actions      | 3h     | Accessibility |
+| 10.4 Screen reader live region announcements   | 6h     | Accessibility |
+| 10.5 Color contrast fix + High Contrast mode   | 4h     | Accessibility |
+| 10.6 Touch target size audit (44px minimum)    | 2h     | Mobile/a11y   |
+| 10.7 Failed login lockout UI feedback          | 2h     | Security      |
 
 **Sprint Goal:** Achieve WCAG 2.1 AA compliance on core booking flow.
 
 ---
 
 ### **Sprint 11: "Connected Care" (Communications)**
-*Duration: 1 week*
 
-| Story | Effort | Type |
-|-------|--------|------|
-| 11.1 Supabase Edge Function for email | 4h | Infrastructure |
-| 11.2 Appointment reminder (24h before) | 4h | Communications |
-| 11.3 Appointment confirmation email | 3h | Communications |
-| 11.4 Waitlist spot-available auto-notify | 6h | Communications |
-| 11.5 Post-visit feedback request email | 3h | Communications |
-| 11.6 Pre-visit notes for patients | 4h | UX Enhancement |
+_Duration: 1 week_
+
+| Story                                    | Effort | Type           |
+| ---------------------------------------- | ------ | -------------- |
+| 11.1 Supabase Edge Function for email    | 4h     | Infrastructure |
+| 11.2 Appointment reminder (24h before)   | 4h     | Communications |
+| 11.3 Appointment confirmation email      | 3h     | Communications |
+| 11.4 Waitlist spot-available auto-notify | 6h     | Communications |
+| 11.5 Post-visit feedback request email   | 3h     | Communications |
+| 11.6 Pre-visit notes for patients        | 4h     | UX Enhancement |
 
 **Sprint Goal:** Zero no-shows from lack of reminders.
 
 ---
 
 ### **Sprint 12: "Data Command" (Analytics & Reporting)**
-*Duration: 1 week*
 
-| Story | Effort | Type |
-|-------|--------|------|
-| 12.1 No-show rate tracking + display | 8h | Analytics |
-| 12.2 Provider utilization percentage | 6h | Analytics |
-| 12.3 CSV export for appointments | 4h | Reporting |
-| 12.4 Audit log enhanced UI + export | 6h | Compliance |
-| 12.5 Appointment type analytics | 4h | Analytics |
+_Duration: 1 week_
+
+| Story                                | Effort | Type       |
+| ------------------------------------ | ------ | ---------- |
+| 12.1 No-show rate tracking + display | 8h     | Analytics  |
+| 12.2 Provider utilization percentage | 6h     | Analytics  |
+| 12.3 CSV export for appointments     | 4h     | Reporting  |
+| 12.4 Audit log enhanced UI + export  | 6h     | Compliance |
+| 12.5 Appointment type analytics      | 4h     | Analytics  |
 
 **Sprint Goal:** Data-driven operational insights for providers.
 

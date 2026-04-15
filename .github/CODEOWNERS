@@ -1,0 +1,29 @@
+# CODEOWNERS — auto-assigns reviewers when PRs touch matching paths.
+# Syntax: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-security/customizing-your-repository/about-code-owners
+#
+# Owner: @DHauversburk (solo maintainer). When team expands, replace individual
+# handles below with a team slug (e.g. @DHauversburk/engineering) to distribute
+# reviews.
+
+# Default owner for everything not matched below.
+*                           @DHauversburk
+
+# Supabase infrastructure — migrations and edge functions have higher review bar.
+/supabase/                  @DHauversburk
+
+# Vercel deploy surface — CSP, headers, rewrites.
+/vercel.json                @DHauversburk
+
+# CI/CD and release machinery.
+/.github/                   @DHauversburk
+/.husky/                    @DHauversburk
+/package.json               @DHauversburk
+/package-lock.json          @DHauversburk
+
+# Enterprise roadmap + runbooks — changes to these affect the whole team.
+/docs/ENTERPRISE_ROADMAP.md @DHauversburk
+/docs/ON_CALL_RUNBOOK.md    @DHauversburk
+/docs/ROLLBACK_RUNBOOK.md   @DHauversburk
+/docs/RELEASE_CHECKLIST.md  @DHauversburk
+/docs/ENVIRONMENTS.md       @DHauversburk
+/docs/BRANCH_PROTECTION.md  @DHauversburk

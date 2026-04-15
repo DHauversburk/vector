@@ -1,19 +1,22 @@
 /**
- * System-wide tactical tips for loading states
+ * Plain-English tips shown in loading states.
+ *
+ * Note: the export name `TACTICAL_TIPS` is preserved for backward compat
+ * (consumers may still import it). The contents were rewritten in the
+ * Sprint 14 streamline pass — military-LARP copy ("Mission Control",
+ * "End-to-End Character Escaping for PHI safety") didn't help users
+ * understand the app. New copy is short, useful, plain.
  */
 export const TACTICAL_TIPS = [
-    "Use your 4-digit Tactical PIN for rapid dashboard access.",
-    "The Offline Indicator confirms full PWA availability.",
-    "Export appointments to .ics for external calendar sync.",
-    "Urgent Help Requests trigger priority clinical alerts.",
-    "Vector uses End-to-End Character Escaping for PHI safety.",
-    "Mission Control allows providers to bulk-generate 14 days of slots.",
-    "Biometric login can be enabled in the Security settings.",
-    "Double-tap the system status bar for a quick theme toggle.",
-    "Help requests are routed directly to your clinical team."
-];
+  'Set a 4-digit PIN for faster sign-in next time.',
+  'The offline indicator means your changes will sync automatically.',
+  'Export appointments to your calendar from the appointment menu.',
+  'Tap the help button anytime to reach your clinical team.',
+  'Providers can generate up to 14 days of slots at once.',
+  'Enable biometric sign-in in Security settings for one-tap access.',
+]
 
 /**
- * Returns a random tactical tip
+ * Returns a random tip.
  */
-export const getRandomTip = () => TACTICAL_TIPS[Math.floor(Math.random() * TACTICAL_TIPS.length)];
+export const getRandomTip = () => TACTICAL_TIPS[Math.floor(Math.random() * TACTICAL_TIPS.length)]

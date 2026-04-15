@@ -1,33 +1,33 @@
 /**
  * App - Root application component
- * 
+ *
  * @component
  * @description The main application entry point with routing, authentication,
  * and theme management. Features a new landing page for user type selection.
  */
 
-import { Suspense, lazy } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { useAuth } from './hooks/useAuth';;
-import { ThemeProvider } from './contexts/ThemeContext';
-import { DeviceProvider } from './contexts/DeviceContext';
-import { PWAManager } from './components/ui/PWAManager';
-import { SystemStatusBar } from './components/SystemStatusBar';
-import { FeedbackWidget } from './components/ui/FeedbackWidget';
-import { OnboardingProvider } from './contexts/OnboardingContext';
-import { OfflineProvider } from './contexts/OfflineContext';
-import { TourTooltip } from './components/onboarding/TourTooltip';
-import { LoadingState } from './components/ui/LoadingState';
-import { AnnouncerProvider } from './components/ui/ScreenReaderAnnouncer';
-import { ErrorBoundary } from './components/ui/ErrorBoundary';
-import { Toaster } from 'sonner';
+import { Suspense, lazy } from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import { useAuth } from './hooks/useAuth'
+import { ThemeProvider } from './contexts/ThemeContext'
+import { DeviceProvider } from './contexts/DeviceContext'
+import { PWAManager } from './components/ui/PWAManager'
+import { SystemStatusBar } from './components/SystemStatusBar'
+import { FeedbackWidget } from './components/ui/FeedbackWidget'
+import { OnboardingProvider } from './contexts/OnboardingContext'
+import { OfflineProvider } from './contexts/OfflineContext'
+import { TourTooltip } from './components/onboarding/TourTooltip'
+import { LoadingState } from './components/ui/LoadingState'
+import { AnnouncerProvider } from './components/ui/ScreenReaderAnnouncer'
+import { ErrorBoundary } from './components/ui/ErrorBoundary'
+import { Toaster } from 'sonner'
 
 // --- LAZY-LOADED PAGES ---
-const LandingPage = lazy(() => import('./pages/LandingPage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
+const LandingPage = lazy(() => import('./pages/LandingPage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const RegisterPage = lazy(() => import('./pages/RegisterPage'))
+const Dashboard = lazy(() => import('./pages/Dashboard'))
 
 /**
  * Standard Loading Spinner for Suspense fallbacks
@@ -36,27 +36,27 @@ const LoadingFallback = () => (
   <div className="min-h-screen bg-slate-950 flex items-center justify-center">
     <LoadingState message="CONNECTING TO CORE..." />
   </div>
-);
+)
 
 /**
  * Protected route wrapper - redirects to landing if not authenticated
  */
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { session, loading, pinVerified } = useAuth();
+  const { session, loading, pinVerified } = useAuth()
 
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <LoadingState message="AUTHENTICATING OPERATOR..." />
+        <LoadingState message="Signing you in..." />
       </div>
-    );
+    )
   }
 
   if (!session || !pinVerified) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace />
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }
 
 /**
@@ -84,11 +84,14 @@ function App() {
                         <Route path="/register" element={<RegisterPage />} />
 
                         {/* Protected Routes */}
-                        <Route path="/dashboard" element={
-                          <ProtectedRoute>
-                            <Dashboard />
-                          </ProtectedRoute>
-                        } />
+                        <Route
+                          path="/dashboard"
+                          element={
+                            <ProtectedRoute>
+                              <Dashboard />
+                            </ProtectedRoute>
+                          }
+                        />
 
                         {/* Fallback - redirect unknown routes to landing */}
                         <Route path="*" element={<Navigate to="/" replace />} />
@@ -103,7 +106,7 @@ function App() {
         </DeviceProvider>
       </ThemeProvider>
     </BrowserRouter>
-  );
+  )
 }
 
-export default App;
+export default App

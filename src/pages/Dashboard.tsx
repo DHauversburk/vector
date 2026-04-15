@@ -1,27 +1,21 @@
 /**
- * Dashboard - Terminal entry point for authenticated users
- * 
- * @component
- * @description Serves as the primary switchboard for the application's authenticated experience.
- * It detects the user's operational role and deploys the corresponding operational environment:
- * - Admin: Mission Control (AdminDashboard)
- * - Provider: Clinical Node (ProviderDashboard)
- * - Member: Patient Portal (MemberDashboard)
- * 
- * @returns {JSX.Element} The active dashboard based on user role
+ * Dashboard router — picks the dashboard for the authenticated user's role.
+ *
+ * - admin    → AdminDashboard
+ * - provider → ProviderDashboard
+ * - member   → MemberDashboard (default)
  */
-import { useAuth } from '../hooks/useAuth';
-import MemberDashboard from './MemberDashboard';
-import ProviderDashboard from './ProviderDashboard';
-import AdminDashboard from './AdminDashboard';
+import { useAuth } from '../hooks/useAuth'
+import MemberDashboard from './MemberDashboard'
+import ProviderDashboard from './ProviderDashboard'
+import AdminDashboard from './AdminDashboard'
 
 export default function Dashboard() {
-    const { role } = useAuth();
+  const { role } = useAuth()
 
-    // Admin has a completely separate layout (Mission Control)
-    if (role === 'admin') {
-        return <AdminDashboard />;
-    }
+  if (role === 'admin') {
+    return <AdminDashboard />
+  }
 
-    return role === 'provider' ? <ProviderDashboard /> : <MemberDashboard />;
+  return role === 'provider' ? <ProviderDashboard /> : <MemberDashboard />
 }

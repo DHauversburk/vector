@@ -1,163 +1,85 @@
-# VECTOR - Deployment Guide
+# VECTOR — Deploy
 
-## Overview
-
-VECTOR is a secure, anonymous scheduling PWA for military medical groups. This guide covers deployment options from development to production.
-
----
-
-## Quick Start (Development/Demo)
-
-The app runs in **Mock Mode** by default (no backend required):
+## Mock mode (default)
 
 ```bash
-cd project_vector
 npm install
 npm run dev
 ```
 
-Then open http://localhost:5173 and login with:
-- **Patient**: `PATIENT-01`
-- **Provider**: `DOC-MH`  
-- **Admin**: `COMMAND-01`
+No env vars required. See [`README.md`](./README.md#sign-in-mock-mode) for demo credentials.
 
 ---
 
-## Production Deployment with Supabase
+## Production (Supabase + Vercel)
 
-### Step 1: Create Supabase Project
+### 1. Create the Supabase project
 
-1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Note your Project URL and Anon Key from Settings → API
+Dashboard → New Project. Note the Project URL and `anon` key from Settings → API.
 
-### Step 2: Configure Environment
+### 2. Configure env
 
-Create a `.env` file in the project root:
+In Vercel (Settings → Environment Variables) or locally in `.env`:
 
 ```bash
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon-key>
 ```
 
-### Step 3: Apply Database Migrations
+Leaving these unset ships the build in mock mode.
 
-Run the following SQL scripts in your Supabase SQL Editor (in order):
+See [`docs/ENVIRONMENTS.md`](./docs/ENVIRONMENTS.md) for the full env matrix across dev / preview / production.
 
-1. `src/scripts/beta_baseline_audit.sql` - Creates core tables
-2. `src/scripts/enforce_active_member_policy.sql` - Row-level security
-3. `src/scripts/fix_appointments_schema.sql` - Schema fixes
-4. `src/scripts/alter_appointments_supply_first.sql` - Supply-first model
+### 3. Apply the schema
 
-### Step 4: Build for Production
+Run the current SQL in the Supabase SQL editor. Baseline (tables + RLS + RPCs) lives in `src/scripts/`; the authoritative list is:
+
+- `beta_baseline_audit.sql` — tables
+- `enforce_active_member_policy.sql` — RLS
+- `admin_create_user_rpc.sql` + other `*_rpc.sql` — RPC functions
+- `add_*_table.sql` — feature tables (feedback, resources)
+
+> **Note:** migrations are not yet checked in as Supabase CLI artifacts. Epic P3 in [`docs/ENTERPRISE_ROADMAP.md`](./docs/ENTERPRISE_ROADMAP.md) tracks converting these scripts to `supabase/migrations/`.
+
+### 4. Build + deploy
 
 ```bash
 npm run build
 ```
 
-This creates a `dist/` folder with optimized assets.
+Deploy the `dist/` folder:
 
-### Step 5: Deploy Static Files
+- **Vercel:** push to `main` (auto-deploy) or `npx vercel --prod`
+- **Netlify:** drag `dist/` or connect the repo
+- **Other static hosts:** upload `dist/`
 
-The `dist/` folder can be deployed to any static hosting:
+### 5. Verify
 
-- **Vercel**: `npx vercel --prod`
-- **Netlify**: Drag & drop `dist/` folder
-- **GitHub Pages**: Push `dist/` to gh-pages branch
-- **AWS S3 + CloudFront**: Upload to S3 bucket
+```bash
+curl -I https://<your-domain>/                             # expect 200
+curl https://<your-domain>/pwa-manifest.webmanifest        # PWA manifest
+```
 
----
-
-## Environment Configuration
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_SUPABASE_URL` | Yes* | Your Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | Yes* | Your Supabase anonymous key |
-
-*If not set, app runs in Mock Mode (offline demo)
+Sign in with a real account; confirm you do **not** see the "Demo mode" badge on the login screen. If you do, the Supabase env vars didn't make it into the build.
 
 ---
 
-## Security Considerations
+## Security notes
 
-### Zero PHI/PII Architecture
-- No patient names stored anywhere
-- Token-based authentication only
-- All identifiers are anonymous tokens
-
-### Row-Level Security
-- Patients can only see their own appointments
-- Providers can only see their own schedules
-- Admins have full access
-
-### Session Security
-- 15-minute inactivity timeout
-- 4-digit tactical PIN on login
-- Optional biometric (WebAuthn) support
-
----
-
-## PWA Features
-
-The app is a Progressive Web App:
-- **Installable**: Add to home screen on mobile/desktop
-- **Offline**: Basic functionality works offline
-- **Fast**: Service worker caches assets
+- **Zero PII in the client:** patients authenticate with short tokens, not emails.
+- **RLS:** patients see their own appointments only; providers see their own schedule only; admin has full access.
+- **Session:** 15-minute inactivity timeout; PIN on sign-in; optional biometric unlock.
+- **CSP:** `vercel.json` sets the prod CSP. Epic P7 in the roadmap tightens `script-src` further.
 
 ---
 
 ## Troubleshooting
 
-### "RUNNING IN MOCK MODE" Warning
-This appears when Supabase keys are not configured. Either:
-1. Set up `.env` with real keys, or
-2. Continue in demo mode (data stored in localStorage)
+| Symptom                                    | Fix                                                                    |
+| ------------------------------------------ | ---------------------------------------------------------------------- |
+| "Demo mode" badge in production            | Env vars missing — check Vercel → Settings → Environment Variables     |
+| Build error: TS / lint                     | `npm run typecheck && npm run lint`                                    |
+| Test failure                               | `npm run test`                                                         |
+| Users stuck on PIN screen after real login | Check `users` row exists and RLS policy allows `select` for their role |
 
-### Build Errors
-```bash
-npm run lint  # Check for errors
-npm run build  # Full TypeScript check
-```
-
-### Test Verification
-```bash
-npm run test  # Runs all 22 verification tests
-```
-
----
-
-## Architecture Summary
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Frontend (React)                     │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │
-│  │   Member    │  │  Provider   │  │    Admin    │     │
-│  │  Dashboard  │  │  Dashboard  │  │  Dashboard  │     │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘     │
-│         └────────────────┼────────────────┘            │
-│                          │                             │
-│                  ┌───────┴───────┐                     │
-│                  │   api.ts      │                     │
-│                  │  (Dual Mode)  │                     │
-│                  └───────┬───────┘                     │
-│                          │                             │
-│         ┌────────────────┼────────────────┐            │
-│         │                │                │            │
-│    Mock Mode        Supabase         localStorage      │
-│   (In-Memory)        (Real)          (Persistence)     │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## Support
-
-For issues or questions, refer to:
-- `AUDIT_REPORT.md` - Security compliance documentation
-- `verification_report_final.md` - Feature verification status
-- Test files in `src/*.test.ts` - Automated verification
-
----
-
-*Last Updated: December 26, 2025*
+For a deeper runbook, see [`docs/ENTERPRISE_ROADMAP.md`](./docs/ENTERPRISE_ROADMAP.md) § On-call (epic P6).
