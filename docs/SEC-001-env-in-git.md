@@ -1,9 +1,10 @@
 # SEC-001 — `.env` tracked in git despite `.gitignore`
 
-**Severity:** CRITICAL
-**Status:** Phase 1 ✅ Phase 2 🔴 OWNER ACTION REQUIRED — Phase 3 ⏳ Phase 4 ✅
+**Severity:** CRITICAL (exposure contained — see status)
+**Status:** Phase 1 ✅ Phase 2 ✅ COMPLETE — Phase 3 ⏳ pending decision — Phase 4 ✅
 **Discovered:** 2026-04-14 during Sprint 13 PR preparation.
-**Audit completed:** 2026-04-16 (this session — see §Audit results below).
+**Audit completed:** 2026-04-16.
+**Phase 2 completed:** 2026-04-17 — JWT secret rotated, new keys deployed to Vercel + edge functions.
 **Referenced from:** `docs/ENTERPRISE_ROADMAP.md` §8 (Risks).
 
 ---
@@ -154,12 +155,13 @@ After remediation:
 - [x] Adding a line to `.env` does NOT appear in `git status` — **DONE**
 - [x] Pre-commit hook rejects `git add .env` — **DONE** (PR #8)
 - [x] CI check fails a PR that accidentally re-adds `.env` — **DONE** (PR #8)
-- [ ] 🔴 **OWNER ACTION: Rotate `SUPABASE_SERVICE_ROLE_KEY`** — see Phase 2 above
-- [ ] After rotation: update Vercel env vars (VITE_SUPABASE_ANON_KEY will also change)
-- [ ] After rotation: update GitHub Actions secrets
-- [ ] Rotated secrets confirmed via:
-  - Supabase: old anon key rejected on `curl` test.
-  - Sentry: old DSN returns 401 on test POST (when Sentry is added in P6).
+- [x] 🔴 **Rotate `SUPABASE_SERVICE_ROLE_KEY`** — **DONE 2026-04-17** (Supabase JWT secret regenerated)
+- [x] After rotation: update Vercel env vars (VITE_SUPABASE_ANON_KEY updated) — **DONE**
+- [x] After rotation: update GitHub Actions secrets (SUPABASE_SERVICE_ROLE_KEY + SUPABASE_ACCESS_TOKEN set) — **DONE**
+- [x] Rotated key baked into production JS bundle — **CONFIRMED** (old key signature absent from bundle)
+- [x] Edge function redeploy with new TOKEN_PEPPER secret — **DONE**
+- [ ] Sentry DSN rotation (when Sentry is added in P6 — not yet configured)
+- [ ] Phase 3 history purge (optional; decide in Sprint 18 per roadmap §P1.3)
 
 ---
 
