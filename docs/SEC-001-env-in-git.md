@@ -1,9 +1,32 @@
 # SEC-001 — `.env` tracked in git despite `.gitignore`
 
-**Severity:** HIGH
-**Status:** Open. Remediation queued as Sprint 14 P0 story.
+**Severity:** CRITICAL
+**Status:** Phase 1 ✅ Phase 2 🔴 OWNER ACTION REQUIRED — Phase 3 ⏳ Phase 4 ✅
 **Discovered:** 2026-04-14 during Sprint 13 PR preparation.
+**Audit completed:** 2026-04-16 (this session — see §Audit results below).
 **Referenced from:** `docs/ENTERPRISE_ROADMAP.md` §8 (Risks).
+
+---
+
+## Audit results (2026-04-16)
+
+Full `git log -p --all -- .env` executed. Summary:
+
+| Commit    | Date      | Contents                                                                                                    |
+| --------- | --------- | ----------------------------------------------------------------------------------------------------------- |
+| `8a601a0` | initial   | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`                                                               |
+| `4653c4d` | early dev | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, **`VITE_SUPABASE_SERVICE_ROLE_KEY`** ← **CONFIRMED EXPOSED** |
+| `f03c615` | refactor  | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (service_role key removed from file, but still in history)    |
+| `d270785` | later     | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`                                                               |
+| `7b02c70` | PR #8     | file untracked — no longer in index                                                                         |
+
+**Confirmed exposure: `VITE_SUPABASE_SERVICE_ROLE_KEY` was in commit `4653c4d`, pushed to GitHub.**
+This key has full admin access to Supabase project `tvwicdlxljqijoikioln`, bypasses all RLS, and must be treated as **fully compromised** until rotated.
+
+Phase 2 rotation is **non-negotiable and overdue**. Rotate at:
+
+> https://supabase.com/dashboard/project/tvwicdlxljqijoikioln/settings/api
+> → JWT Settings → Generate new JWT secret (this rotates both anon and service_role keys)
 
 ---
 
@@ -126,14 +149,17 @@ This rewrites git history. **Coordinate with every contributor before proceeding
 
 After remediation:
 
-- [ ] `git ls-files --error-unmatch .env` exits non-zero (file no longer tracked).
-- [ ] `.env` continues to exist locally (devs can still run `npm run dev`).
-- [ ] Adding a line to `.env` does NOT appear in `git status`.
-- [ ] Pre-commit hook rejects `git add .env`.
-- [ ] CI check fails a PR that accidentally re-adds `.env`.
+- [x] `git ls-files --error-unmatch .env` exits non-zero — **DONE** (PR #8)
+- [x] `.env` continues to exist locally (devs can still run `npm run dev`) — **DONE**
+- [x] Adding a line to `.env` does NOT appear in `git status` — **DONE**
+- [x] Pre-commit hook rejects `git add .env` — **DONE** (PR #8)
+- [x] CI check fails a PR that accidentally re-adds `.env` — **DONE** (PR #8)
+- [ ] 🔴 **OWNER ACTION: Rotate `SUPABASE_SERVICE_ROLE_KEY`** — see Phase 2 above
+- [ ] After rotation: update Vercel env vars (VITE_SUPABASE_ANON_KEY will also change)
+- [ ] After rotation: update GitHub Actions secrets
 - [ ] Rotated secrets confirmed via:
   - Supabase: old anon key rejected on `curl` test.
-  - Sentry: old DSN returns 401 on test POST.
+  - Sentry: old DSN returns 401 on test POST (when Sentry is added in P6).
 
 ---
 

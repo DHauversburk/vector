@@ -172,50 +172,56 @@ supabase functions deploy exchange-token \
 
 ---
 
-## S14.6 — Rotate SUPABASE_SERVICE_ROLE_KEY
+## S14.6 — Rotate SUPABASE_SERVICE_ROLE_KEY 🔴 URGENT
 
-**Why:** If the service role key was ever in `.env` (which was tracked in git until SEC-001 untracked it on 2026-04-15), it must be rotated. Even if only in git history, the key should be considered compromised.
-
-**Per `docs/SEC-001-env-in-git.md` §Phase 2:**
+**Audit result (2026-04-16):** `VITE_SUPABASE_SERVICE_ROLE_KEY` **was confirmed in commit `4653c4d`**, pushed to GitHub.
+The key must be treated as **fully compromised**. Rotation is non-negotiable.
+Full audit details: `docs/SEC-001-env-in-git.md` §Audit results.
 
 **Steps:**
 
-1. Go to https://supabase.com/dashboard/project/tvwicdlxljqijoikioln/settings/api
-2. Scroll to **Service Role Key** → Reveal → copy current key
-3. Check if this key appears in git history:
+1. **Rotate the JWT secret now:**
+   - Go to https://supabase.com/dashboard/project/tvwicdlxljqijoikioln/settings/api
+   - Scroll to **JWT Settings** → **Generate new JWT secret**
+   - ⚠ This rotates BOTH the anon key and service role key. All existing long-lived tokens will be invalidated. This is intentional.
+
+2. **Update Vercel env vars with new anon key** (service role key does NOT go in Vercel):
+   - Go to https://vercel.com/d-hauversburks-projects/project-vector-beta/settings/environment-variables
+   - Update `VITE_SUPABASE_ANON_KEY` for Production and Preview scopes
+   - The env vars were already set correctly on 2026-04-16 — only the key value needs updating after rotation
+
+3. **Update GitHub Actions secrets** with new service role key:
+   - Go to https://github.com/DHauversburk/vector/settings/secrets/actions
+   - After S14.1 staging is done: add `SUPABASE_STAGING_PROJECT_REF`, `SUPABASE_PROD_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_DB_PASSWORD`
+
+4. **Redeploy on Vercel** (done automatically when you update env vars and push to main)
+
+5. **History purge (Phase 3 — do after rotation):**
    ```bash
-   git log -p --all -- .env | grep -i service_role
+   # DESTRUCTIVE — coordinate with all contributors first
+   pip install git-filter-repo
+   git filter-repo --path .env --invert-paths --force
+   git push --force-with-lease origin main
    ```
-   If it appears: rotate immediately.
-4. Click **Rotate** on the service role key in the Supabase dashboard
-5. Update the key in any place it's used:
-   - Vercel → Settings → Environment Variables → `SUPABASE_SERVICE_ROLE_KEY`
-   - GitHub Actions secrets (if used in supabase-migrate.yml)
-   - Any local `.env.local` files on developer machines
-6. Verify the edge function and supabase-migrate workflow still work after rotation
-
-**History purge (Phase 3 — do after rotation):**
-
-```bash
-# DESTRUCTIVE — coordinate with all contributors first
-git filter-repo --path .env --invert-paths --force
-git push --force-with-lease origin main
-```
-
-Only run the history purge if the key was actually in git history AND after rotation so the old key is already invalid.
+   After force-push: open a GitHub support ticket to purge caches.
 
 ---
 
-## Summary of what's already done (code-side)
+## Summary of what's already done (code-side + session 2026-04-16)
 
-| Story                                    | Status                                  | PR  |
-| ---------------------------------------- | --------------------------------------- | --- |
-| S14.2 SEC-001: untrack .env + guards     | ✅ Merged to main                       | #8  |
-| S14.3 Unit tests (codenames, utils)      | ✅ Merged in PR #9                      | #9  |
-| S14.4 Supabase IaC scaffolding (stubs)   | ✅ Stubs in repo (PR #9)                | #9  |
-| S14.5a VITE_MOCK_MODE guard + prod-abort | ✅ In PR #9                             | #9  |
-| S14.5b exchange-token Deno handler       | ✅ Code written (PR #9)                 | #9  |
-| S14.1 Staging provisioning               | ⏳ Requires owner                       | —   |
-| S14.4 Schema dump + audit                | ⏳ Requires owner CLI + security review | —   |
-| S14.5 Edge fn deploy                     | ⏳ Requires owner + staging first       | —   |
-| S14.6 Key rotation                       | ⏳ Requires owner if key was in git     | —   |
+| Story                                       | Status                                                        | PR  |
+| ------------------------------------------- | ------------------------------------------------------------- | --- |
+| S14.2 SEC-001: untrack .env + guards        | ✅ Merged to main                                             | #8  |
+| S14.3 Unit tests (codenames, utils)         | ✅ Merged in PR #9                                            | #9  |
+| S14.4 Supabase IaC scaffolding (stubs)      | ✅ Stubs in repo (PR #9)                                      | #9  |
+| S14.5a VITE_MOCK_MODE guard + prod-abort    | ✅ In PR #9                                                   | #9  |
+| S14.5b exchange-token Deno handler          | ✅ Code written (PR #9)                                       | #9  |
+| S14.6 Git history audit                     | ✅ DONE (2026-04-16) — key confirmed in `4653c4d`             | —   |
+| Vercel env vars (URL, anon key, mock=false) | ✅ DONE (2026-04-16) — set on project-vector-beta             | —   |
+| .vercel/project.json → project-vector-beta  | ✅ DONE (2026-04-16)                                          | —   |
+| Production redeployment with real env vars  | ✅ DONE (2026-04-16) — dpl_HcfHcpnc1UUo7HccaiBjPqbJZGEY READY | —   |
+| S14.1 Staging provisioning                  | ⏳ Requires owner                                             | —   |
+| S14.4 Schema dump + audit                   | ⏳ Requires owner CLI + security review                       | —   |
+| S14.5 Edge fn deploy                        | ⏳ Requires owner + staging first                             | —   |
+| S14.6 Key rotation (service role key)       | 🔴 **URGENT — key was in git history**                        | —   |
+| S14.6 History purge (Phase 3)               | ⏳ After rotation                                             | —   |
