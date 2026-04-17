@@ -1,45 +1,43 @@
-import { Outlet } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { ShieldCheck } from 'lucide-react';
-import { ModeToggle } from '../components/ModeToggle';
+import { Outlet } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
+import { ShieldCheck } from 'lucide-react'
+import { ModeToggle } from '../components/ModeToggle'
 
 export default function AuthLayout() {
-    const { loading } = useAuth();
+  const { loading } = useAuth()
 
-    // If loading session, show spinner
-    if (loading) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-background">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-        );
-    }
-
-    // If already logged in, redirect to dashboard
-    // REMOVED: Managed by LoginPage to enforce PIN flow
-    // if (session) {
-    //    return <Navigate to="/dashboard" replace />;
-    // }
-
+  // If loading session, show spinner
+  if (loading) {
     return (
-        <div className="relative flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4 transition-colors duration-300">
-            <div className="absolute top-4 right-4">
-                <ModeToggle />
-            </div>
-            <div className="w-full max-w-sm space-y-6">
-                <div className="flex flex-col items-center space-y-2 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        <ShieldCheck className="h-8 w-8" />
-                    </div>
-                    <h1 className="text-2xl font-semibold tracking-tight">VECTOR</h1>
-                    <p className="text-sm text-muted-foreground">
-                        Secure. Private. Anonymous.
-                    </p>
-                </div>
-                <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-                    <Outlet />
-                </div>
-            </div>
+      <div className="flex h-screen w-full items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  // If already logged in, redirect to dashboard
+  // REMOVED: Managed by LoginPage to enforce PIN flow
+  // if (session) {
+  //    return <Navigate to="/dashboard" replace />;
+  // }
+
+  return (
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-muted/40 p-4 transition-colors duration-300">
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
+      </div>
+      <div className="w-full max-w-sm space-y-6">
+        <div className="flex flex-col items-center space-y-2 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <ShieldCheck className="h-8 w-8" />
+          </div>
+          <h1 className="text-2xl font-semibold tracking-tight">VECTOR</h1>
+          <p className="text-sm text-muted-foreground">Secure. Private. Anonymous.</p>
         </div>
-    );
+        <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
+          <Outlet />
+        </div>
+      </div>
+    </div>
+  )
 }

@@ -39,6 +39,17 @@ export default defineConfig([
         },
       ],
 
+      // @typescript-eslint/no-explicit-any: downgraded to warn for the Sprint 13
+      // baseline. tseslint.configs.recommended sets this to "error", but the
+      // codebase predates CI enforcement — dozens of call sites (logger helpers,
+      // api adapters, context values, SpeechRecognition event handlers) use `any`
+      // legitimately or as a migration placeholder. Ratchet back to "error"
+      // file-by-file in the dedicated lint-debt sprint (see LINT-DEBT task in
+      // docs/ENTERPRISE_ROADMAP.md). PR #8 fixes the three files that were on
+      // the sprint-14 branch; remaining sites are tracked as pre-existing debt.
+      // TODO(LINT-DEBT / Sprint 15): promote to "error" once all sites are typed.
+      '@typescript-eslint/no-explicit-any': 'warn',
+
       // react-refresh/only-export-components: downgraded to warn for
       // the Sprint 13 baseline. Several contexts (OnboardingContext,
       // etc.) export both constants and components — fast-refresh

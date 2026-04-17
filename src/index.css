@@ -18,7 +18,6 @@
    ============================================================ */
 
 @layer base {
-
   /* ============================================================
      LIGHT MODE - Clean, professional, high contrast
      ============================================================ */
@@ -145,14 +144,18 @@
   }
 
   html {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family:
+      'Inter',
+      system-ui,
+      -apple-system,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
     @apply bg-background text-foreground min-h-screen;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
   /* Monospace elements (tokens, codes) */
@@ -168,7 +171,6 @@
    Enterprise-grade utility classes for consistent styling
    ============================================================ */
 @layer utilities {
-
   /* --- Typography Utilities --- */
   .ent-label {
     @apply text-[10px] font-black uppercase tracking-widest;
@@ -221,17 +223,21 @@
 
   /* --- Gradient Utilities --- */
   .vector-gradient {
-    background: linear-gradient(135deg,
-        hsl(var(--gradient-start)) 0%,
-        hsl(var(--gradient-mid)) 50%,
-        hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-start)) 0%,
+      hsl(var(--gradient-mid)) 50%,
+      hsl(var(--gradient-end)) 100%
+    );
   }
 
   .vector-gradient-text {
-    background: linear-gradient(135deg,
-        hsl(var(--gradient-start)) 0%,
-        hsl(var(--gradient-mid)) 50%,
-        hsl(var(--gradient-end)) 100%);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-start)) 0%,
+      hsl(var(--gradient-mid)) 50%,
+      hsl(var(--gradient-end)) 100%
+    );
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -247,12 +253,18 @@
     inset: 0;
     padding: 1px;
     border-radius: inherit;
-    background: linear-gradient(135deg,
-        hsl(var(--gradient-start)) 0%,
-        hsl(var(--gradient-mid)) 50%,
-        hsl(var(--gradient-end)) 100%);
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    background: linear-gradient(
+      135deg,
+      hsl(var(--gradient-start)) 0%,
+      hsl(var(--gradient-mid)) 50%,
+      hsl(var(--gradient-end)) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     pointer-events: none;
@@ -340,13 +352,17 @@
     background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 60%);
     transform: scale(0);
     opacity: 0;
-    transition: transform 0.4s ease, opacity 0.3s ease;
+    transition:
+      transform 0.4s ease,
+      opacity 0.3s ease;
   }
 
   .btn-ripple:active::after {
     transform: scale(2.5);
     opacity: 1;
-    transition: transform 0s, opacity 0s;
+    transition:
+      transform 0s,
+      opacity 0s;
   }
 
   /* --- Card Hover Lift --- */
@@ -380,19 +396,23 @@
   /* --- Skeleton Loading --- */
   .skeleton {
     @apply bg-slate-200 dark:bg-slate-800 rounded;
-    background-image: linear-gradient(90deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        rgba(255, 255, 255, 0) 100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
     background-size: 200% 100%;
     animation: skeleton-shimmer 1.5s infinite;
   }
 
   .dark .skeleton {
-    background-image: linear-gradient(90deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.05) 50%,
-        rgba(255, 255, 255, 0) 100%);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
   }
 
   .skeleton-text {
@@ -492,7 +512,8 @@
   }
 
   .safe-area-all {
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
   }
 
   /* --- Mobile Spacing --- */
@@ -530,7 +551,6 @@
    Smooth, enterprise-grade animations
    ============================================================ */
 @keyframes subtle-pulse {
-
   0%,
   100% {
     opacity: 1;
@@ -542,7 +562,6 @@
 }
 
 @keyframes glow-pulse {
-
   0%,
   100% {
     box-shadow: 0 0 20px hsla(217, 91%, 60%, 0.2);
@@ -709,7 +728,6 @@ textarea::placeholder {
 
 /* Reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
-
   *,
   *::before,
   *::after {
@@ -880,7 +898,7 @@ textarea::placeholder {
 
 /* High Contrast Badge Adjustments */
 .high-contrast .badge,
-.high-contrast [class*="badge"] {
+.high-contrast [class*='badge'] {
   border: 2px solid currentColor !important;
   font-weight: 700 !important;
 }

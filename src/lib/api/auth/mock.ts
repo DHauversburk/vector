@@ -1,2 +1,2 @@
-import { supabaseAuth } from './supabase';
-export const mockAuth = supabaseAuth;
+import { supabaseAuth } from './supabase'
+export const mockAuth = supabaseAuth
