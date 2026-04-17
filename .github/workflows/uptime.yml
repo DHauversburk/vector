@@ -1,0 +1,80 @@
+name: Uptime Check
+
+# Pings the production health endpoint every 5 minutes.
+# On failure: opens a GitHub issue automatically so on-call is notified
+# without needing a separate alerting service.
+#
+# See docs/ENTERPRISE_ROADMAP.md §Platform P6 (Observability).
+# Endpoint: https://vector-health.vercel.app/healthz.json
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write # required for auto-issue on failure
+
+jobs:
+  ping:
+    name: Ping production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check health endpoint
+        id: health
+        run: |
+          HTTP_STATUS=$(curl -s -o /tmp/healthz_body.txt -w "%{http_code}" \
+            --max-time 10 \
+            https://vector-health.vercel.app/healthz.json)
+          echo "status=$HTTP_STATUS" >> "$GITHUB_OUTPUT"
+          echo "body=$(cat /tmp/healthz_body.txt)" >> "$GITHUB_OUTPUT"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "::error::Health check failed — HTTP $HTTP_STATUS"
+            exit 1
+          fi
+          echo "Health check passed — HTTP $HTTP_STATUS"
+
+      - name: Open issue on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Production down — healthz returned HTTP ${{ steps.health.outputs.status }}`;
+            const body = [
+              '## Incident detected by uptime workflow',
+              '',
+              `**Time:** ${new Date().toISOString()}`,
+              `**Endpoint:** https://vector-health.vercel.app/healthz.json`,
+              `**HTTP status:** ${{ steps.health.outputs.status }}`,
+              `**Response body:** \`${{ steps.health.outputs.body }}\``,
+              '',
+              '## Immediate checklist',
+              '- [ ] Check Vercel dashboard for failed deployment',
+              '- [ ] Check Supabase dashboard for project health',
+              '- [ ] Check GitHub Actions for failing workflows',
+              '- [ ] Review recent commits on `main`',
+              '',
+              'See `docs/ON_CALL_RUNBOOK.md` for full response procedure.',
+            ].join('\n');
+
+            // Check for an existing open incident issue to avoid duplicates.
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'incident',
+            });
+            const alreadyOpen = issues.some(i => i.title.startsWith('🚨 Production down'));
+            if (alreadyOpen) {
+              core.info('Incident issue already open — skipping duplicate creation.');
+              return;
+            }
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['incident', 'P0'],
+            });
