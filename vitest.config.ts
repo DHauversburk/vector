@@ -10,6 +10,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
+    // Exclude Deno-targeted test files in supabase/functions/ — they use
+    // https:// imports incompatible with Node's ESM loader. Run them via:
+    //   deno test --allow-env supabase/functions/exchange-token/index.test.ts
+    exclude: ['**/node_modules/**', '**/dist/**', 'supabase/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary', 'lcov', 'html'],
@@ -24,13 +28,13 @@ export default defineConfig({
         'src/lib/database.types.ts',
         'src/scripts/**',
       ],
-      // TODO(Sprint 14): baseline is currently UNMEASURABLE — `npm run test:coverage`
-      // fails 16 of 22 tests because the corpus calls supabase.auth.signInWithPassword
-      // with credentials the harness does not inject. See docs/ENTERPRISE_ROADMAP.md
-      // §8 Risk #9 and docs/SPRINT_14_KICKOFF.md for the triage plan (fixture creds
-      // from staging post-P9, or mark broken tests .skip with a rewrite-debt ticket).
-      // Once the suite runs green, record the measured baseline here and start the
-      // +5 points / sprint ratchet per Risk #5. Start at 0 so CI does not red-wall.
+      // S14.3 STATUS: The 3 legacy integration suites (mvp_enhancements,
+      // verification, verification_10_stories) are marked describe.skip because
+      // they require Supabase auth credentials the jsdom harness cannot inject.
+      // Replaced in S14.3 with proper unit tests in src/__tests__/lib/ that run
+      // clean. Thresholds start at 0 per Risk #5; ratchet +5 pts/sprint once
+      // integration tests are rewritten against staging (post-S14.1 provisioning).
+      // See docs/ENTERPRISE_ROADMAP.md §S14.3 and §Risk #5.
       thresholds: {
         lines: 0,
         branches: 0,

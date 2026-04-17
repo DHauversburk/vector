@@ -1,0 +1,24 @@
+-- supabase/migrations/0002_rls_policies.sql
+-- Row-Level Security policies for project tvwicdlxljqijoikioln
+--
+-- ⚠ STUB — replace with the actual RLS policy dump.
+--
+-- OWNER ACTION REQUIRED (S14.4):
+--   Run the following after `supabase link`:
+--
+--     supabase db dump --schema public --linked --role-only \
+--       > supabase/migrations/0002_rls_policies.sql
+--
+--   Verify policy count after applying:
+--     SELECT COUNT(*) FROM pg_policies WHERE schemaname = 'public';
+--   The count should match the number of policies in this file.
+--
+-- Design principles (do not regress):
+--   - members can only read/write their OWN appointments and profiles
+--   - providers can read appointments where provider_id = auth.uid()
+--   - admins (role = 'admin') bypass all policies via service-role key
+--   - audit_logs: insert-only for authenticated users, read-only for admins
+--
+-- See docs/ENTERPRISE_ROADMAP.md §P3 Risk #4 (SECURITY DEFINER audit).
+
+SELECT 1;
