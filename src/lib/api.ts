@@ -1,11 +1,11 @@
-import { mockStore } from './api/mockStore';
-import { appointmentActions } from './api/appointments';
-import { providerActions } from './api/providers';
-import { adminActions } from './api/admin';
-import { authActions } from './api/auth';
-import { interactionActions } from './api/interactions';
+import { mockStore } from './api/mockStore'
+import { appointmentActions } from './api/appointments'
+import { providerActions } from './api/providers'
+import { adminActions } from './api/admin'
+import { authActions } from './api/auth'
+import { interactionActions } from './api/interactions'
 
-export * from './api/types';
+export * from './api/types'
 
 /**
  * VECTOR API CLIENT (REFACTORED)
@@ -14,10 +14,10 @@ export * from './api/types';
  * The 'api' object below maintains backward compatibility with the existing codebase.
  */
 export const api = {
-    mockStore,
-    ...appointmentActions,
-    ...providerActions,
-    ...adminActions,
-    ...authActions,
-    ...interactionActions
-};
+  mockStore,
+  ...appointmentActions,
+  ...providerActions,
+  ...adminActions,
+  ...authActions,
+  ...interactionActions,
+}

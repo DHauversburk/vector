@@ -1,91 +1,84 @@
-import { createContext, useEffect, useState } from "react"
+import { createContext, useEffect, useState } from 'react'
 
-type Theme = "dark" | "light" | "system"
+type Theme = 'dark' | 'light' | 'system'
 
 type ThemeProviderProps = {
-    children: React.ReactNode
-    defaultTheme?: Theme
-    storageKey?: string
+  children: React.ReactNode
+  defaultTheme?: Theme
+  storageKey?: string
 }
 
 type ThemeProviderState = {
-    theme: Theme
-    setTheme: (theme: Theme) => void
-    highContrast: boolean
-    setHighContrast: (enabled: boolean) => void
+  theme: Theme
+  setTheme: (theme: Theme) => void
+  highContrast: boolean
+  setHighContrast: (enabled: boolean) => void
 }
 
 const initialState: ThemeProviderState = {
-    theme: "system",
-    setTheme: () => null,
-    highContrast: false,
-    setHighContrast: () => null,
+  theme: 'system',
+  setTheme: () => null,
+  highContrast: false,
+  setHighContrast: () => null,
 }
 
 export const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
 
 export function ThemeProvider({
-    children,
-    defaultTheme = "system",
-    storageKey = "vite-ui-theme",
+  children,
+  defaultTheme = 'system',
+  storageKey = 'vite-ui-theme',
 }: ThemeProviderProps) {
-    const [theme, setTheme] = useState<Theme>(
-        () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-    )
+  const [theme, setTheme] = useState<Theme>(
+    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme,
+  )
 
-    const [highContrast, setHighContrastState] = useState<boolean>(
-        () => localStorage.getItem('vite-ui-high-contrast') === 'true'
-    )
+  const [highContrast, setHighContrastState] = useState<boolean>(
+    () => localStorage.getItem('vite-ui-high-contrast') === 'true',
+  )
 
-    useEffect(() => {
-        const root = window.document.documentElement
+  useEffect(() => {
+    const root = window.document.documentElement
 
-        root.classList.remove("light", "dark")
+    root.classList.remove('light', 'dark')
 
-        if (theme === "system") {
-            const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-                .matches
-                ? "dark"
-                : "light"
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
+        ? 'dark'
+        : 'light'
 
-            root.classList.add(systemTheme)
-            return
-        }
-
-        root.classList.add(theme)
-    }, [theme])
-
-    // Handle high contrast mode
-    useEffect(() => {
-        const root = window.document.documentElement
-
-        if (highContrast) {
-            root.classList.add("high-contrast")
-        } else {
-            root.classList.remove("high-contrast")
-        }
-    }, [highContrast])
-
-    const setHighContrast = (enabled: boolean) => {
-        localStorage.setItem('vite-ui-high-contrast', String(enabled))
-        setHighContrastState(enabled)
+      root.classList.add(systemTheme)
+      return
     }
 
-    const value = {
-        theme,
-        setTheme: (theme: Theme) => {
-            localStorage.setItem(storageKey, theme)
-            setTheme(theme)
-        },
-        highContrast,
-        setHighContrast,
-    }
+    root.classList.add(theme)
+  }, [theme])
 
-    return (
-        <ThemeProviderContext.Provider value={value}>
-            {children}
-        </ThemeProviderContext.Provider>
-    )
+  // Handle high contrast mode
+  useEffect(() => {
+    const root = window.document.documentElement
+
+    if (highContrast) {
+      root.classList.add('high-contrast')
+    } else {
+      root.classList.remove('high-contrast')
+    }
+  }, [highContrast])
+
+  const setHighContrast = (enabled: boolean) => {
+    localStorage.setItem('vite-ui-high-contrast', String(enabled))
+    setHighContrastState(enabled)
+  }
+
+  const value = {
+    theme,
+    setTheme: (theme: Theme) => {
+      localStorage.setItem(storageKey, theme)
+      setTheme(theme)
+    },
+    highContrast,
+    setHighContrast,
+  }
+
+  return <ThemeProviderContext.Provider value={value}>{children}</ThemeProviderContext.Provider>
 }
-
-
