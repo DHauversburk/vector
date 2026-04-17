@@ -1,0 +1,29 @@
+-- supabase/migrations/0001_baseline_schema.sql
+-- Baseline schema dump from project tvwicdlxljqijoikioln
+--
+-- ⚠ STUB — this file must be replaced with the actual schema dump.
+--
+-- OWNER ACTION REQUIRED (S14.4):
+--   Run the following from the repo root after `supabase link`:
+--
+--     supabase db dump --schema public --linked \
+--       > supabase/migrations/0001_baseline_schema.sql
+--
+--   Then commit the result. Do NOT commit secrets or service-role keys.
+--   See docs/SPRINT_14_KICKOFF.md §S14.4 and docs/ENTERPRISE_ROADMAP.md §P3.
+--
+-- Tables known to exist in production (from src/lib/database.types.ts):
+--   public.profiles          — user profile data (role, service_type, etc.)
+--   public.appointments      — scheduled visits (member_id, provider_id, etc.)
+--   public.member_documents  — uploaded documents
+--   public.provider_settings — per-provider configuration
+--   public.feedback          — member → provider feedback
+--   public.help_requests     — member help tickets
+--   public.waitlist          — appointment waitlist entries
+--   public.audit_logs        — system event audit trail
+--
+-- All RLS policies live in 0002_rls_policies.sql.
+-- All RPC functions live in 0003_rpc_functions.sql.
+
+-- Placeholder so the migration runner does not fail on an empty file.
+SELECT 1;

@@ -1,0 +1,100 @@
+name: Supabase Migrations
+
+# Applies migrations to staging automatically on push to main.
+# Production gate is manual — requires explicit workflow_dispatch.
+#
+# Required GitHub secrets (set in repo Settings → Secrets → Actions):
+#   SUPABASE_ACCESS_TOKEN       — from supabase.com/dashboard/account/tokens
+#   SUPABASE_DB_PASSWORD        — database password for prod project
+#   SUPABASE_STAGING_PROJECT_REF — ref of the staging project (see docs/ENVIRONMENTS.md)
+#   SUPABASE_PROD_PROJECT_REF   — tvwicdlxljqijoikioln
+#
+# See docs/ENTERPRISE_ROADMAP.md §Platform P3 and docs/SPRINT_14_KICKOFF.md §S14.4.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+concurrency:
+  group: supabase-migrate-${{ github.ref }}
+  cancel-in-progress: false # Never cancel a running migration
+
+permissions:
+  contents: read
+
+jobs:
+  migrate-staging:
+    name: Migrate staging
+    runs-on: ubuntu-latest
+    # Auto-run on main push; also run when workflow_dispatch selects staging
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging')
+    environment: staging
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Apply migrations to staging
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db push \
+            --project-ref ${{ secrets.SUPABASE_STAGING_PROJECT_REF }} \
+            --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
+
+      - name: Verify migration state
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase migration list \
+            --project-ref ${{ secrets.SUPABASE_STAGING_PROJECT_REF }}
+
+  migrate-production:
+    name: Migrate production (manual gate)
+    runs-on: ubuntu-latest
+    # Only runs when explicitly triggered with environment=production
+    if: |
+      github.event_name == 'workflow_dispatch' && inputs.environment == 'production'
+    environment: production # Requires manual approval in GitHub Environments
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Apply migrations to production
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          echo "Applying migrations to PRODUCTION project ${{ secrets.SUPABASE_PROD_PROJECT_REF }}"
+          supabase db push \
+            --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }} \
+            --password "${{ secrets.SUPABASE_DB_PASSWORD }}"
+
+      - name: Verify migration state
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase migration list \
+            --project-ref ${{ secrets.SUPABASE_PROD_PROJECT_REF }}

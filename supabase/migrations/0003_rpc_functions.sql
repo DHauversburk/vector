@@ -1,0 +1,30 @@
+-- supabase/migrations/0003_rpc_functions.sql
+-- RPC (stored procedure) definitions for project tvwicdlxljqijoikioln
+--
+-- ⚠ STUB — replace with the actual function dump, then audit each definition.
+--
+-- OWNER ACTION REQUIRED (S14.4):
+--   Run the following after `supabase link`:
+--
+--     supabase db dump --schema public --linked --use-copy \
+--       > supabase/migrations/0003_rpc_functions.sql
+--
+--   ⚠ SECURITY AUDIT REQUIRED BEFORE COMMITTING (Risk #4):
+--   Every SECURITY DEFINER function MUST include:
+--     SET search_path = public, pg_temp;
+--   Without this guard, a malicious user could hijack the search path and
+--   escalate privileges. Verify each function manually before merging.
+--
+-- Known RPCs (from src/lib/api/* and audit log events):
+--   admin_create_user(email, password, role, service_type)
+--   provision_member(token_alias, service_type)
+--   fix_duplicate_users()
+--   log_event(event_type, actor_id, target_id, metadata)
+--   get_audit_logs(limit, offset)
+--   get_system_stats()
+--   admin_delete_user(user_id)
+--   admin_prune_unused_accounts(days_since_last_login)
+--
+-- Each function should use SECURITY DEFINER + SET search_path = public, pg_temp.
+
+SELECT 1;

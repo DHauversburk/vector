@@ -6,13 +6,34 @@ import { logger } from './logger'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// MOCK MODE FLAG
-// When VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set → LIVE MODE
-// When missing or VITE_FORCE_MOCK=true → MOCK MODE for development/demo
-const forceMock = import.meta.env.VITE_FORCE_MOCK === 'true'
+// ── MOCK MODE FLAG ────────────────────────────────────────────────────────────
+// VITE_MOCK_MODE=true   → explicitly enable mock (local dev / CI without creds)
+// VITE_FORCE_MOCK=true  → legacy alias; still honored, deprecated — use
+//                         VITE_MOCK_MODE going forward.
+// Missing URL / key     → also activates mock (graceful fallback for local dev)
+//
+// PRODUCTION GUARD (S14.5 / Risk #1): if a production bundle starts in mock
+// mode it means Supabase env vars were not set in Vercel → the app would
+// silently serve fake data to real users. We detect this at boot and throw so
+// React's ErrorBoundary surfaces it immediately rather than letting the app
+// appear healthy while operating on mock data.
+// See docs/ENVIRONMENTS.md for the required env-var matrix.
+// ─────────────────────────────────────────────────────────────────────────────
+const mockModeEnabled =
+  import.meta.env.VITE_MOCK_MODE === 'true' || import.meta.env.VITE_FORCE_MOCK === 'true'
 
 let client: SupabaseClient<Database> | undefined
-let isMock = forceMock || !supabaseUrl || !supabaseAnonKey
+let isMock = mockModeEnabled || !supabaseUrl || !supabaseAnonKey
+
+// Fail-fast: never silently run mock in production.
+if (import.meta.env.PROD && isMock) {
+  throw new Error(
+    '[VECTOR BOOT FAILURE] Production build started without real Supabase credentials. ' +
+      'Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel → Settings → ' +
+      'Environment Variables (scope: Production). VITE_MOCK_MODE must NOT be ' +
+      'true in production. See docs/ENVIRONMENTS.md.',
+  )
+}
 
 try {
   if (!isMock) {
