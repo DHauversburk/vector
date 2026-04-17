@@ -1,15 +1,19 @@
 name: Supabase Migrations
 
-# Applies migrations to staging automatically on push to main.
+# Applies migrations to staging automatically on push to main (migration files only).
 # Production gate is manual — requires explicit workflow_dispatch.
 #
 # Required GitHub secrets (set in repo Settings → Secrets → Actions):
 #   SUPABASE_ACCESS_TOKEN       — from supabase.com/dashboard/account/tokens
 #   SUPABASE_DB_PASSWORD        — database password for prod project
 #   SUPABASE_STAGING_PROJECT_REF — ref of the staging project (see docs/ENVIRONMENTS.md)
-#   SUPABASE_PROD_PROJECT_REF   — tvwicdlxljqijoikioln
+#   SUPABASE_PROD_PROJECT_REF   — tvwicdlxljqijoikioln (already set)
 #
-# See docs/ENTERPRISE_ROADMAP.md §Platform P3 and docs/SPRINT_14_KICKOFF.md §S14.4.
+# The check-prereqs job guards all downstream jobs: if SUPABASE_ACCESS_TOKEN or
+# SUPABASE_STAGING_PROJECT_REF are not configured, the workflow exits cleanly with
+# a notice rather than failing. This keeps CI green during S14.1 provisioning.
+#
+# See docs/ENTERPRISE_ROADMAP.md §Platform P3 and docs/SPRINT_14_OWNER_ACTIONS.md §S14.4.
 
 on:
   push:
@@ -35,13 +39,41 @@ permissions:
   contents: read
 
 jobs:
+  # ── Prereqs check ──────────────────────────────────────────────────────────
+  # Checks whether the required secrets are configured. Downstream jobs depend
+  # on this job's outputs to skip gracefully when secrets are missing.
+  check-prereqs:
+    name: Check secrets configured
+    runs-on: ubuntu-latest
+    outputs:
+      staging-ready: ${{ steps.check.outputs.staging-ready }}
+    steps:
+      - name: Check staging credentials
+        id: check
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_STAGING_PROJECT_REF: ${{ secrets.SUPABASE_STAGING_PROJECT_REF }}
+        run: |
+          if [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_STAGING_PROJECT_REF" ]; then
+            echo "staging-ready=true" >> "$GITHUB_OUTPUT"
+            echo "✅ Staging credentials configured — migration will proceed."
+          else
+            echo "staging-ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Staging credentials not yet configured (SUPABASE_ACCESS_TOKEN or SUPABASE_STAGING_PROJECT_REF missing)."
+            echo "::notice::Set these secrets at github.com/DHauversburk/vector/settings/secrets/actions"
+            echo "::notice::See docs/SPRINT_14_OWNER_ACTIONS.md §S14.1 for instructions."
+          fi
+
+  # ── Migrate staging ────────────────────────────────────────────────────────
   migrate-staging:
     name: Migrate staging
     runs-on: ubuntu-latest
-    # Auto-run on main push; also run when workflow_dispatch selects staging
+    needs: check-prereqs
+    # Skip gracefully when secrets are not yet provisioned (S14.1 pending)
     if: |
-      github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging')
+      needs.check-prereqs.outputs.staging-ready == 'true' &&
+      (github.event_name == 'push' ||
+       (github.event_name == 'workflow_dispatch' && inputs.environment == 'staging'))
     environment: staging
     steps:
       - name: Checkout
@@ -67,6 +99,7 @@ jobs:
           supabase migration list \
             --project-ref ${{ secrets.SUPABASE_STAGING_PROJECT_REF }}
 
+  # ── Migrate production (manual gate) ──────────────────────────────────────
   migrate-production:
     name: Migrate production (manual gate)
     runs-on: ubuntu-latest
