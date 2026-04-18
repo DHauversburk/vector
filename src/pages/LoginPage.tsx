@@ -230,7 +230,7 @@ export default function LoginPage() {
               <br />
               scheduling
             </h1>
-            <p className="text-slate-400 text-lg mb-10 leading-relaxed">
+            <p className="text-slate-300 text-lg mb-10 leading-relaxed">
               Enterprise healthcare coordination for providers, members, and care teams.
             </p>
 

@@ -201,7 +201,7 @@ export function AuthForm({
                 <button
                   type="button"
                   onClick={() => setShowTokenHelp(true)}
-                  className="flex items-center justify-center gap-2 text-xs text-slate-500 hover:text-blue-400 transition-colors mx-auto"
+                  className="flex items-center justify-center gap-2 text-xs text-slate-300 hover:text-blue-400 transition-colors mx-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
                   aria-label="Explain clinical identity tokens"
                 >
                   <HelpCircle className="w-4 h-4" aria-hidden="true" />
@@ -221,7 +221,7 @@ export function AuthForm({
                       aria-hidden="true"
                     />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-300 transition-colors">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors">
                     Scan QR
                   </span>
                 </button>
@@ -237,7 +237,7 @@ export function AuthForm({
                       aria-hidden="true"
                     />
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-300 transition-colors">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors">
                     Biometric
                   </span>
                 </button>

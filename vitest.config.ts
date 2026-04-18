@@ -13,7 +13,7 @@ export default defineConfig({
     // Exclude Deno-targeted test files in supabase/functions/ — they use
     // https:// imports incompatible with Node's ESM loader. Run them via:
     //   deno test --allow-env supabase/functions/exchange-token/index.test.ts
-    exclude: ['**/node_modules/**', '**/dist/**', 'supabase/**'],
+    exclude: ['**/node_modules/**', '**/dist/**', 'supabase/**', 'tests/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary', 'lcov', 'html'],
