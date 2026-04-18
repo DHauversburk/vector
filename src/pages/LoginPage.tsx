@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { ShieldCheck, CalendarCheck, ClipboardList } from 'lucide-react'
 import { supabase, IS_MOCK } from '../lib/supabase'
 import { webauthn } from '../lib/webauthn'
 import { api } from '../lib/api'
@@ -237,12 +238,12 @@ export default function LoginPage() {
             {/* Feature bullets */}
             <ul className="space-y-4">
               {[
-                { icon: '🔒', label: 'Role-based access with PIN protection' },
-                { icon: '📅', label: 'Real-time appointment management' },
-                { icon: '🏥', label: 'HIPAA-aligned audit trail' },
-              ].map(({ icon, label }) => (
+                { Icon: ShieldCheck, label: 'Role-based access with PIN protection' },
+                { Icon: CalendarCheck, label: 'Real-time appointment management' },
+                { Icon: ClipboardList, label: 'HIPAA-aligned audit trail' },
+              ].map(({ Icon, label }) => (
                 <li key={label} className="flex items-center gap-3 text-slate-300">
-                  <span className="text-xl flex-shrink-0">{icon}</span>
+                  <Icon className="w-5 h-5 text-blue-400 flex-shrink-0" aria-hidden="true" />
                   <span>{label}</span>
                 </li>
               ))}
