@@ -32,6 +32,21 @@ interface TokenGeneratorProps {
   isProvider?: boolean
 }
 
+/**
+ * Generate a cryptographically secure random password using the Web Crypto API.
+ * Each provisioned user receives a unique password; the password is never shown
+ * to admins (login is via token alias + PIN, not email/password).
+ *
+ * Character set deliberately excludes ambiguous chars (0, O, I, l) for
+ * any future print scenarios, and includes symbols for entropy.
+ */
+function generateSecurePassword(): string {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%^&*-_'
+  const array = new Uint8Array(32)
+  crypto.getRandomValues(array)
+  return Array.from(array, (byte) => chars[byte % chars.length]).join('')
+}
+
 export default function TokenGenerator({ isProvider = false }: TokenGeneratorProps) {
   const [serviceType, setServiceType] = useState<ServiceType>('PT_BLUE')
   const [targetRole, setTargetRole] = useState<'member' | 'provider'>('member')
@@ -184,7 +199,9 @@ export default function TokenGenerator({ isProvider = false }: TokenGeneratorPro
 
         const token = tokenParts.join('-')
         const email = `${token.toLowerCase()}@vector.mil`
-        const password = 'SecurePass2025!'
+        // Unique cryptographically-secure password per user.
+        // Not stored or shown — login uses token alias + PIN.
+        const password = generateSecurePassword()
         const finalServiceType = targetRole === 'provider' ? serviceType : 'ALL'
 
         try {

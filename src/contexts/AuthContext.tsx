@@ -75,23 +75,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    // Get initial session
+    // Server-side token validation: getUser() makes a network round-trip to
+    // Supabase to verify the JWT is genuine and unexpired — unlike getSession()
+    // which only reads the locally stored token (manipulable via DevTools).
     supabase.auth
-      .getSession()
-      .then(({ data: { session } }: { data: { session: Session | null } }) => {
-        setSession(session)
-        setUser(session?.user ?? null)
-        if (session?.user) {
-          fetchProfile(session.user.id, session.user).then(() => {
-            // CRITICAL: Ensure loading is disabled after profile fetch
-            setLoading(false)
-          })
-        } else {
+      .getUser()
+      .then(async ({ data: { user }, error }) => {
+        if (error || !user) {
+          // JWT invalid, expired, or revoked — clear all local auth state
+          logger.warn('AuthContext', 'Server-side session validation failed:', error?.message)
+          setSession(null)
+          setUser(null)
+          setRole(null)
+          sessionStorage.removeItem('vector_pin_verified')
+          setPinVerified(false)
           setLoading(false)
+          return
         }
+
+        // JWT is valid — now get the full session object (includes access token)
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        setSession(session)
+        setUser(user)
+        if (user) {
+          await fetchProfile(user.id, user)
+        }
+        setLoading(false)
       })
       .catch((err: Error) => {
-        logger.error('AuthContext', 'Auth Session Error:', err)
+        logger.error('AuthContext', 'Auth validation error:', err)
         // SAFETY VALVE: Ensure we never get stuck on "Authenticating..."
         setLoading(false)
       })

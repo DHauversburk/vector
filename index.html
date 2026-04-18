@@ -26,20 +26,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#0a1628" />
     <title>VECTOR | Secure Clinical Scheduling</title>
-  </head>
 
-  <body>
-    <!-- Skip Navigation for Keyboard Users (WCAG 2.1 A) -->
-    <a
-      href="#main-content"
-      class="skip-link"
-      style="
+    <!-- Critical runtime error handler — must load before main bundle.
+         External file so CSP allows it under script-src 'self'. -->
+    <script src="/error-handler.js"></script>
+
+    <!-- Skip-link styles — inline here so they work before Tailwind loads -->
+    <style>
+      .skip-link {
         position: absolute;
         top: -100%;
         left: 50%;
         transform: translateX(-50%);
         background: #3b82f6;
-        color: white;
+        color: #fff;
         padding: 12px 24px;
         border-radius: 0 0 8px 8px;
         font-weight: bold;
@@ -47,16 +47,17 @@
         z-index: 10000;
         transition: top 0.2s ease;
         font-family: system-ui, sans-serif;
-      "
-      onfocus="this.style.top = '0'"
-      onblur="this.style.top = '-100%'"
-    >
-      Skip to main content
-    </a>
-
-    <div
-      id="root"
-      style="
+        white-space: nowrap;
+      }
+      /* CSS-only show-on-focus — no inline JS event handlers needed */
+      .skip-link:focus,
+      .skip-link:focus-visible {
+        top: 0;
+        outline: 3px solid #fff;
+        outline-offset: 2px;
+      }
+      /* Pre-render shell while React boots */
+      #root-shell {
         background-color: #0f172a;
         color: #475569;
         display: flex;
@@ -64,23 +65,28 @@
         justify-content: center;
         height: 100vh;
         font-family: sans-serif;
-      "
-    >
-      <div style="text-align: center">
-        <h1 style="color: #3b82f6">VECTOR</h1>
-        <p>System Initializing...</p>
-        <small style="color: #334155">If this persists, the application runtime has failed.</small>
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Skip Navigation for Keyboard Users (WCAG 2.1 A) -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Pre-render shell: replaced by React root once the bundle boots.
+         No inline scripts or event handlers — CSP-safe. -->
+    <div id="root">
+      <div id="root-shell">
+        <div style="text-align: center">
+          <h1 style="color: #3b82f6">VECTOR</h1>
+          <p>System Initializing...</p>
+          <small style="color: #334155"
+            >If this persists, the application runtime has failed.</small
+          >
+        </div>
       </div>
     </div>
-    <script>
-      window.onerror = function (message, source, lineno, colno, error) {
-        console.error('Global Error:', error)
-        document.body.innerHTML +=
-          '<div style="color:red; background:black; padding:20px; position:fixed; top:0; left:0; width:100%; z-index:9999;">CRITICAL RUNTIME ERROR: ' +
-          message +
-          '</div>'
-      }
-    </script>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
