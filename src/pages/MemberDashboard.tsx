@@ -138,13 +138,10 @@ export default function MemberDashboard() {
             {/* Upcoming Session Countdown */}
             {nextAppt && (
               <Card
-                variant="glass"
-                withGradientBorder
-                className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border-none shadow-2xl overflow-hidden group"
+                variant="default"
+                className="bg-slate-900 border border-indigo-500/20 shadow-xl overflow-hidden group"
               >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none group-hover:bg-indigo-500/20 transition-all duration-1000"></div>
-
-                <CardContent className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 p-6 md:p-8">
+                <CardContent className="flex flex-col md:flex-row items-center justify-between gap-8 p-6 md:p-8">
                   <div className="flex items-center gap-6">
                     <div className="p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
                       <Clock className="w-10 h-10 text-indigo-300" />

@@ -302,9 +302,10 @@ export function DashboardLayout({
               >
                 <div
                   className={cn(
-                    'p-1 rounded-lg transition-all duration-300',
-                    isActive &&
-                      'bg-indigo-600 dark:bg-indigo-500 text-white shadow-lg rotate-[360deg]',
+                    'p-1.5 rounded-lg transition-all duration-200',
+                    isActive
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/50 scale-110'
+                      : 'text-slate-400',
                   )}
                 >
                   <item.icon className="w-5 h-5" />
