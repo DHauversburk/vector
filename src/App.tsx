@@ -8,6 +8,7 @@
 
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import * as Sentry from '@sentry/react'
 import { AuthProvider } from './contexts/AuthContext'
 import { useAuth } from './hooks/useAuth'
 import { ThemeProvider } from './contexts/ThemeContext'
@@ -23,11 +24,15 @@ import { AnnouncerProvider } from './components/ui/ScreenReaderAnnouncer'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { Toaster } from 'sonner'
 
-// --- LAZY-LOADED PAGES ---
+// --- LAZY-LOADED PAGES (wrapped with Sentry profiler for route-level tracing) ---
 const LandingPage = lazy(() => import('./pages/LandingPage'))
 const LoginPage = lazy(() => import('./pages/LoginPage'))
 const RegisterPage = lazy(() => import('./pages/RegisterPage'))
-const Dashboard = lazy(() => import('./pages/Dashboard'))
+const Dashboard = lazy(() =>
+  import('./pages/Dashboard').then((m) => ({
+    default: Sentry.withProfiler(m.default, { name: 'Dashboard' }),
+  })),
+)
 
 /**
  * Standard Loading Spinner for Suspense fallbacks
