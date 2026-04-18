@@ -2,7 +2,7 @@ import { Lock } from 'lucide-react'
 import { LoadingPlaceholder } from './AuthForm'
 
 interface LoginHeaderProps {
-  stage: 'auth' | 'pin' | 'setup' | 'reset'
+  stage: 'auth' | 'pin' | 'setup' | 'reset' | 'forgot'
   isLoaded: (id: string) => boolean
   isLoading: (id: string) => boolean
   currentLoadingText: string
@@ -63,7 +63,9 @@ export function LoginHeader({ stage, isLoaded, isLoading, currentLoadingText }: 
               ? 'Sign in to your account'
               : stage === 'pin'
                 ? 'Enter your PIN'
-                : 'Set up your PIN'}
+                : stage === 'forgot'
+                  ? 'Reset your password'
+                  : 'Set up your PIN'}
           </p>
         </div>
       </div>

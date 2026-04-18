@@ -12,6 +12,7 @@ import { AuthForm, LoadingPlaceholder } from '../components/auth/AuthForm'
 import { PinVerification } from '../components/auth/PinVerification'
 import { PinSetup } from '../components/auth/PinSetup'
 import { ResetFlow } from '../components/auth/ResetFlow'
+import { ForgotPasswordFlow } from '../components/auth/ForgotPasswordFlow'
 import { LoginBackground } from '../components/auth/LoginBackground'
 import { LoginHeader } from '../components/auth/LoginHeader'
 
@@ -27,7 +28,8 @@ export default function LoginPage() {
   const { isLoaded, isLoading, currentLoadingText, bootComplete } = useBootSequence()
 
   // Auth state
-  const [stage, setStage] = useState<'auth' | 'pin' | 'setup' | 'reset'>('auth')
+  const [stage, setStage] = useState<'auth' | 'pin' | 'setup' | 'reset' | 'forgot'>('auth')
+  const [pinAttempts, setPinAttempts] = useState(0)
   const [mode, setMode] = useState<'token' | 'email'>('token')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -65,10 +67,17 @@ export default function LoginPage() {
       if (!currentUserId) throw new Error('Your session expired. Sign in again.')
       const isValid = await api.verifyTacticalPin(currentUserId, enteredPin)
       if (isValid) {
+        setPinAttempts(0)
         verifyPin()
         navigate('/dashboard')
       } else {
-        setError('Wrong PIN. Try again.')
+        const nextAttempt = pinAttempts + 1
+        setPinAttempts(nextAttempt)
+        setError(
+          nextAttempt >= 3
+            ? 'Too many wrong attempts. Contact your administrator.'
+            : 'Wrong PIN. Try again.',
+        )
         setPinLoading(false)
       }
     } catch {
@@ -305,6 +314,7 @@ export default function LoginPage() {
                       error={error}
                       pinLoading={pinLoading}
                       onComplete={handlePinComplete}
+                      attemptCount={pinAttempts}
                     />
                   ) : stage === 'reset' ? (
                     <ResetFlow
@@ -312,8 +322,30 @@ export default function LoginPage() {
                       handleReset={handleReset}
                       onCancel={() => setStage('auth')}
                     />
+                  ) : stage === 'forgot' ? (
+                    <ForgotPasswordFlow
+                      onCancel={() => {
+                        setStage('auth')
+                        setError('')
+                      }}
+                    />
                   ) : (
                     <PinSetup error={error} pinLoading={pinLoading} onComplete={handlePinSetup} />
+                  )}
+
+                  {/* Forgot password link — only for email (staff/admin) mode */}
+                  {stage === 'auth' && mode === 'email' && (
+                    <div className="mt-5 pt-4 border-t border-slate-800 text-center">
+                      <button
+                        onClick={() => {
+                          setStage('forgot')
+                          setError('')
+                        }}
+                        className="text-xs text-slate-500 hover:text-blue-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 rounded"
+                      >
+                        Forgot your password?
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
