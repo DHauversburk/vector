@@ -13,7 +13,7 @@ export function PinVerification({ error, pinLoading, onComplete }: PinVerificati
       <div className="text-center mb-4">
         <Shield className="w-12 h-12 mx-auto mb-4 text-blue-400" />
         <h2 className="text-xl font-semibold text-white mb-2">Enter your PIN</h2>
-        <p className="text-sm text-slate-400">Use the 4-digit PIN you created.</p>
+        <p className="text-sm text-slate-300">Use the 4-digit PIN you created.</p>
       </div>
       <TacticalPinField onComplete={onComplete} error={error} loading={pinLoading} />
     </div>

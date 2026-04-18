@@ -15,7 +15,7 @@ export function PinSetup({ error, pinLoading, onComplete }: PinSetupProps) {
           <Shield className="w-6 h-6 text-white" />
         </div>
         <h2 className="text-xl font-semibold text-white mb-2">Set up your PIN</h2>
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-slate-300">
           Choose a 4-digit PIN. You&rsquo;ll use it to sign in next time.
         </p>
       </div>

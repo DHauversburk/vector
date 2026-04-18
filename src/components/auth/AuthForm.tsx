@@ -88,7 +88,7 @@ export function AuthForm({
             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all duration-300 ${
               mode === 'token'
                 ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                : 'text-slate-500 hover:text-slate-300'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <QrCode className="w-4 h-4" aria-hidden="true" />
@@ -102,7 +102,7 @@ export function AuthForm({
             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all duration-300 ${
               mode === 'email'
                 ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
-                : 'text-slate-500 hover:text-slate-300'
+                : 'text-slate-300 hover:text-white'
             }`}
           >
             <Mail className="w-4 h-4" aria-hidden="true" />
@@ -128,7 +128,7 @@ export function AuthForm({
               <div className="space-y-2">
                 <label
                   htmlFor={emailId}
-                  className="text-xs font-black uppercase tracking-widest text-slate-400"
+                  className="text-xs font-black uppercase tracking-widest text-slate-300"
                 >
                   Email Address
                 </label>
@@ -148,7 +148,7 @@ export function AuthForm({
               <div className="space-y-2">
                 <label
                   htmlFor={passwordId}
-                  className="text-xs font-black uppercase tracking-widest text-slate-400"
+                  className="text-xs font-black uppercase tracking-widest text-slate-300"
                 >
                   Password
                 </label>

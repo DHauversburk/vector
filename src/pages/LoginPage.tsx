@@ -328,7 +328,7 @@ export default function LoginPage() {
                     setStage('reset')
                     setError('')
                   }}
-                  className="w-full mb-6 text-center text-sm text-slate-400 hover:text-blue-400 transition-colors"
+                  className="w-full mb-6 text-center text-sm text-slate-300 hover:text-blue-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
                 >
                   Forgot your PIN?
                 </button>
@@ -351,7 +351,7 @@ export default function LoginPage() {
                       window.location.reload()
                     }
                   }}
-                  className="block mx-auto mt-3 px-4 py-2 border border-red-900/50 rounded-lg text-xs text-red-400 bg-red-950/30 hover:bg-red-950/50 transition-all"
+                  className="block mx-auto mt-3 px-4 py-2 border border-red-900/50 rounded-lg text-xs text-red-400 bg-red-950/30 hover:bg-red-950/50 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/50"
                 >
                   Reset demo data
                 </button>
