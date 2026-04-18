@@ -24,7 +24,7 @@ export function LoginHeader({ stage, isLoaded, isLoading, currentLoadingText }: 
           className={`transition-all duration-700 ${isLoaded('logo') ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}
         >
           <div
-            className="absolute inset-0 vector-gradient rounded-2xl blur-xl opacity-50 animate-pulse"
+            className="absolute inset-0 vector-gradient rounded-2xl blur-xl opacity-50 motion-safe:animate-pulse"
             style={{ animationDuration: '3s' }}
           />
           <div className="relative w-20 h-20 mx-auto rounded-2xl bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 flex items-center justify-center shadow-2xl">
@@ -36,7 +36,7 @@ export function LoginHeader({ stage, isLoaded, isLoading, currentLoadingText }: 
                 className="w-12 h-12 drop-shadow-lg"
               />
             ) : (
-              <Lock className="w-10 h-10 text-blue-400 animate-pulse" />
+              <Lock className="w-10 h-10 text-blue-400 motion-safe:animate-pulse" />
             )}
           </div>
         </div>
@@ -58,7 +58,7 @@ export function LoginHeader({ stage, isLoaded, isLoading, currentLoadingText }: 
           <h1 className="text-3xl font-black tracking-[0.2em] uppercase mb-2 vector-gradient-text">
             VECTOR
           </h1>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-300">
             {stage === 'auth'
               ? 'Sign in to your account'
               : stage === 'pin'

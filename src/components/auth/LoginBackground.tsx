@@ -19,14 +19,14 @@ export function LoginBackground({ children, isLoaded }: LoginBackgroundProps) {
         {/* Animated gradient orbs */}
         <div className="absolute inset-0 overflow-hidden">
           <div
-            className="absolute -top-40 -left-40 w-96 h-96 rounded-full opacity-30 blur-3xl animate-pulse"
+            className="absolute -top-40 -left-40 w-96 h-96 rounded-full opacity-30 blur-3xl motion-safe:animate-pulse"
             style={{
               background: 'radial-gradient(circle, hsl(217, 91%, 60%) 0%, transparent 70%)',
               animationDuration: '4s',
             }}
           />
           <div
-            className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full opacity-25 blur-3xl animate-pulse"
+            className="absolute -bottom-40 -right-40 w-[500px] h-[500px] rounded-full opacity-25 blur-3xl motion-safe:animate-pulse"
             style={{
               background: 'radial-gradient(circle, hsl(262, 83%, 58%) 0%, transparent 70%)',
               animationDuration: '5s',
@@ -34,7 +34,7 @@ export function LoginBackground({ children, isLoaded }: LoginBackgroundProps) {
             }}
           />
           <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10 blur-3xl animate-pulse"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10 blur-3xl motion-safe:animate-pulse"
             style={{
               background: 'radial-gradient(circle, hsl(330, 81%, 60%) 0%, transparent 70%)',
               animationDuration: '6s',

@@ -81,7 +81,7 @@ export const TacticalPinField: React.FC<TacticalPinFieldProps> = ({
               <div key={i} className="relative">
                 {/* Glow effect for active box */}
                 {isActive && (
-                  <div className="absolute -inset-1 vector-gradient rounded-xl blur opacity-40 animate-pulse" />
+                  <div className="absolute -inset-1 vector-gradient rounded-xl blur opacity-40 motion-safe:animate-pulse" />
                 )}
                 <div
                   className={cn(
@@ -97,7 +97,7 @@ export const TacticalPinField: React.FC<TacticalPinFieldProps> = ({
                 >
                   {digit ? '•' : ''}
                   {isActive && value.length === i && (
-                    <div className="absolute w-0.5 h-8 bg-blue-400 animate-pulse" />
+                    <div className="absolute w-0.5 h-8 bg-blue-400 motion-safe:animate-pulse" />
                   )}
                 </div>
               </div>

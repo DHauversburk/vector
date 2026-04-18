@@ -82,7 +82,7 @@ export default function LandingPage() {
           <h1 className="text-3xl font-bold tracking-tight mb-1 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             VECTOR
           </h1>
-          <p className="text-slate-400 text-sm">Secure clinical scheduling</p>
+          <p className="text-slate-300 text-sm">Secure clinical scheduling</p>
         </div>
 
         {/* Three sign-in paths */}
@@ -99,6 +99,7 @@ export default function LandingPage() {
                   ${entry.borderColor}
                   ${entry.primary ? 'ring-1 ring-blue-500/20' : ''}
                   hover:bg-slate-900 hover:shadow-lg
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40
                 `}
               >
                 {entry.badge && (
@@ -113,9 +114,9 @@ export default function LandingPage() {
                 </div>
                 <div className="flex-1 text-left min-w-0">
                   <h2 className="text-base font-semibold text-white">{entry.title}</h2>
-                  <p className="text-xs text-slate-400">{entry.subtitle}</p>
+                  <p className="text-xs text-slate-300">{entry.subtitle}</p>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-500 flex-shrink-0" />
+                <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0" aria-hidden="true" />
               </button>
             )
           })}
@@ -125,9 +126,9 @@ export default function LandingPage() {
         <div className="mt-8 text-center">
           <button
             onClick={() => navigate('/login?help=token')}
-            className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-blue-400 transition-colors"
+            className="inline-flex items-center gap-1.5 text-sm text-slate-300 hover:text-blue-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 rounded"
           >
-            <HelpCircle className="w-4 h-4" />
+            <HelpCircle className="w-4 h-4" aria-hidden="true" />
             <span>Need help signing in?</span>
           </button>
         </div>

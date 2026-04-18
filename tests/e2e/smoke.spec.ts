@@ -36,7 +36,7 @@ test.describe('Login page — smoke', () => {
 
   test('shows split-screen on desktop viewport', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await page.goto('/')
+    await page.goto('/login')
     // Left branding panel headline should be visible on desktop.
     await expect(page.locator('h1', { hasText: 'Secure clinical' })).toBeVisible({
       timeout: 10_000,
@@ -47,13 +47,14 @@ test.describe('Login page — smoke', () => {
 
   test('shows single-column on mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 })
-    await page.goto('/')
+    await page.goto('/login')
     // Left branding panel should be hidden on mobile.
     const brandingPanel = page.locator('h1', { hasText: 'Secure clinical' })
     await expect(brandingPanel).toBeHidden()
   })
 
   test('login form is present and has correct fields', async ({ page }) => {
+    await page.goto('/login')
     // Token input should be present (default mode).
     const tokenInput = page.locator('input').first()
     await expect(tokenInput).toBeVisible({ timeout: 10_000 })
