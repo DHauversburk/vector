@@ -47,13 +47,19 @@ export default defineConfig({
     },
   ],
 
-  // Start local dev server when running locally (not in CI — CI targets a live URL).
-  webServer: process.env.CI
-    ? undefined
-    : {
-        command: 'npm run dev',
-        url: 'http://localhost:5173',
-        reuseExistingServer: !process.env.CI,
-        timeout: 30_000,
-      },
+  // Start the Vite dev server when no external URL is provided.
+  // In CI the e2e.yml workflow sets VITE_MOCK_MODE=true so the app boots
+  // without real Supabase credentials (the PROD boot guard only fires in
+  // production builds, not dev mode). When PLAYWRIGHT_BASE_URL is set the
+  // workflow targets a live Vercel Preview URL and no local server is needed.
+  webServer:
+    BASE_URL === 'http://localhost:5173'
+      ? {
+          command: 'npm run dev',
+          url: 'http://localhost:5173',
+          reuseExistingServer: !process.env.CI,
+          timeout: 30_000,
+          env: { VITE_MOCK_MODE: 'true' },
+        }
+      : undefined,
 })

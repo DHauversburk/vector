@@ -1,0 +1,60 @@
+name: Lighthouse CI
+
+# Builds the app and runs Lighthouse against a local preview server.
+# Uses staging Supabase credentials so the production build boots without
+# hitting the VITE_MOCK_MODE guard (anon key is intentionally public —
+# it is embedded in the frontend bundle and protected by RLS).
+#
+# Thresholds start lenient (Sprint 15 baseline) and ratchet up each sprint:
+#   Sprints 15-16: accessibility a11y pass → bump categories:accessibility to 0.90
+#   Sprint 19:     Lighthouse pass → bump performance/LCP/TBT to final targets
+#
+# See docs/ENTERPRISE_ROADMAP.md §Platform P5 (Lighthouse) and lighthouserc.json.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: lighthouse-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    name: Lighthouse audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        env:
+          # Staging anon key — intentionally public (embedded in JS bundle).
+          # RLS enforces data isolation; anon key alone cannot bypass policies.
+          VITE_SUPABASE_URL: https://svwtosrsxgvrlstclbmr.supabase.co
+          VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN2d3Rvc3JzeGd2cmxzdGNsYm1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0Njg5MjAsImV4cCI6MjA5MjA0NDkyMH0.r_pQAXDPIuikJo4PDTyYRmgnieb8_fjNqLdwd1B7Uh8
+        run: npm run build
+
+      - name: Run Lighthouse CI
+        run: |
+          npm run preview &
+          sleep 3
+          npx lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}

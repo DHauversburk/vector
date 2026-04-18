@@ -1,0 +1,70 @@
+name: E2E Tests
+
+# Runs Playwright smoke tests on every PR.
+# Targets the Vercel Preview URL when available (PLAYWRIGHT_BASE_URL set),
+# otherwise starts a local Vite dev server in mock mode.
+#
+# axe-core accessibility checks run inside each spec — critical violations
+# fail the suite immediately. See tests/e2e/smoke.spec.ts.
+#
+# See docs/ENTERPRISE_ROADMAP.md §Platform P5.
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Target URL (leave blank for mock dev server)'
+        required: false
+        default: ''
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: E2E (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [chromium, mobile-chrome]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps ${{ matrix.project == 'chromium' && 'chromium' || 'chromium' }}
+
+      - name: Run E2E tests
+        env:
+          # When workflow_dispatch provides a URL, use it. Otherwise the
+          # playwright.config.ts webServer block starts a mock dev server.
+          PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.base_url || '' }}
+          # Mock mode is only consumed when the dev server starts (no external URL).
+          # It is intentionally NOT set when PLAYWRIGHT_BASE_URL points to a real deploy.
+          VITE_MOCK_MODE: ${{ github.event.inputs.base_url && 'false' || 'true' }}
+        run: npx playwright test --project=${{ matrix.project }}
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 14

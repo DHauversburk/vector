@@ -3,6 +3,21 @@
 --
 -- Sourced from production via Management API query on 2026-04-17.
 -- Replaces stub created in S14.4.
+--
+-- DEPENDENCY NOTE: users_select and users_admin_insert reference get_my_role(),
+-- which is fully defined in 0003_rpc_functions.sql. The stub below ensures this
+-- file can be applied to a fresh database in filename order (0001→0002→0003).
+-- 0003's CREATE OR REPLACE will overwrite this stub with the identical body.
+-- See docs/ENVIRONMENTS.md §Staging Migration State for history.
+
+CREATE OR REPLACE FUNCTION public.get_my_role()
+  RETURNS text
+  LANGUAGE sql
+  SECURITY DEFINER
+  SET search_path TO 'public'
+AS $$
+  SELECT role FROM public.users WHERE id = auth.uid();
+$$;
 -- Total: 32 policies across 10 tables.
 --
 -- Design principles (do not regress):
