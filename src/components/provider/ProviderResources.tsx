@@ -45,6 +45,7 @@ export const ProviderResources: React.FC = () => {
   // Form State
   const [title, setTitle] = useState('')
   const [url, setUrl] = useState('')
+  const [urlError, setUrlError] = useState('')
   const [category, setCategory] = useState<ProviderResource['category']>('video')
   const [description, setDescription] = useState('')
 
@@ -67,6 +68,19 @@ export const ProviderResources: React.FC = () => {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!title.trim() || !url.trim()) return
+
+    // Validate URL — must be http or https
+    try {
+      const parsed = new URL(url.trim())
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        setUrlError('URL must start with http:// or https://')
+        return
+      }
+    } catch {
+      setUrlError('Please enter a valid URL (e.g., https://example.com)')
+      return
+    }
+    setUrlError('')
 
     setSaving(true)
     try {
@@ -165,12 +179,14 @@ export const ProviderResources: React.FC = () => {
                 value={url}
                 onChange={(e) => {
                   setUrl(e.target.value)
+                  setUrlError('')
                   detectCategory(e.target.value)
                 }}
                 placeholder="https://youtube.com/watch?v=..."
-                className="h-10 text-sm"
+                className={`h-10 text-sm ${urlError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : ''}`}
                 required
               />
+              {urlError && <p className="text-[10px] text-red-500 font-bold mt-1">{urlError}</p>}
             </div>
           </div>
 

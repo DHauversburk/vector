@@ -6,7 +6,7 @@
  * view details and resolve requests with notes.
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 // Force Refresh
 import { api, type HelpRequest } from '../../lib/api'
 import {
@@ -45,16 +45,23 @@ export function PendingRequests() {
   const [selectedRequest, setSelectedRequest] = useState<HelpRequest | null>(null)
   const [resolutionNote, setResolutionNote] = useState('')
   const [resolving, setResolving] = useState(false)
+  const [justRefreshed, setJustRefreshed] = useState(false)
+  const initialLoadDone = useRef(false)
 
   const loadRequests = useCallback(async () => {
     setLoading(true)
     try {
       const data = await api.getPendingHelpRequests()
       setRequests(data)
+      if (initialLoadDone.current) {
+        setJustRefreshed(true)
+        setTimeout(() => setJustRefreshed(false), 800)
+      }
     } catch (err) {
       logger.error('PendingRequests', 'Failed to load requests:', err)
     } finally {
       setLoading(false)
+      initialLoadDone.current = true
     }
   }, [])
 
@@ -149,7 +156,9 @@ export function PendingRequests() {
           <p className="text-xs text-slate-500 mt-1">All caught up!</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div
+          className={`space-y-3 rounded-xl transition-all duration-300 ${justRefreshed ? 'ring-2 ring-blue-400/40' : ''}`}
+        >
           {requests.map((request) => {
             const config = categoryConfig[request.category]
             const colors = getColorClasses(config.color)
@@ -288,7 +297,7 @@ export function PendingRequests() {
                 <textarea
                   value={resolutionNote}
                   onChange={(e) => setResolutionNote(e.target.value)}
-                  placeholder="Document how this was resolved..."
+                  placeholder="Describe outcome, referral made, or follow-up scheduled…"
                   rows={3}
                   className="w-full p-4 bg-slate-800/50 border border-slate-700 rounded-lg text-white placeholder:text-slate-600 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 resize-none"
                 />

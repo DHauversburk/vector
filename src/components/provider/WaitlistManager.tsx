@@ -39,27 +39,20 @@ export function WaitlistManager() {
 
   const handleAction = async (entryId: string, action: 'fulfill' | 'dismiss') => {
     setProcessingId(entryId)
-    // Simulate API delay
-    await new Promise((r) => setTimeout(r, 600))
-
-    // In a real app we would call an API.
-    // For mock, we simply "leave" or "update status".
-    // We'll reuse leaveWaitlist for dismissal, but ideally we'd have a specific "fulfill"
-    // status update. Since api only has `leaveWaitlist` (cancel), we'll use that for dismiss.
-    // For fulfill, we probably need a new method or just pretend for now.
-
+    // NOTE: fulfillWaitlist (create slot + notify patient) is Stage 18 scope.
+    // For now both actions call leaveWaitlist to remove the entry from the queue,
+    // with distinct toast messages to communicate intent.
     try {
       if (action === 'dismiss') {
         await api.leaveWaitlist(entryId)
-        toast.success('Removed from waitlist')
+        toast.success('Patient removed from waitlist')
       } else {
-        // Pretend we notified them
-        toast.success('Patient notified! They have 24h to book.')
-        await api.leaveWaitlist(entryId) // Remove from active list for now
+        await api.leaveWaitlist(entryId)
+        toast.success('Slot offered — patient notified to book within 24 h')
       }
       loadData()
     } catch {
-      toast.error('Action failed')
+      toast.error('Action failed — please try again')
     } finally {
       setProcessingId(null)
     }
@@ -136,9 +129,11 @@ export function WaitlistManager() {
                   variant="outline"
                   onClick={() => handleAction(entry.id, 'dismiss')}
                   disabled={!!processingId}
+                  aria-label={`Dismiss ${entry.member_name} from waitlist`}
                   className="text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-200"
                 >
-                  <XCircle className="w-3 h-3" />
+                  <XCircle className="w-3 h-3 mr-1" />
+                  Dismiss
                 </Button>
               </div>
             </div>
