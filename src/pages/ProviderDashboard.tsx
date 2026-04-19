@@ -3,7 +3,16 @@ import { api } from '../lib/api'
 import { format, parseISO } from 'date-fns'
 import { logger } from '../lib/logger'
 import { Button } from '../components/ui/Button'
-import { CalendarRange, Users, BarChart3, Shield, LayoutGrid, X, FileText } from 'lucide-react'
+import {
+  CalendarRange,
+  Users,
+  BarChart3,
+  Shield,
+  LayoutGrid,
+  X,
+  FileText,
+  Download,
+} from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { ProviderSchedule } from '../components/provider/ProviderSchedule'
 import { ProviderOverview } from '../components/provider/ProviderOverview'
@@ -13,12 +22,13 @@ import { QuickNoteModal } from '../components/ui/QuickNoteModal'
 import { DashboardLayout, type NavItem } from '../components/layout/DashboardLayout'
 import { WelcomeModal } from '../components/onboarding/WelcomeModal'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../components/ui/Card'
-import { Badge } from '../components/ui/Badge'
 import { LoadingState } from '../components/ui/LoadingState'
 
 // Feature Modals
 import { SlotGeneratorModal } from '../components/provider/SlotGeneratorModal'
 import { ClearScheduleModal } from '../components/provider/ClearScheduleModal'
+import { PatientEditModal } from '../components/provider/PatientEditModal'
+import { PatientRow, type PatientMember } from '../components/provider/PatientRow'
 
 // --- LAZY-LOADED COMPONENTS ---
 const TokenGenerator = lazy(() => import('../components/admin/TokenGenerator'))
@@ -70,9 +80,37 @@ export default function ProviderDashboard() {
 
   const [members, setMembers] = useState<Member[]>([])
   const [memberSearch] = useState('')
+  const [editingMember, setEditingMember] = useState<PatientMember | null>(null)
 
   // Quick Note State
   const [quickNoteOpen, setQuickNoteOpen] = useState(false)
+
+  const handleMemberSaved = (updated: PatientMember) => {
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.id === updated.id
+          ? { ...m, token_alias: updated.token_alias, status: updated.status }
+          : m,
+      ),
+    )
+  }
+
+  const exportMembersCSV = () => {
+    const header = 'Alias,Status,Joined'
+    const rows = members.map(
+      (m) => `"${m.token_alias}","${m.status}","${format(parseISO(m.created_at), 'yyyy-MM-dd')}"`,
+    )
+    const csv = [header, ...rows].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `patient-directory-${format(new Date(), 'yyyy-MM-dd')}.csv`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
 
   const loadMembers = useCallback(async () => {
     try {
@@ -258,44 +296,30 @@ export default function ProviderDashboard() {
                 variant="default"
                 className="border-none shadow-md overflow-hidden bg-slate-50 dark:bg-slate-950/50 md:bg-white md:dark:bg-slate-900"
               >
-                <CardHeader className="bg-slate-50 dark:bg-slate-950/50 hidden md:block">
+                <CardHeader className="bg-slate-50 dark:bg-slate-950/50 hidden md:flex md:flex-row md:items-center md:justify-between">
                   <CardTitle className="text-xs">Active Patient Directory</CardTitle>
+                  {members.length > 0 && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={exportMembersCSV}
+                      className="h-7 text-[10px] font-black uppercase gap-1.5"
+                    >
+                      <Download className="w-3.5 h-3.5" aria-hidden="true" />
+                      Export CSV
+                    </Button>
+                  )}
                 </CardHeader>
                 <CardContent className="p-0">
                   {/* Mobile Card View */}
                   <div className="md:hidden divide-y divide-slate-200 dark:divide-slate-800">
                     {members.slice(0, 10).map((member) => (
-                      <div
+                      <PatientRow
                         key={member.id}
-                        className="p-4 bg-white dark:bg-slate-900 flex items-center justify-between"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-black font-mono text-slate-900 dark:text-white">
-                              {member.token_alias}
-                            </span>
-                            <Badge
-                              variant={member.status === 'active' ? 'success' : 'secondary'}
-                              size="sm"
-                              className="h-5 text-[9px] px-1.5"
-                            >
-                              {member.status}
-                            </Badge>
-                          </div>
-                          <p className="text-[10px] text-slate-500 uppercase font-bold tracking-wide">
-                            Joined: {format(parseISO(member.created_at), 'PPP')}
-                          </p>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => logger.debug('ProviderDashboard', `Edit: ${member.id}`)}
-                          aria-label={`Edit notes for ${member.token_alias}`}
-                        >
-                          <span className="sr-only">Edit</span>
-                          <FileText className="w-4 h-4 text-slate-400" />
-                        </Button>
-                      </div>
+                        member={member as PatientMember}
+                        onEdit={setEditingMember}
+                        variant="card"
+                      />
                     ))}
                     {members.length === 0 && (
                       <div className="p-8 text-center text-xs text-slate-400 font-black uppercase tracking-widest italic">
@@ -325,38 +349,12 @@ export default function ProviderDashboard() {
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                         {members.slice(0, 10).map((member) => (
-                          <tr
+                          <PatientRow
                             key={member.id}
-                            className="group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-                          >
-                            <td className="p-4 text-xs font-bold font-mono text-slate-700 dark:text-slate-300 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
-                              {member.token_alias}
-                            </td>
-                            <td className="p-4">
-                              <Badge
-                                variant={member.status === 'active' ? 'success' : 'secondary'}
-                                size="sm"
-                              >
-                                {member.status}
-                              </Badge>
-                            </td>
-                            <td className="p-4 text-xs text-slate-500 font-bold uppercase">
-                              {format(parseISO(member.created_at), 'PPP')}
-                            </td>
-                            <td className="p-4 text-right">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() =>
-                                  logger.debug('ProviderDashboard', `Edit: ${member.id}`)
-                                }
-                                className="h-8 text-[10px] font-black uppercase"
-                                aria-label={`Edit details for ${member.token_alias}`}
-                              >
-                                Edit
-                              </Button>
-                            </td>
-                          </tr>
+                            member={member as PatientMember}
+                            onEdit={setEditingMember}
+                            variant="row"
+                          />
                         ))}
                         {members.length === 0 && (
                           <tr>
@@ -452,6 +450,12 @@ export default function ProviderDashboard() {
       />
 
       <QuickNoteModal isOpen={quickNoteOpen} onClose={() => setQuickNoteOpen(false)} />
+
+      <PatientEditModal
+        member={editingMember}
+        onClose={() => setEditingMember(null)}
+        onSave={handleMemberSaved}
+      />
     </DashboardLayout>
   )
 }
