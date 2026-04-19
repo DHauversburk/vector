@@ -4,6 +4,18 @@ import { cn } from '../../../lib/utils'
 import { type Appointment } from '../../../lib/api'
 import { AppointmentBlock } from './AppointmentBlock'
 
+/** Returns true if `apt` time-overlaps with any other appointment in `pool`. */
+function hasTimeConflict(apt: Appointment, pool: Appointment[]): boolean {
+  const s = parseISO(apt.start_time).getTime()
+  const e = parseISO(apt.end_time).getTime()
+  return pool.some(
+    (other) =>
+      other.id !== apt.id &&
+      parseISO(other.start_time).getTime() < e &&
+      parseISO(other.end_time).getTime() > s,
+  )
+}
+
 interface WeekViewProps {
   currentDate: Date
   appointments: Appointment[]
@@ -91,17 +103,17 @@ export const WeekView: React.FC<WeekViewProps> = ({
               ))}
             </div>
 
-            {weekDays.map((day) => (
-              <div
-                key={day.toISOString()}
-                className={cn(
-                  'relative h-full z-10 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group/col',
-                  isToday(day) && 'bg-indigo-50/10',
-                )}
-              >
-                {appointments
-                  .filter((a) => isSameDay(parseISO(a.start_time), day))
-                  .map((apt) => (
+            {weekDays.map((day) => {
+              const dayApts = appointments.filter((a) => isSameDay(parseISO(a.start_time), day))
+              return (
+                <div
+                  key={day.toISOString()}
+                  className={cn(
+                    'relative h-full z-10 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors group/col',
+                    isToday(day) && 'bg-indigo-50/10',
+                  )}
+                >
+                  {dayApts.map((apt) => (
                     <AppointmentBlock
                       key={apt.id}
                       appointment={apt}
@@ -114,10 +126,12 @@ export const WeekView: React.FC<WeekViewProps> = ({
                       onDelete={handleDeleteSlot}
                       startHour={START_HOUR}
                       totalMinutes={TOTAL_MINUTES}
+                      hasConflict={hasTimeConflict(apt, dayApts)}
                     />
                   ))}
-              </div>
-            ))}
+                </div>
+              )
+            })}
           </div>
         </div>
       </div>

@@ -4,6 +4,18 @@ import { cn } from '../../../lib/utils'
 import { type Appointment } from '../../../lib/api'
 import { AppointmentBlock } from './AppointmentBlock'
 
+/** Returns true if `apt` time-overlaps with any other appointment in `pool`. */
+function hasTimeConflict(apt: Appointment, pool: Appointment[]): boolean {
+  const s = parseISO(apt.start_time).getTime()
+  const e = parseISO(apt.end_time).getTime()
+  return pool.some(
+    (other) =>
+      other.id !== apt.id &&
+      parseISO(other.start_time).getTime() < e &&
+      parseISO(other.end_time).getTime() > s,
+  )
+}
+
 interface DayViewProps {
   currentDate: Date
   appointments: Appointment[]
@@ -39,7 +51,7 @@ export const DayView: React.FC<DayViewProps> = ({
       <div className="flex border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-20 shadow-sm p-4 items-center justify-between">
         <div>
           <div className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-            Selected Logistics Day
+            Daily schedule
           </div>
           <div
             className={cn(
@@ -102,6 +114,7 @@ export const DayView: React.FC<DayViewProps> = ({
                   onDelete={handleDeleteSlot}
                   startHour={START_HOUR}
                   totalMinutes={TOTAL_MINUTES}
+                  hasConflict={hasTimeConflict(apt, dayAppointments)}
                 />
               ))}
             </div>

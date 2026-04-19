@@ -14,6 +14,7 @@ interface ScheduleDataParams {
 export function useScheduleData({ currentDate, viewMode }: ScheduleDataParams) {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [patientHistory, setPatientHistory] = useState<Appointment[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [updates, setUpdates] = useState<ScheduleUpdate[]>([])
@@ -45,9 +46,11 @@ export function useScheduleData({ currentDate, viewMode }: ScheduleDataParams) {
 
       const data = await api.getProviderSchedule(user.id, start.toISOString(), end.toISOString())
       setAppointments(data)
+      setError(null)
       lastFetchRef.current = data.map((a) => a.id)
     } catch (error) {
       logger.error('useScheduleData', 'Failed to load schedule', error)
+      setError('Failed to load schedule')
       toast.error('Failed to sync schedule')
     } finally {
       setLoading(false)
@@ -142,6 +145,7 @@ export function useScheduleData({ currentDate, viewMode }: ScheduleDataParams) {
     appointments,
     setAppointments, // Needed for optimistic updates in actions
     loading,
+    error,
     patientHistory,
     historyLoading,
     loadPatientHistory,

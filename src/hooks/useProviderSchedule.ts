@@ -21,6 +21,7 @@ export function useProviderSchedule() {
     appointments,
     setAppointments,
     loading,
+    error,
     patientHistory,
     historyLoading,
     loadPatientHistory,
@@ -70,6 +71,7 @@ export function useProviderSchedule() {
     // Data
     appointments,
     loading,
+    error,
     patientHistory,
     historyLoading,
     updates,

@@ -1,5 +1,5 @@
 import React from 'react'
-import { User, Check } from 'lucide-react'
+import { User, Check, AlertTriangle } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import { cn } from '../../../lib/utils'
 import { type Appointment } from '../../../lib/api'
@@ -17,6 +17,8 @@ interface AppointmentBlockProps {
   startHour: number
   totalMinutes: number
   compact?: boolean
+  /** Whether this slot overlaps with another appointment in the same view */
+  hasConflict?: boolean
 }
 
 export const AppointmentBlock: React.FC<AppointmentBlockProps> = ({
@@ -31,6 +33,7 @@ export const AppointmentBlock: React.FC<AppointmentBlockProps> = ({
   startHour,
   totalMinutes,
   compact = false,
+  hasConflict = false,
 }) => {
   const start = parseISO(apt.start_time)
   const end = parseISO(apt.end_time)
@@ -52,21 +55,33 @@ export const AppointmentBlock: React.FC<AppointmentBlockProps> = ({
     return 'bg-emerald-50 content-emerald-600 border-emerald-200 dark:bg-emerald-900/10 dark:border-emerald-800/50 dark:text-emerald-400'
   }
 
+  const handleActivate = (e: React.MouseEvent | React.KeyboardEvent) => {
+    e.stopPropagation()
+    if (isSelectionMode) {
+      onToggleSelection(apt.id)
+      return
+    }
+    if (apt.member_id) onSelect(apt)
+  }
+
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-label={`${apt.member_id ? generatePatientCodename(apt.member_id) : apt.is_booked ? 'Held slot' : 'Open slot'}, ${format(start, 'HH:mm')}–${format(end, 'HH:mm')}${hasConflict ? ', schedule conflict' : ''}`}
       className={cn(
-        'absolute inset-x-1 rounded overflow-hidden p-1.5 border shadow-sm cursor-pointer hover:z-20 transition-all hover:scale-[1.02] hover:shadow-md flex flex-col group/apt uppercase tracking-tight',
+        'absolute inset-x-1 rounded overflow-hidden p-1.5 border shadow-sm cursor-pointer hover:z-20 transition-all hover:scale-[1.02] hover:shadow-md flex flex-col group/apt uppercase tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-indigo-500',
         getBlockStyle(apt),
         height < 3 ? 'flex-row items-center gap-1.5 px-2' : '',
+        hasConflict ? 'ring-2 ring-amber-400 ring-offset-1' : '',
       )}
       style={{ top: `${top}%`, height: `${height}%`, minHeight: '22px' }}
-      onClick={(e) => {
-        e.stopPropagation()
-        if (isSelectionMode) {
-          onToggleSelection(apt.id)
-          return
+      onClick={handleActivate}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleActivate(e)
         }
-        if (apt.member_id) onSelect(apt)
       }}
       onMouseEnter={(e) => onHover(apt, e)}
       onMouseMove={(e) => onHover(apt, e)}
@@ -75,6 +90,12 @@ export const AppointmentBlock: React.FC<AppointmentBlockProps> = ({
       <div className="flex items-center justify-between leading-none w-full relative">
         {!compact && (
           <span className="text-[10px] font-black text-current">{format(start, 'HH:mm')}</span>
+        )}
+        {hasConflict && (
+          <AlertTriangle
+            className="w-3 h-3 text-amber-400 flex-shrink-0"
+            aria-label="Schedule conflict"
+          />
         )}
 
         {/* Selection Checkbox */}
