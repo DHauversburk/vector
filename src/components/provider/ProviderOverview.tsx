@@ -84,17 +84,13 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
               Today's Operations
             </span>
-            <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              {format(now, 'MMM do')}{' '}
-              <span className="text-indigo-600">OpDay {format(now, 'dd')}</span>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+              {format(now, 'MMM do')}
             </h2>
           </div>
 
           <div className="hidden md:block text-slate-600 dark:text-slate-300 font-medium mt-1 uppercase tracking-wide text-xs">
             {format(now, 'EEEE, MMMM do')}
-            <span className="text-indigo-600 dark:text-indigo-400 font-bold mx-2">
-              OpDay {format(now, 'dd')}
-            </span>
             {shiftEnd && <span className="text-slate-400"> • Ends {shiftEnd}</span>}
           </div>
           {/* Mobile Subtext */}
@@ -184,11 +180,10 @@ export const ProviderOverview = ({ onNavigate }: { onNavigate: (view: string) =>
             <h3 className="text-xs font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
               <Bell className="w-4 h-4" /> System Notices
             </h3>
-            <div className="space-y-3">
-              <div className="text-[10px] p-3 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded text-amber-800 dark:text-amber-200 uppercase font-bold tracking-tight">
-                <strong>Reminder:</strong> Please verify all PWA tokens before end of shift.
-              </div>
-            </div>
+            {/* System notices are admin-configurable (Stage 14). No active notices by default. */}
+            <p className="text-[10px] text-slate-400 dark:text-slate-600 uppercase font-bold tracking-widest text-center py-2">
+              No active notices
+            </p>
           </div>
 
           <WaitlistManager />

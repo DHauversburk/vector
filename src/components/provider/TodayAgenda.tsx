@@ -1,9 +1,10 @@
 import React from 'react'
 import { Coffee, ArrowRight, Calendar, Search } from 'lucide-react'
-import { format, isAfter, isBefore, addMinutes } from 'date-fns'
+import { format } from 'date-fns'
 import { Input } from '../ui/Input'
 import { generatePatientCodename } from '../../lib/codenames'
 import { type Appointment } from '../../lib/api'
+import { getSlotStatus, getSlotDurationMinutes, formatSlotDuration } from '../../lib/slotUtils'
 
 interface TodayAgendaProps {
   appointments: Appointment[]
@@ -59,11 +60,16 @@ export const TodayAgenda: React.FC<TodayAgendaProps> = ({
           </div>
         ) : (
           filteredAgenda.map((apt) => {
-            const isPast = isAfter(now, safeParse(apt.end_time))
-            const isCurrent =
-              isBefore(now, safeParse(apt.end_time)) && isAfter(now, safeParse(apt.start_time))
-            const isLate =
-              isAfter(now, addMinutes(safeParse(apt.start_time), 15)) && !isPast && !isCurrent
+            const start = safeParse(apt.start_time)
+            const end = safeParse(apt.end_time)
+            const status = getSlotStatus(start, end, now)
+            const isPast = status === 'past'
+            const isCurrent = status === 'current'
+            const isLate = status === 'late'
+
+            const durationMins = getSlotDurationMinutes(start, end)
+            const durationLabel = formatSlotDuration(durationMins)
+            const visitTypeLabel = apt.provider?.service_type ?? 'Appointment'
 
             return (
               <div
@@ -73,11 +79,11 @@ export const TodayAgenda: React.FC<TodayAgendaProps> = ({
                 <div
                   className={`text-sm font-black w-16 text-right ${isCurrent ? 'text-indigo-600' : 'text-slate-500'}`}
                 >
-                  {format(safeParse(apt.start_time), 'HH:mm')}
+                  {format(start, 'HH:mm')}
                 </div>
                 <div
                   className={`w-3 h-3 rounded-full flex-shrink-0 ${isCurrent ? 'bg-indigo-600 shadow-lg ring-4 ring-indigo-50 dark:ring-indigo-900/50' : isPast ? 'bg-slate-300' : 'bg-emerald-400'}`}
-                ></div>
+                />
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
                     {generatePatientCodename(apt.member_id!)}
@@ -93,7 +99,8 @@ export const TodayAgenda: React.FC<TodayAgendaProps> = ({
                     )}
                   </div>
                   <div className="text-[10px] text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider mt-0.5">
-                    Standard Visit • 45m
+                    {visitTypeLabel}
+                    {durationLabel && ` • ${durationLabel}`}
                   </div>
                 </div>
                 <div className="flex-shrink-0 flex items-center gap-2">
