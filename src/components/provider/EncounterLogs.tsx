@@ -1,10 +1,6 @@
-import { useState, type CSSProperties } from 'react'
+import { useState } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import {
-  type EncounterNote,
-  type EncounterNoteCategory,
-  type EncounterNoteStatus,
-} from '../../lib/api'
+import { type EncounterNoteCategory } from '../../lib/api'
 import { useAuth } from '../../hooks/useAuth'
 import { FileText, Search, Filter, Clock, Download, Archive, AlertTriangle } from 'lucide-react'
 import { Input } from '../ui/Input'
@@ -12,42 +8,11 @@ import { Button } from '../ui/Button'
 import { toast } from 'sonner'
 import { logger } from '../../lib/logger'
 import { api } from '../../lib/api'
-import { List } from 'react-window'
-import { AutoSizer } from 'react-virtualized-auto-sizer'
 
 // Extracted Components & Hooks
 import { useEncounterLogs } from '../../hooks/useEncounterLogs'
 import { EncounterRow } from './EncounterRow'
 import { BulkArchiveModal } from './BulkArchiveModal'
-
-// ── react-window row-data shape ────────────────────────────────────────────
-// index + style are injected by List; everything else comes from rowProps.
-type EncounterRowData = {
-  notes: EncounterNote[]
-  handleStatusChange: (noteId: string, currentStatus: EncounterNoteStatus) => Promise<void>
-  handleArchive: (noteId: string) => Promise<void>
-  handleUnarchive: (noteId: string) => Promise<void>
-}
-
-function EncounterRowRenderer({
-  index,
-  style,
-  notes,
-  handleStatusChange,
-  handleArchive,
-  handleUnarchive,
-}: { index: number; style: CSSProperties } & EncounterRowData) {
-  return (
-    <EncounterRow
-      note={notes[index]}
-      style={style}
-      handleStatusChange={handleStatusChange}
-      handleArchive={handleArchive}
-      handleUnarchive={handleUnarchive}
-    />
-  )
-}
-// ────────────────────────────────────────────────────────────────────────────
 
 export function EncounterLogs() {
   const { user } = useAuth()
@@ -67,6 +32,30 @@ export function EncounterLogs() {
     handleStatusChange,
     exportLogs,
   } = useEncounterLogs()
+
+  // Expand / collapse individual rows
+  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set())
+  const toggleExpand = (id: string) =>
+    setExpandedNotes((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+
+  // Export with brief loading state
+  const [isExporting, setIsExporting] = useState(false)
+  const handleExport = () => {
+    setIsExporting(true)
+    try {
+      exportLogs()
+    } finally {
+      setTimeout(() => setIsExporting(false), 600)
+    }
+  }
 
   // Bulk Archive Local State
   const [showBulkArchiveModal, setShowBulkArchiveModal] = useState(false)
@@ -163,9 +152,16 @@ export function EncounterLogs() {
             </select>
           </div>
 
-          <Button onClick={exportLogs} variant="outline" size="sm" className="h-11 px-4">
-            <Download className="w-4 h-4 mr-2" />
-            Export
+          <Button
+            onClick={handleExport}
+            variant="outline"
+            size="sm"
+            className="h-11 px-4"
+            isLoading={isExporting}
+            disabled={isExporting}
+          >
+            {!isExporting && <Download className="w-4 h-4 mr-2" />}
+            {isExporting ? 'Exporting…' : 'Export'}
           </Button>
 
           <Button
@@ -180,37 +176,23 @@ export function EncounterLogs() {
         </div>
       </div>
 
-      {/* Virtualized Notes List */}
+      {/* Notes List — scrollable, expandable rows */}
       <div className="grid grid-cols-1 gap-4">
         {notes.length === 0 ? (
           <EmptyState showArchived={showArchived} />
         ) : (
-          <div className="h-[600px] w-full border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 overflow-hidden shadow-inner">
-            <AutoSizer
-              renderProp={({
-                height,
-                width,
-              }: {
-                height: number | undefined
-                width: number | undefined
-              }) => {
-                if (height === undefined || width === undefined) return null
-                return (
-                  <List<EncounterRowData>
-                    style={{ height, width }}
-                    rowCount={notes.length}
-                    rowHeight={165}
-                    rowProps={{
-                      notes,
-                      handleStatusChange,
-                      handleArchive,
-                      handleUnarchive,
-                    }}
-                    rowComponent={EncounterRowRenderer}
-                  />
-                )
-              }}
-            />
+          <div className="overflow-y-auto max-h-[640px] w-full border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-inner divide-y divide-slate-100 dark:divide-slate-800">
+            {notes.map((note) => (
+              <EncounterRow
+                key={note.id}
+                note={note}
+                isExpanded={expandedNotes.has(note.id)}
+                onToggleExpand={() => toggleExpand(note.id)}
+                handleStatusChange={handleStatusChange}
+                handleArchive={handleArchive}
+                handleUnarchive={handleUnarchive}
+              />
+            ))}
           </div>
         )}
       </div>

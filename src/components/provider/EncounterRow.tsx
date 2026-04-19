@@ -12,6 +12,7 @@ import {
   User,
   ArchiveRestore,
   Archive,
+  ChevronDown,
   ChevronRight,
   type LucideIcon,
 } from 'lucide-react'
@@ -48,7 +49,10 @@ export const statusIcons: Record<string, LucideIcon> = {
 
 interface EncounterRowProps {
   note: EncounterNote
-  style?: React.CSSProperties
+  /** When true the full note content is shown; otherwise truncated to 2 lines. */
+  isExpanded?: boolean
+  /** Called when the row header is clicked to toggle expansion. */
+  onToggleExpand?: () => void
   handleStatusChange: (id: string, current: EncounterNoteStatus) => void
   handleArchive: (id: string) => void
   handleUnarchive: (id: string) => void
@@ -56,7 +60,8 @@ interface EncounterRowProps {
 
 export function EncounterRow({
   note,
-  style,
+  isExpanded = false,
+  onToggleExpand,
   handleStatusChange,
   handleArchive,
   handleUnarchive,
@@ -67,9 +72,9 @@ export function EncounterRow({
   const isArchived = note.archived
 
   return (
-    <div style={style} className="p-2">
+    <div className="p-2">
       <div
-        className={`h-full group relative bg-white dark:bg-slate-900 rounded-xl border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-center ${isArchived ? 'border-slate-300 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/30'}`}
+        className={`min-h-[165px] group relative bg-white dark:bg-slate-900 rounded-xl border shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col justify-center ${isArchived ? 'border-slate-300 dark:border-slate-700 opacity-60' : 'border-slate-200 dark:border-slate-800 hover:border-indigo-500/30'}`}
       >
         <div className="p-4 flex flex-col sm:flex-row sm:items-start gap-4 h-full">
           <div
@@ -119,7 +124,7 @@ export function EncounterRow({
               </div>
             </div>
             <p
-              className={`text-xs leading-relaxed font-medium line-clamp-2 ${isArchived ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}
+              className={`text-xs leading-relaxed font-medium ${isExpanded ? '' : 'line-clamp-2'} ${isArchived ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300'}`}
             >
               {note.content}
             </p>
@@ -128,7 +133,7 @@ export function EncounterRow({
                 <User className="w-3 h-3" />
                 ID: {note.member_id.split('-')[0]}...
               </div>
-              <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800"></div>
+              <div className="flex-1 h-px bg-slate-100 dark:bg-slate-800" />
               {/* Action Buttons */}
               <div className="flex flex-wrap items-center gap-2">
                 {isArchived ? (
@@ -148,10 +153,25 @@ export function EncounterRow({
                     Archive
                   </button>
                 )}
-                <span className="w-px h-3 bg-slate-200 dark:bg-slate-700 hidden sm:block"></span>
-                <button className="text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-600 flex items-center gap-1 transition-colors">
-                  Details <ChevronRight className="w-3 h-3" />
-                </button>
+                <span className="w-px h-3 bg-slate-200 dark:bg-slate-700 hidden sm:block" />
+                {/* Expand/collapse toggle */}
+                {onToggleExpand && (
+                  <button
+                    onClick={onToggleExpand}
+                    className="text-[10px] font-black uppercase text-indigo-500 hover:text-indigo-600 flex items-center gap-1 transition-colors"
+                    aria-label={isExpanded ? 'Collapse note' : 'Expand note'}
+                  >
+                    {isExpanded ? (
+                      <>
+                        Collapse <ChevronDown className="w-3 h-3" />
+                      </>
+                    ) : (
+                      <>
+                        Details <ChevronRight className="w-3 h-3" />
+                      </>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
           </div>

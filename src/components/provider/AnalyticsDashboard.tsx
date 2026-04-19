@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { api, type Appointment, type NoteStatistics } from '../../lib/api'
+import { supabase } from '../../lib/supabase'
 import {
   TrendingUp,
   CheckCircle2,
@@ -51,8 +52,20 @@ const MetricCard: React.FC<MetricCardProps> = ({
   colorClass = 'text-indigo-600',
 }) => (
   <div
-    className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all cursor-pointer hover:border-indigo-400/30"
+    role={onClick ? 'button' : undefined}
+    tabIndex={onClick ? 0 : undefined}
+    className="bg-white dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group hover:shadow-md transition-all cursor-pointer hover:border-indigo-400/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
     onClick={onClick}
+    onKeyDown={
+      onClick
+        ? (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault()
+              onClick()
+            }
+          }
+        : undefined
+    }
   >
     <button
       onClick={(e) => {
@@ -174,7 +187,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [favorites, setFavorites] = useState<string[]>(() => {
     const stored = localStorage.getItem('ANALYTICS_FAVORITES')
-    return stored ? JSON.parse(stored) : []
+    return stored ? (JSON.parse(stored) as string[]) : []
   })
   const [activeModal, setActiveModal] = useState<string | null>(null)
 
@@ -184,6 +197,16 @@ export const AnalyticsDashboard: React.FC = () => {
       .then((res: unknown) => setData(res as AnalyticsData))
       .catch(console.error)
       .finally(() => setLoading(false))
+
+    // Hydrate favorites from user_metadata (cross-session source of truth).
+    // Falls back to the localStorage value already set in useState initializer.
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      const metaFavs = user?.user_metadata?.analytics_favorites
+      if (Array.isArray(metaFavs) && metaFavs.length > 0) {
+        setFavorites(metaFavs as string[])
+        localStorage.setItem('ANALYTICS_FAVORITES', JSON.stringify(metaFavs))
+      }
+    })
   }, [])
 
   const toggleFavorite = (id: string) => {
@@ -192,6 +215,8 @@ export const AnalyticsDashboard: React.FC = () => {
       : [...favorites, id]
     setFavorites(newFavorites)
     localStorage.setItem('ANALYTICS_FAVORITES', JSON.stringify(newFavorites))
+    // Persist to user_metadata so favorites survive logout and work across devices
+    supabase.auth.updateUser({ data: { analytics_favorites: newFavorites } }).catch(console.error)
   }
 
   if (loading)
@@ -236,7 +261,13 @@ export const AnalyticsDashboard: React.FC = () => {
 
   const noShows = thisWeekAppts.filter((a: Appointment) => a.status === 'cancelled').length
   const lastWeekNoShows = lastWeekAppts.filter((a: Appointment) => a.status === 'cancelled').length
-  const noShowTrend = noShows - lastWeekNoShows
+  // Percentage change vs. last week (not raw count × 100)
+  const noShowTrendPct =
+    lastWeekNoShows > 0
+      ? ((noShows - lastWeekNoShows) / lastWeekNoShows) * 100
+      : noShows > 0
+        ? 100
+        : 0
 
   const stats = {
     weeklyTotal: thisWeekAppts.length,
@@ -266,13 +297,27 @@ export const AnalyticsDashboard: React.FC = () => {
     ).size,
   }
 
-  const warnings: string[] = []
+  const warnings: { message: string; tooltip: string }[] = []
   if (stats.noShows > 5)
-    warnings.push(`High cancellation rate: ${stats.noShows} cancelled appointments`)
-  if (stats.openSlots === 0) warnings.push('No open slots remaining this week')
+    warnings.push({
+      message: `High cancellation rate: ${stats.noShows} cancelled appointments`,
+      tooltip: 'Threshold: >5 cancellations this week. Contact affected patients to reschedule.',
+    })
+  if (stats.openSlots === 0)
+    warnings.push({
+      message: 'No open slots remaining this week',
+      tooltip: 'All available slots are booked or held. Consider extending hours or adding slots.',
+    })
   if (stats.avgRating > 0 && stats.avgRating < 4)
-    warnings.push(`Patient satisfaction below target: ${stats.avgRating.toFixed(1)}/5`)
-  if (stats.utilization > 90) warnings.push('Schedule nearing capacity')
+    warnings.push({
+      message: `Patient satisfaction below target: ${stats.avgRating.toFixed(1)}/5`,
+      tooltip: 'Target: ≥4.0/5. Scores below this indicate patient experience concerns.',
+    })
+  if (stats.utilization > 90)
+    warnings.push({
+      message: 'Schedule nearing capacity',
+      tooltip: 'Threshold: >90% utilization. Review open slots to avoid overbooking.',
+    })
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
@@ -302,10 +347,11 @@ export const AnalyticsDashboard: React.FC = () => {
             {warnings.map((w, i) => (
               <li
                 key={i}
-                className="text-xs text-red-600 dark:text-red-400 flex items-center gap-2"
+                title={w.tooltip}
+                className="text-xs text-red-600 dark:text-red-400 flex items-center gap-2 cursor-help"
               >
-                <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                {w}
+                <span className="w-1.5 h-1.5 bg-red-500 rounded-full flex-shrink-0" />
+                {w.message}
               </li>
             ))}
           </ul>
@@ -349,10 +395,10 @@ export const AnalyticsDashboard: React.FC = () => {
           subtitle="This Week"
           icon={<XCircle className="w-4 h-4 text-red-500 dark:text-red-400" />}
           trend={
-            noShowTrend !== 0
+            noShowTrendPct !== 0
               ? {
-                  value: Math.round(Math.abs(noShowTrend * 100)),
-                  direction: noShowTrend > 0 ? 'up' : 'down',
+                  value: Math.round(Math.abs(noShowTrendPct)),
+                  direction: noShowTrendPct > 0 ? 'up' : 'down',
                   isGood: false,
                 }
               : undefined
