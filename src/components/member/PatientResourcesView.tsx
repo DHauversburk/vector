@@ -1,6 +1,15 @@
 import { useState, useEffect } from 'react'
 import { api, type ProviderResource } from '../../lib/api'
-import { Video, FileText, Dumbbell, BookOpen, Link2, ExternalLink, Loader2 } from 'lucide-react'
+import {
+  Video,
+  FileText,
+  Dumbbell,
+  BookOpen,
+  Link2,
+  ExternalLink,
+  Loader2,
+  Search,
+} from 'lucide-react'
 import { logger } from '../../lib/logger'
 
 const categoryConfig = {
@@ -44,6 +53,7 @@ export const PatientResourcesView: React.FC<Props> = ({ providerId }) => {
   const [resources, setResources] = useState<ProviderResource[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<ProviderResource['category'] | 'all'>('all')
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     const loadResources = async () => {
@@ -68,8 +78,13 @@ export const PatientResourcesView: React.FC<Props> = ({ providerId }) => {
     loadResources()
   }, [providerId])
 
-  const filteredResources =
-    filter === 'all' ? resources : resources.filter((r) => r.category === filter)
+  const filteredResources = resources
+    .filter((r) => filter === 'all' || r.category === filter)
+    .filter((r) => {
+      if (!searchTerm.trim()) return true
+      const q = searchTerm.toLowerCase()
+      return r.title.toLowerCase().includes(q) || (r.description ?? '').toLowerCase().includes(q)
+    })
 
   if (loading) {
     return (
@@ -95,6 +110,19 @@ export const PatientResourcesView: React.FC<Props> = ({ providerId }) => {
 
   return (
     <div className="space-y-4">
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <input
+          type="search"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search resources by title or description…"
+          className="w-full pl-10 pr-4 h-10 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+          aria-label="Search resources"
+        />
+      </div>
+
       {/* Filter Pills */}
       <div className="flex items-center gap-2 flex-wrap">
         <button
@@ -128,6 +156,11 @@ export const PatientResourcesView: React.FC<Props> = ({ providerId }) => {
       </div>
 
       {/* Resources Grid */}
+      {filteredResources.length === 0 ? (
+        <div className="text-center py-10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          No resources match your search.
+        </div>
+      ) : null}
       <div className="grid gap-3 md:grid-cols-2">
         {filteredResources.map((resource) => {
           const config = categoryConfig[resource.category]

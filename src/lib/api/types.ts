@@ -16,6 +16,7 @@ export interface Appointment {
   end_time: string
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'blocked'
   notes?: string | null
+  cancel_reason?: string | null
   is_booked: boolean
   is_video?: boolean
   created_at: string

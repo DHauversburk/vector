@@ -4,6 +4,7 @@ import { Activity, ChevronDown, Clock, X, Download, Star } from 'lucide-react'
 import { Card } from '../ui/Card'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
+import { ConfirmModal } from '../ui/ConfirmModal'
 import { cn } from '../../lib/utils'
 import { generateICS } from '../../lib/ics'
 import type { Appointment } from '../../lib/api'
@@ -72,13 +73,30 @@ export function AppointmentRow({
   getProviderLocation: (type?: string) => string
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const cancelReason = appt.notes
-    ?.split('|')
-    .find((s: string) => s.trim().startsWith('CANCEL_REASON:'))
-    ?.replace('CANCEL_REASON:', '')
-    .trim()
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [isCancelling, setIsCancelling] = useState(false)
+
+  // Prefer the dedicated cancel_reason column; fall back to the legacy pipe-delimited notes format
+  const cancelReason =
+    appt.cancel_reason ??
+    appt.notes
+      ?.split('|')
+      .find((s: string) => s.trim().startsWith('CANCEL_REASON:'))
+      ?.replace('CANCEL_REASON:', '')
+      .trim()
+
   const diff = differenceInMinutes(parseISO(appt.start_time), new Date())
   const isPast = parseISO(appt.start_time) < new Date()
+
+  const handleCancelConfirmed = async () => {
+    setIsCancelling(true)
+    try {
+      onCancel(appt.id)
+    } finally {
+      setShowCancelConfirm(false)
+      setIsCancelling(false)
+    }
+  }
 
   return (
     <Card
@@ -256,14 +274,14 @@ export function AppointmentRow({
                     <Button
                       onClick={(e) => {
                         e.stopPropagation()
-                        onCancel(appt.id)
+                        setShowCancelConfirm(true)
                       }}
                       size="sm"
                       variant="destructive"
                       aria-label="Cancel this appointment"
                       className="h-8 text-[10px] font-black"
                     >
-                      <X className="mr-1.5 h-3.5 w-3.5" /> Terminate Session
+                      <X className="mr-1.5 h-3.5 w-3.5" /> Cancel Appointment
                     </Button>
                   </>
                 ) : (
@@ -290,6 +308,18 @@ export function AppointmentRow({
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancelConfirmed}
+        title="Cancel Appointment"
+        description={`Are you sure you want to cancel the appointment on ${format(parseISO(appt.start_time), 'MMM d, yyyy @ HH:mm')}? This action cannot be undone.`}
+        confirmLabel="Yes, Cancel"
+        cancelLabel="Keep Appointment"
+        variant="destructive"
+        loading={isCancelling}
+      />
     </Card>
   )
 }
