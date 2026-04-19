@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { api, type Appointment, type WaitlistEntry } from '../../lib/api'
 import { format, parseISO, isSameDay } from 'date-fns'
-import { Loader2, Calendar, Clock, Lock, Zap, Video } from 'lucide-react'
+import { Loader2, Calendar, Clock, Lock, Zap, Video, AlertTriangle, RefreshCw } from 'lucide-react'
 import { ServiceTeamSelector } from './ServiceTeamSelector'
 import { Button } from '../ui/Button'
 import { toast } from 'sonner'
@@ -42,6 +42,8 @@ export function BookingConsole({
 
   const [availableSlots, setAvailableSlots] = useState<Appointment[]>([])
   const [slotsLoading, setSlotsLoading] = useState(false)
+  const [slotsError, setSlotsError] = useState<string | null>(null)
+  const [otherReason, setOtherReason] = useState('')
 
   useEffect(() => {
     if (providers.length === 1 && !providerId) {
@@ -52,14 +54,22 @@ export function BookingConsole({
   useEffect(() => {
     if (providerId) {
       setSlotsLoading(true)
+      setSlotsError(null)
       const today = new Date().toISOString()
       api
         .getProviderOpenSlots(providerId, today)
-        .then(setAvailableSlots)
-        .catch((e) => logger.error('BookingConsole', 'Failed to fetch open slots', e))
+        .then((data) => {
+          setAvailableSlots(data)
+          setSlotsError(null)
+        })
+        .catch((e) => {
+          logger.error('BookingConsole', 'Failed to fetch open slots', e)
+          setSlotsError('Failed to load available slots. Please try again.')
+        })
         .finally(() => setSlotsLoading(false))
     } else {
       setAvailableSlots([])
+      setSlotsError(null)
     }
   }, [providerId])
 
@@ -93,8 +103,13 @@ export function BookingConsole({
   }, [groupedSlots, appointments])
 
   const handleSlotBooking = async (slotId: string) => {
-    if (!notes) {
-      toast.warning('Please select a Reason for Visit.')
+    const effectiveNotes = notes === 'other' ? otherReason.trim() : notes
+    if (!effectiveNotes) {
+      toast.warning(
+        notes === 'other'
+          ? 'Please describe your reason for visit.'
+          : 'Please select a Reason for Visit.',
+      )
       return
     }
 
@@ -107,7 +122,7 @@ export function BookingConsole({
       )
 
       if (hasAppointmentToday && !(isRescheduling && apptToReschedule)) {
-        toast.error('Scheduling Limit: One appointment per day reached.')
+        toast.error('One appointment per day per provider. Contact reception to override.')
         return
       }
     }
@@ -120,7 +135,7 @@ export function BookingConsole({
           isOnline ? 'Appointment Rescheduled Successfully.' : 'Reschedule queued for sync.',
         )
       } else {
-        await executeMutation('BOOK_SLOT', { slotId, notes })
+        await executeMutation('BOOK_SLOT', { slotId, notes: effectiveNotes })
         toast.success(isOnline ? 'Appointment Confirmed.' : 'Booking queued for sync.')
       }
 
@@ -184,7 +199,10 @@ export function BookingConsole({
             aria-labelledby="visit-reason-label"
             className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded h-10 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/10 cursor-pointer transition-all"
             value={notes}
-            onChange={(e) => setNotes(e.target.value)}
+            onChange={(e) => {
+              setNotes(e.target.value)
+              setOtherReason('')
+            }}
           >
             <option value="">Select Reason...</option>
             <option value="Follow-up Visit (Standard)">Follow-up Visit (Standard)</option>
@@ -195,7 +213,20 @@ export function BookingConsole({
             </option>
             <option value="Wellness / Health Screening">Wellness / Health Screening</option>
             <option value="Acute Symptom / Urgent Question">Acute Symptom / Urgent Question</option>
+            <option value="other">Other (describe)…</option>
           </select>
+          {notes === 'other' && (
+            <input
+              type="text"
+              value={otherReason}
+              onChange={(e) => setOtherReason(e.target.value)}
+              placeholder="Briefly describe your reason for visit…"
+              maxLength={200}
+              className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded h-10 px-3 text-xs font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all"
+              aria-label="Describe your reason for visit"
+              autoFocus
+            />
+          )}
         </div>
       </div>
 
@@ -232,13 +263,36 @@ export function BookingConsole({
             <div className="flex items-center gap-2 py-8 justify-center">
               <Loader2 className="h-4 w-4 animate-spin text-slate-300" />
               <span className="text-[10px] font-black uppercase text-slate-300">
-                Syncing Availability Table...
+                Loading available slots...
               </span>
+            </div>
+          ) : slotsError ? (
+            <div className="text-center border border-dashed border-red-200 dark:border-red-900/40 p-8 rounded-lg space-y-4 bg-red-50/30 dark:bg-red-900/10">
+              <AlertTriangle className="w-8 h-8 text-red-400 mx-auto" />
+              <p className="text-[10px] font-black uppercase text-red-500">{slotsError}</p>
+              <button
+                onClick={() => {
+                  setSlotsError(null)
+                  setSlotsLoading(true)
+                  const today = new Date().toISOString()
+                  api
+                    .getProviderOpenSlots(providerId, today)
+                    .then((data) => {
+                      setAvailableSlots(data)
+                      setSlotsError(null)
+                    })
+                    .catch(() => setSlotsError('Failed to load available slots. Please try again.'))
+                    .finally(() => setSlotsLoading(false))
+                }}
+                className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase text-red-600 hover:text-red-700 transition-colors"
+              >
+                <RefreshCw className="w-3 h-3" /> Retry
+              </button>
             </div>
           ) : Object.keys(groupedSlots).length === 0 ? (
             <div className="text-center border border-dashed border-slate-200 dark:border-slate-800 p-8 rounded-lg space-y-4">
               <div className="text-[10px] font-black uppercase text-slate-400">
-                No currently available slots for this provider.
+                No available slots for this provider.
               </div>
               {myWaitlist.some((w) => w.provider_id === providerId && w.status === 'active') ? (
                 <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-lg inline-flex items-center gap-2">
@@ -259,64 +313,72 @@ export function BookingConsole({
               )}
             </div>
           ) : (
-            Object.entries(groupedSlots).map(([date, slots]) => {
-              const hasApptToday = appointments.some(
-                (appt) =>
-                  isSameDay(parseISO(appt.start_time), parseISO(date)) &&
-                  appt.status !== 'cancelled',
-              )
-              const isBlocked = hasApptToday && !(isRescheduling && apptToReschedule)
+            <>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider text-center">
+                Appointments available 7 am – 5 pm
+              </p>
+              {Object.entries(groupedSlots).map(([date, slots]) => {
+                const hasApptToday = appointments.some(
+                  (appt) =>
+                    isSameDay(parseISO(appt.start_time), parseISO(date)) &&
+                    appt.status !== 'cancelled',
+                )
+                const isBlocked = hasApptToday && !(isRescheduling && apptToReschedule)
 
-              return (
-                <div key={date} className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`h-2 w-2 rounded-full ${isBlocked ? 'bg-red-400' : 'bg-emerald-400'}`}
-                    ></div>
-                    <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest">
-                      {format(parseISO(date), 'EEEE, MMM do')}
-                    </h4>
-                    {isBlocked && (
-                      <span className="text-[9px] font-bold text-red-500 uppercase tracking-tight flex items-center gap-1">
-                        <Lock className="w-3 h-3" /> Existing Appointment
-                      </span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                    {slots.map((slot) => (
-                      <button
-                        key={slot.id}
-                        onClick={() => handleSlotBooking(slot.id)}
-                        disabled={bookingLoading || isBlocked}
-                        aria-label={`Book slot at ${format(parseISO(slot.start_time), 'HH:mm')}`}
-                        className={`flex flex-col items-center justify-center p-3 border-2 border-dashed rounded transition-all group active:scale-95
+                return (
+                  <div key={date} className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`h-2 w-2 rounded-full ${isBlocked ? 'bg-red-400' : 'bg-emerald-400'}`}
+                      ></div>
+                      <h4 className="text-xs font-black uppercase text-slate-500 tracking-widest">
+                        {format(parseISO(date), 'EEEE, MMM do')}
+                      </h4>
+                      {isBlocked && (
+                        <span className="text-[9px] font-bold text-red-500 uppercase tracking-tight flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Existing Appointment
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                      {slots.map((slot) => (
+                        <button
+                          key={slot.id}
+                          onClick={() => handleSlotBooking(slot.id)}
+                          disabled={bookingLoading || isBlocked}
+                          aria-label={`Book slot at ${format(parseISO(slot.start_time), 'HH:mm')}`}
+                          title={
+                            isBlocked ? 'This slot is reserved — contact your provider' : undefined
+                          }
+                          className={`flex flex-col items-center justify-center p-3 border-2 border-dashed rounded transition-all group active:scale-95
                                                     ${
                                                       isBlocked
                                                         ? 'opacity-40 bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 cursor-not-allowed'
                                                         : 'border-emerald-300/50 dark:border-emerald-800/50 bg-emerald-50/10 dark:bg-emerald-900/10 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:shadow-md'
                                                     }`}
-                      >
-                        <span
-                          className={`text-xs font-black ${isBlocked ? 'text-slate-400' : 'text-emerald-700 dark:text-emerald-400 group-hover:text-emerald-600'}`}
                         >
-                          {format(parseISO(slot.start_time), 'HH:mm')}
-                        </span>
-                        {isBlocked ? (
-                          <span className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter mt-1">
-                            LOCKED
+                          <span
+                            className={`text-xs font-black ${isBlocked ? 'text-slate-400' : 'text-emerald-700 dark:text-emerald-400 group-hover:text-emerald-600'}`}
+                          >
+                            {format(parseISO(slot.start_time), 'HH:mm')}
                           </span>
-                        ) : (
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-1 flex items-center justify-center gap-1">
-                            {slot.is_video && <Video className="w-3 h-3 text-indigo-500" />}
-                            {slot.is_video ? 'VIDEO' : 'CLINIC'}
-                          </span>
-                        )}
-                      </button>
-                    ))}
+                          {isBlocked ? (
+                            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-tighter mt-1">
+                              LOCKED
+                            </span>
+                          ) : (
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter mt-1 flex items-center justify-center gap-1">
+                              {slot.is_video && <Video className="w-3 h-3 text-indigo-500" />}
+                              {slot.is_video ? 'VIDEO' : 'CLINIC'}
+                            </span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )
-            })
+                )
+              })}
+            </>
           )}
         </div>
       )}
