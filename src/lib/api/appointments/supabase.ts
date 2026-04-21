@@ -209,9 +209,13 @@ export const supabaseAppointments: IAppointmentActions = {
   createAppointment: async (
     appt: Omit<Appointment, 'id' | 'created_at' | 'provider' | 'member'>,
   ): Promise<Appointment> => {
+    // TODO(migration): add cancel_reason (text, nullable) and is_video (bool, nullable)
+    // columns to the appointments table in Supabase so the generated types match
+    // the Appointment interface. Cast until the migration lands.
+
     const { data, error } = await supabase
       .from('appointments')
-      .insert({ ...appt, is_booked: true })
+      .insert({ ...appt, is_booked: true } as any)
       .select()
       .single()
 
