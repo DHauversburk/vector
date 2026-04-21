@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { api } from '../../lib/api'
 import {
   AlertCircle,
@@ -7,7 +7,7 @@ import {
   ShieldAlert,
   RefreshCw,
   Filter,
-  Code,
+  Download,
 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -26,6 +26,7 @@ export default function AuditLogViewer() {
   const [selectedType, setSelectedType] = useState<string>('')
   const [selectedSeverity, setSelectedSeverity] = useState<string>('')
   const [expandedLogId, setExpandedLogId] = useState<string | null>(null)
+  const [pageSize, setPageSize] = useState(100)
 
   const loadLogs = useCallback(async () => {
     setLoading(true)
@@ -33,7 +34,7 @@ export default function AuditLogViewer() {
       const data = await api.getAuditLogs({
         type: selectedType || undefined,
         severity: selectedSeverity || undefined,
-        limit: 50,
+        limit: pageSize,
       })
       setLogs(data)
     } catch (error) {
@@ -41,7 +42,29 @@ export default function AuditLogViewer() {
     } finally {
       setLoading(false)
     }
-  }, [selectedType, selectedSeverity])
+  }, [selectedType, selectedSeverity, pageSize])
+
+  const exportCSV = () => {
+    const headers = ['Timestamp', 'Severity', 'Action', 'Actor', 'Description', 'Metadata']
+    const rows = logs.map((l) => [
+      l.created_at,
+      l.severity,
+      l.action_type,
+      (l.metadata as AuditMetadata)?.token_alias ?? l.actor_id ?? 'SYSTEM',
+      l.description,
+      JSON.stringify(l.metadata ?? {}),
+    ])
+    const csv = [headers, ...rows]
+      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `audit-log-${format(new Date(), 'yyyyMMdd-HHmm')}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   useEffect(() => {
     loadLogs()
@@ -79,17 +102,27 @@ export default function AuditLogViewer() {
       <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
         <div>
           <h2 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">
-            Global Audit Terminal
+            Audit Log
           </h2>
           <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">
-            Immutable System Records
+            Append-only system event history
           </p>
         </div>
         <div className="flex gap-2">
           <button
+            onClick={exportCSV}
+            disabled={logs.length === 0}
+            className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            title="Export as CSV"
+            aria-label="Export audit log as CSV"
+          >
+            <Download className="w-4 h-4 text-slate-400" />
+          </button>
+          <button
             onClick={loadLogs}
             className="p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md transition-colors"
             title="Refresh"
+            aria-label="Refresh audit log"
           >
             <RefreshCw className={`w-4 h-4 text-slate-400 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -102,7 +135,10 @@ export default function AuditLogViewer() {
           <Filter className="w-3 h-3 absolute left-2 top-2.5 text-slate-400" />
           <select
             value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
+            onChange={(e) => {
+              setSelectedType(e.target.value)
+              setPageSize(100)
+            }}
             className="pl-7 pr-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20"
           >
             <option value="">All Types</option>
@@ -115,7 +151,10 @@ export default function AuditLogViewer() {
         <div className="relative">
           <select
             value={selectedSeverity}
-            onChange={(e) => setSelectedSeverity(e.target.value)}
+            onChange={(e) => {
+              setSelectedSeverity(e.target.value)
+              setPageSize(100)
+            }}
             className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-md font-bold text-slate-700 dark:text-slate-300 outline-none focus:ring-2 focus:ring-indigo-500/20"
           >
             <option value="">All Severities</option>
@@ -127,8 +166,8 @@ export default function AuditLogViewer() {
       </div>
 
       {/* Logs Table */}
-      <div className="flex-1 overflow-auto">
-        <table className="w-full text-left border-collapse">
+      <div className="flex-1 overflow-auto flex flex-col">
+        <table className="w-full text-left border-collapse flex-1">
           <thead className="sticky top-0 bg-white dark:bg-slate-900 z-10 shadow-sm">
             <tr>
               <th className="px-4 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">
@@ -163,9 +202,8 @@ export default function AuditLogViewer() {
               </tr>
             ) : (
               logs.map((log) => (
-                <>
+                <React.Fragment key={log.id}>
                   <tr
-                    key={log.id}
                     className={`border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors ${expandedLogId === log.id ? 'bg-indigo-50/50 dark:bg-indigo-900/10' : ''}`}
                     onClick={() => setExpandedLogId(expandedLogId === log.id ? null : log.id)}
                   >
@@ -196,20 +234,48 @@ export default function AuditLogViewer() {
                   {expandedLogId === log.id && (
                     <tr className="bg-slate-50 dark:bg-slate-900/50">
                       <td colSpan={5} className="px-4 py-4">
-                        <div className="bg-slate-900 rounded p-3 text-slate-300 text-[10px] font-mono overflow-x-auto">
-                          <div className="flex items-center gap-2 mb-2 text-slate-500 uppercase font-black tracking-widest border-b border-slate-700 pb-1">
-                            <Code className="w-3 h-3" /> Metadata Payload
-                          </div>
-                          <pre>{JSON.stringify(log.metadata, null, 2)}</pre>
+                        <div className="bg-slate-900 rounded p-3 text-[10px] font-mono overflow-x-auto">
+                          <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest border-b border-slate-700 pb-1 mb-2">
+                            Metadata
+                          </p>
+                          {log.metadata && Object.keys(log.metadata).length > 0 ? (
+                            <dl className="space-y-1">
+                              {Object.entries(log.metadata).map(([key, value]) => (
+                                <div key={key} className="flex gap-3">
+                                  <dt className="text-slate-500 uppercase text-[9px] font-black tracking-widest shrink-0 w-28">
+                                    {key}
+                                  </dt>
+                                  <dd className="text-slate-300 font-mono text-[10px] break-all">
+                                    {typeof value === 'object' && value !== null
+                                      ? JSON.stringify(value)
+                                      : String(value ?? '')}
+                                  </dd>
+                                </div>
+                              ))}
+                            </dl>
+                          ) : (
+                            <p className="text-slate-600 italic">No metadata.</p>
+                          )}
                         </div>
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))
             )}
           </tbody>
         </table>
+        {logs.length >= pageSize && (
+          <div className="p-3 border-t border-slate-100 dark:border-slate-800 flex justify-center">
+            <button
+              onClick={() => setPageSize((p) => p + 100)}
+              disabled={loading}
+              className="px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-md transition-colors disabled:opacity-50"
+            >
+              {loading ? 'Loading…' : `Load More (showing ${logs.length})`}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
