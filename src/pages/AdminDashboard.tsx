@@ -17,6 +17,7 @@ import { SystemMaintenance } from '../components/admin/SystemMaintenance'
 import AuditLogViewer from '../components/admin/AuditLogViewer'
 import { FeedbackViewer } from '../components/admin/FeedbackViewer'
 import { WelcomeModal } from '../components/onboarding/WelcomeModal'
+import { AccountSettings } from '../components/account/AccountSettings'
 
 export default function AdminDashboard() {
   const { user } = useAuth()
@@ -127,6 +128,7 @@ export default function AdminDashboard() {
       user={user}
       role="Administrator"
       onSignOut={signOut}
+      onAccountSettings={() => setCurrentView('account')}
       title="Admin Console"
       headerActions={contextSwitcher}
     >
@@ -161,6 +163,7 @@ export default function AdminDashboard() {
           {currentView === 'logs' && <AuditLogViewer />}
           {currentView === 'maintenance' && <SystemMaintenance />}
           {currentView === 'feedback' && <FeedbackViewer />}
+          {currentView === 'account' && <AccountSettings />}
         </div>
       </div>
     </DashboardLayout>

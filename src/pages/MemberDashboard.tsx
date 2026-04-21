@@ -26,6 +26,9 @@ const HelpRequestModal = lazy(() =>
 const WaitlistModal = lazy(() =>
   import('../components/ui/WaitlistModal').then((m) => ({ default: m.WaitlistModal })),
 )
+const AccountSettings = lazy(() =>
+  import('../components/account/AccountSettings').then((m) => ({ default: m.AccountSettings })),
+)
 
 /**
  * Feature-level loading fallback
@@ -120,6 +123,7 @@ export default function MemberDashboard() {
       user={user}
       role="Member"
       onSignOut={signOut}
+      onAccountSettings={() => setActiveTab('account')}
       title="Member Dashboard"
     >
       <WelcomeModal role="member" userName={user?.user_metadata?.token_alias || user?.email} />
@@ -296,6 +300,11 @@ export default function MemberDashboard() {
         {activeTab === 'security' && (
           <Suspense fallback={<FeatureLoading />}>
             <SecuritySettings />
+          </Suspense>
+        )}
+        {activeTab === 'account' && (
+          <Suspense fallback={<FeatureLoading />}>
+            <AccountSettings />
           </Suspense>
         )}
       </div>

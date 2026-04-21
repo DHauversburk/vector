@@ -10,7 +10,10 @@ import type {
   HelpRequest,
   WaitlistEntry,
   ProviderProfile,
+  MFAFactor,
 } from './types'
+
+export type { MFAFactor }
 
 export interface IAppointmentActions {
   getMyAppointments(startDate?: string, endDate?: string): Promise<Appointment[]>
@@ -103,6 +106,14 @@ export interface IAuthActions {
   setTacticalPin(userId: string, pin: string): Promise<void>
   getTacticalPin(userId: string): Promise<string | null>
   verifyTacticalPin(userId: string, pin: string): Promise<boolean>
+  /** Self-service credential management — available to all authenticated users */
+  updatePassword(newPassword: string): Promise<void>
+  updateEmail(newEmail: string): Promise<void>
+  enrollMFA(): Promise<{ qrCode: string; secret: string; factorId: string }>
+  verifyMFA(factorId: string, code: string): Promise<void>
+  unenrollMFA(factorId: string): Promise<void>
+  listMFAFactors(): Promise<MFAFactor[]>
+  signOutOtherSessions(): Promise<void>
 }
 
 export interface IInteractionActions {

@@ -12,6 +12,7 @@ import {
   Sun,
   Moon,
   User,
+  Settings,
   Keyboard as KeyboardIcon,
   Search,
 } from 'lucide-react'
@@ -46,6 +47,7 @@ interface DashboardLayoutProps {
   user: UserInfo | null
   role: string
   onSignOut: () => void
+  onAccountSettings?: () => void
   title?: string
   /** Show bottom mobile nav bar (default: true if 5 or fewer nav items) */
   showMobileBottomNav?: boolean
@@ -63,6 +65,7 @@ export function DashboardLayout({
   user,
   role,
   onSignOut,
+  onAccountSettings,
   title = 'VECTOR',
   showMobileBottomNav,
   headerActions,
@@ -146,6 +149,7 @@ export function DashboardLayout({
     theme,
     onToggleTheme,
     onSignOut,
+    onAccountSettings,
     onToggleSidebar,
   }
 
@@ -350,6 +354,7 @@ interface SidebarInnerProps {
   theme: string
   onToggleTheme: () => void
   onSignOut: () => void
+  onAccountSettings?: () => void
   onToggleSidebar: () => void
   mobile?: boolean
 }
@@ -365,6 +370,7 @@ function SidebarInner({
   theme,
   onToggleTheme,
   onSignOut,
+  onAccountSettings,
   onToggleSidebar,
   mobile = false,
 }: SidebarInnerProps) {
@@ -455,6 +461,19 @@ function SidebarInner({
               <Moon className="w-5 h-5" aria-hidden="true" />
             )}
           </button>
+          {onAccountSettings && (
+            <button
+              onClick={() => {
+                onAccountSettings()
+                onCloseMobileMenu()
+              }}
+              className="flex-1 flex items-center justify-center min-h-[44px] rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+              title="Account Settings"
+              aria-label="Open account settings"
+            >
+              <Settings className="w-5 h-5" aria-hidden="true" />
+            </button>
+          )}
           <button
             onClick={onSignOut}
             className="flex-1 flex items-center justify-center min-h-[44px] rounded-lg bg-red-900/20 hover:bg-red-900/40 text-red-400 border border-red-900/30 focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"

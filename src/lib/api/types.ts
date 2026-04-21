@@ -166,3 +166,10 @@ export interface GenerateSlotsResult {
   count?: number
   slots?: Appointment[]
 }
+
+export interface MFAFactor {
+  id: string
+  type: string
+  status: 'verified' | 'unverified'
+  friendly_name?: string
+}

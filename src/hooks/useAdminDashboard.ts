@@ -4,7 +4,7 @@ import { useAuth } from './useAuth'
 import { useTheme } from './useTheme'
 
 export type ActionContext = 'view' | 'block' | 'unblock' | 'override'
-export type DashboardView = 'schedule' | 'tokens' | 'logs' | 'maintenance' | 'feedback'
+export type DashboardView = 'schedule' | 'tokens' | 'logs' | 'maintenance' | 'feedback' | 'account'
 
 export function useAdminDashboard() {
   const { signOut } = useAuth()

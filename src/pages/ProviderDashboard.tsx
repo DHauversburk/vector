@@ -40,6 +40,9 @@ const AnalyticsDashboard = lazy(() =>
 const SecuritySettings = lazy(() =>
   import('../components/SecuritySettings').then((m) => ({ default: m.SecuritySettings })),
 )
+const AccountSettings = lazy(() =>
+  import('../components/account/AccountSettings').then((m) => ({ default: m.AccountSettings })),
+)
 const ProviderResources = lazy(() =>
   import('../components/provider/ProviderResources').then((m) => ({
     default: m.ProviderResources,
@@ -69,7 +72,7 @@ interface Member {
 export default function ProviderDashboard() {
   const { user, signOut } = useAuth()
   const [view, setView] = useState<
-    'overview' | 'schedule' | 'tokens' | 'logs' | 'resources' | 'analytics' | 'security'
+    'overview' | 'schedule' | 'tokens' | 'logs' | 'resources' | 'analytics' | 'security' | 'account'
   >('overview')
   const [loading, setLoading] = useState(true)
   const [scheduleKey, setScheduleKey] = useState(0)
@@ -214,6 +217,7 @@ export default function ProviderDashboard() {
       user={{ ...user, user_metadata: { token_alias: 'PROVIDER' } }}
       role="Provider"
       onSignOut={signOut}
+      onAccountSettings={() => setView('account')}
       title="Provider Dashboard"
       headerActions={
         <Button
@@ -425,6 +429,13 @@ export default function ProviderDashboard() {
             <ErrorBoundary>
               <Suspense fallback={<FeatureLoading />}>
                 <SecuritySettings />
+              </Suspense>
+            </ErrorBoundary>
+          )}
+          {view === 'account' && (
+            <ErrorBoundary>
+              <Suspense fallback={<FeatureLoading />}>
+                <AccountSettings />
               </Suspense>
             </ErrorBoundary>
           )}

@@ -40,7 +40,7 @@ export function useMemberDashboard() {
   const [feedbackApptId, setFeedbackApptId] = useState<string | null>(null)
   const [waitlistOpen, setWaitlistOpen] = useState(false)
   const [waitlistProviderId, setWaitlistProviderId] = useState<string>('')
-  const [activeTab, setActiveTab] = useState<'ops' | 'resources' | 'security'>('ops')
+  const [activeTab, setActiveTab] = useState<'ops' | 'resources' | 'security' | 'account'>('ops')
   const [helpModalOpen, setHelpModalOpen] = useState(false)
 
   useEffect(() => {
