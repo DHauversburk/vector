@@ -23,15 +23,22 @@ const mockModeEnabled =
   import.meta.env.VITE_MOCK_MODE === 'true' || import.meta.env.VITE_FORCE_MOCK === 'true'
 
 let client: SupabaseClient<Database> | undefined
-let isMock = mockModeEnabled || !supabaseUrl || !supabaseAnonKey
+// Implicit fallback: Supabase creds are missing → app would silently use mock.
+// This is the dangerous case we guard against in production.
+const implicitMockFallback = !supabaseUrl || !supabaseAnonKey
+let isMock = mockModeEnabled || implicitMockFallback
 
-// Fail-fast: never silently run mock in production.
-if (import.meta.env.PROD && isMock) {
+// Fail-fast: never SILENTLY run mock in production. Explicit opt-in via
+// VITE_MOCK_MODE=true is allowed (e.g. Preview deploys for feature demos);
+// only the implicit "creds missing" fallback in a prod bundle throws.
+// `import.meta.env.PROD` is true for any `vite build`, which includes Vercel
+// Preview targets — so the check must distinguish explicit vs. implicit mock.
+if (import.meta.env.PROD && implicitMockFallback && !mockModeEnabled) {
   throw new Error(
     '[VECTOR BOOT FAILURE] Production build started without real Supabase credentials. ' +
       'Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in Vercel → Settings → ' +
-      'Environment Variables (scope: Production). VITE_MOCK_MODE must NOT be ' +
-      'true in production. See docs/ENVIRONMENTS.md.',
+      'Environment Variables (scope: Production). If you meant to run in mock ' +
+      'mode, set VITE_MOCK_MODE=true explicitly. See docs/ENVIRONMENTS.md.',
   )
 }
 
