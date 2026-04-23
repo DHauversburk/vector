@@ -20,6 +20,7 @@ import { SyncManager } from '../offline/SyncManager'
 import { cn } from '../../lib/utils'
 import CommandPalette from '../ui/CommandPalette'
 import { KeyboardShortcutsModal } from '../ui/KeyboardShortcutsModal'
+import { NotificationCenter } from '../ui/NotificationCenter'
 import { useSessionTimeout } from '../../hooks/useSessionTimeout'
 import { BiometricLockOverlay } from '../auth/BiometricLockOverlay'
 
@@ -184,6 +185,7 @@ export function DashboardLayout({
         </div>
         <div className="flex items-center gap-2">
           {OfflineIndicator}
+          <NotificationCenter />
           {/* Command Palette Trigger */}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('vector-toggle-command-palette'))}
@@ -225,6 +227,7 @@ export function DashboardLayout({
         </div>
         <div className="flex items-center">
           {OfflineIndicator}
+          <NotificationCenter />
           {headerActions}
           <button
             onClick={() => window.dispatchEvent(new CustomEvent('vector-toggle-command-palette'))}

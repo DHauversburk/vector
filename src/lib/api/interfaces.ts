@@ -11,6 +11,7 @@ import type {
   WaitlistEntry,
   ProviderProfile,
   MFAFactor,
+  Notification,
 } from './types'
 
 export type { MFAFactor }
@@ -152,4 +153,11 @@ export interface IInteractionActions {
   leaveWaitlist(entryId: string): Promise<void>
   getMyWaitlist(): Promise<WaitlistEntry[]>
   getProviderWaitlist(providerId: string): Promise<WaitlistEntry[]>
+}
+
+export interface INotificationActions {
+  getNotifications(userId: string): Promise<Notification[]>
+  markNotificationRead(notificationId: string): Promise<void>
+  markAllNotificationsRead(userId: string): Promise<void>
+  getUnreadCount(userId: string): Promise<number>
 }

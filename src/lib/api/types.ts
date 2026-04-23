@@ -173,3 +173,20 @@ export interface MFAFactor {
   status: 'verified' | 'unverified'
   friendly_name?: string
 }
+
+export type NotificationType =
+  | 'appointment_booked'
+  | 'appointment_cancelled'
+  | 'help_request'
+  | 'system'
+
+export interface Notification {
+  id: string
+  user_id: string
+  type: NotificationType
+  title: string
+  body: string
+  read: boolean
+  metadata?: Record<string, unknown>
+  created_at: string
+}

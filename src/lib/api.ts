@@ -4,6 +4,7 @@ import { providerActions } from './api/providers'
 import { adminActions } from './api/admin'
 import { authActions } from './api/auth'
 import { interactionActions } from './api/interactions'
+import { notificationActions } from './api/notifications'
 
 export * from './api/types'
 
@@ -20,4 +21,5 @@ export const api = {
   ...adminActions,
   ...authActions,
   ...interactionActions,
+  ...notificationActions,
 }

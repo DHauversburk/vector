@@ -4,6 +4,8 @@ import type {
   HelpRequest,
   WaitlistEntry,
   NoteStatistics,
+  Notification,
+  NotificationType,
 } from './types'
 
 import { encryptPayload, decryptPayload } from '../crypto'
@@ -14,11 +16,12 @@ export const mockStore = {
   helpRequests: [] as HelpRequest[],
   waitlist: [] as WaitlistEntry[],
   noteStatistics: [] as NoteStatistics[],
+  notifications: [] as Notification[],
   init: false,
 
   load: async () => {
     if (mockStore.init) return
-    const stored = localStorage.getItem('MOCK_DB_V4')
+    const stored = localStorage.getItem('MOCK_DB_V5')
     if (stored) {
       const parsed = await decryptPayload(stored)
 
@@ -48,24 +51,26 @@ export const mockStore = {
       mockStore.helpRequests = parsed.helpRequests || []
       mockStore.waitlist = parsed.waitlist || []
       mockStore.noteStatistics = parsed.noteStatistics || []
+      mockStore.notifications = parsed.notifications || []
       mockStore.init = true
 
       if (changed) {
         await mockStore.save()
       }
     } else {
-      // Migration from V3
-      const oldStored = localStorage.getItem('MOCK_DB_V3')
+      // Migration from V4
+      const oldStored = localStorage.getItem('MOCK_DB_V4')
       if (oldStored) {
-        const parsed = JSON.parse(oldStored)
+        const parsed = await decryptPayload(oldStored)
         mockStore.appointments = parsed.appointments || []
         mockStore.encounterNotes = parsed.encounterNotes || []
         mockStore.helpRequests = parsed.helpRequests || []
         mockStore.waitlist = parsed.waitlist || []
-        mockStore.noteStatistics = [] // Initialize empty stats
+        mockStore.noteStatistics = parsed.noteStatistics || []
+        mockStore.notifications = []
         mockStore.init = parsed.init || false
-        await mockStore.save() // Will save to V4
-        localStorage.removeItem('MOCK_DB_V3')
+        await mockStore.save() // save as V5
+        localStorage.removeItem('MOCK_DB_V4')
       }
     }
   },
@@ -77,10 +82,31 @@ export const mockStore = {
       helpRequests: mockStore.helpRequests,
       waitlist: mockStore.waitlist,
       noteStatistics: mockStore.noteStatistics,
+      notifications: mockStore.notifications,
       init: mockStore.init,
     }
     const encrypted = await encryptPayload(payload)
-    localStorage.setItem('MOCK_DB_V4', encrypted)
+    localStorage.setItem('MOCK_DB_V5', encrypted)
+  },
+
+  /** Push a new in-app notification synchronously; persists async. */
+  addNotification: (notification: {
+    user_id: string
+    type: NotificationType
+    title: string
+    body: string
+    metadata?: Record<string, unknown>
+  }): Notification => {
+    const n: Notification = {
+      ...notification,
+      id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      read: false,
+      created_at: new Date().toISOString(),
+    }
+    mockStore.notifications.push(n)
+    // fire-and-forget
+    mockStore.save().catch(() => undefined)
+    return n
   },
 
   reset: () => {
@@ -89,7 +115,9 @@ export const mockStore = {
     mockStore.helpRequests = []
     mockStore.waitlist = []
     mockStore.noteStatistics = []
+    mockStore.notifications = []
     mockStore.init = false
+    localStorage.removeItem('MOCK_DB_V5')
     localStorage.removeItem('MOCK_DB_V4')
     localStorage.removeItem('MOCK_DB_V3')
     localStorage.removeItem('MOCK_DB_V2')

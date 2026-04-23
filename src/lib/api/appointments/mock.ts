@@ -93,6 +93,12 @@ export const mockAppointments: IAppointmentActions = {
 
       mockStore.appointments.push(newAppt)
       await mockStore.save()
+      mockStore.addNotification({
+        user_id: user.id,
+        type: 'appointment_booked',
+        title: 'Appointment Confirmed',
+        body: `Your appointment has been scheduled for ${new Date(newAppt.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}.`,
+      })
       return newAppt
     }
 
@@ -121,6 +127,12 @@ export const mockAppointments: IAppointmentActions = {
       }
 
       await mockStore.save()
+      mockStore.addNotification({
+        user_id: user.id,
+        type: 'appointment_booked',
+        title: 'Appointment Confirmed',
+        body: `Your appointment has been scheduled for ${new Date(appt.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}.`,
+      })
       return appt
     }
     throw new Error('Mock Appointment Not Found')
@@ -140,11 +152,20 @@ export const mockAppointments: IAppointmentActions = {
     const idx = mockStore.appointments.findIndex((a) => a.id === appointmentId)
     if (idx >= 0) {
       const appt = mockStore.appointments[idx]
+      const memberId = appt.member_id
       appt.status = 'cancelled'
       if (reason) {
         appt.notes = (appt.notes || '') + ` | CANCEL_REASON: ${reason}`
       }
       await mockStore.save()
+      if (memberId) {
+        mockStore.addNotification({
+          user_id: memberId,
+          type: 'appointment_cancelled',
+          title: 'Appointment Cancelled',
+          body: `Your appointment on ${new Date(appt.start_time).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} has been cancelled.`,
+        })
+      }
     }
   },
 

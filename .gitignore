@@ -37,3 +37,9 @@ dist-ssr
 
 # Test coverage output (generated)
 coverage/
+
+# GitHub CLI scratch output
+check-runs.json
+
+# Supabase CLI local cache (per-machine, not shared)
+supabase/.temp/

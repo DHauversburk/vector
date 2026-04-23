@@ -241,6 +241,12 @@ export const mockInteractions: IInteractionActions = {
     await mockStore.load()
     mockStore.helpRequests.push(newRequest)
     await mockStore.save()
+    mockStore.addNotification({
+      user_id: user.id,
+      type: 'help_request',
+      title: 'Help Request Received',
+      body: `Your request "${newRequest.subject}" has been submitted and is pending review.`,
+    })
     return newRequest
   },
 
