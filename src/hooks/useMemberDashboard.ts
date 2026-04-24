@@ -77,21 +77,26 @@ export function useMemberDashboard() {
     mutate('appointments')
   }, [mutate])
 
-  const handleCancel = async (id: string) => {
+  // Cancel with optional reason. Within 30 minutes of the appointment the
+  // AppointmentRow modal requires the reason field (so the provider knows why
+  // the patient no-showed); outside that window the reason is optional but
+  // still forwarded if provided. The API already persists it to
+  // appointments.cancel_reason (supabase.ts has a TODO migration) and falls
+  // back to a `| CANCEL_REASON: ...` suffix on notes in mock mode.
+  const handleCancel = async (id: string, reason?: string) => {
     const appt = appointments.find((a) => a.id === id)
-    if (appt) {
-      const minutesUntil = differenceInMinutes(parseISO(appt.start_time), new Date())
-      if (minutesUntil < 30) {
-        toast.error("Can't cancel within 30 minutes of your appointment.")
-        return
-      }
+    const isLate = appt ? differenceInMinutes(parseISO(appt.start_time), new Date()) < 30 : false
+
+    if (isLate && !reason?.trim()) {
+      toast.error('A reason is required to cancel within 30 minutes of your appointment.')
+      return
     }
 
     const toastId = toast.loading(
       isOnline ? 'Cancelling appointment...' : 'Queueing cancellation...',
     )
     try {
-      await executeMutation('CANCEL_APPOINTMENT', { id })
+      await executeMutation('CANCEL_APPOINTMENT', { id, reason: reason?.trim() || undefined })
       toast.success(isOnline ? 'Appointment cancelled.' : 'Cancellation queued for sync.', {
         id: toastId,
       })

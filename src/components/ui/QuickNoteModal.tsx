@@ -351,9 +351,9 @@ export function QuickNoteModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="modal-title"
-        className={`relative w-full bg-slate-900 border border-slate-700 shadow-2xl overflow-hidden ${
+        className={`relative w-full bg-slate-900 border border-slate-700 shadow-2xl flex flex-col max-h-[90vh] overflow-hidden ${
           isMobile
-            ? 'max-h-[90vh] rounded-t-3xl animate-slide-in-from-bottom'
+            ? 'rounded-t-3xl animate-slide-in-from-bottom'
             : 'max-w-lg rounded-2xl animate-scale-in'
         }`}
         style={
@@ -378,7 +378,7 @@ export function QuickNoteModal({
         )}
 
         <div
-          className={`relative ${isMobile ? 'px-6 pb-4' : 'p-6 pb-4'} border-b border-slate-800`}
+          className={`relative shrink-0 ${isMobile ? 'px-6 pb-4' : 'p-6 pb-4'} border-b border-slate-800`}
         >
           <button
             onClick={onClose}
@@ -400,7 +400,7 @@ export function QuickNoteModal({
           </div>
         </div>
 
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 flex-1 overflow-y-auto min-h-0">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold uppercase tracking-widest text-slate-400">
@@ -614,7 +614,7 @@ export function QuickNoteModal({
           )}
         </div>
 
-        <div className="p-6 pt-0 flex gap-3">
+        <div className="p-6 pt-4 shrink-0 border-t border-slate-800 bg-slate-900 flex gap-3">
           <Button onClick={onClose} variant="outline" className="flex-1" disabled={loading}>
             Cancel
           </Button>

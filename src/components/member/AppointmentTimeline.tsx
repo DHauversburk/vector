@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
 import { format, parseISO, differenceInMinutes } from 'date-fns'
-import { Activity, ChevronDown, Clock, X, Download, Star } from 'lucide-react'
+import { Activity, AlertTriangle, ChevronDown, Clock, X, Download, Star } from 'lucide-react'
 import { Card } from '../ui/Card'
 import { Badge } from '../ui/Badge'
 import { Button } from '../ui/Button'
-import { ConfirmModal } from '../ui/ConfirmModal'
 import { cn } from '../../lib/utils'
 import { generateICS } from '../../lib/ics'
 import type { Appointment } from '../../lib/api'
+import { useFocusTrap } from '../../hooks/useFocusTrap'
 
 /**
  * Live countdown to the next appointment
@@ -68,13 +68,14 @@ export function AppointmentRow({
 }: {
   appt: Appointment
   onReschedule: (id: string) => void
-  onCancel: (id: string) => void
+  onCancel: (id: string, reason?: string) => void
   onFeedback: (id: string) => void
   getProviderLocation: (type?: string) => string
 }) {
   const [isExpanded, setIsExpanded] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
+  const [cancelReasonInput, setCancelReasonInput] = useState('')
 
   // Prefer the dedicated cancel_reason column; fall back to the legacy pipe-delimited notes format
   const cancelReason =
@@ -88,13 +89,19 @@ export function AppointmentRow({
   const diff = differenceInMinutes(parseISO(appt.start_time), new Date())
   const isPast = parseISO(appt.start_time) < new Date()
 
+  const isLateCancel = diff < 30 && !isPast && appt.status !== 'cancelled'
+
   const handleCancelConfirmed = async () => {
+    // Block late cancellations without a reason at the UI layer so the user
+    // sees the inline error rather than a toast after the modal closes.
+    if (isLateCancel && !cancelReasonInput.trim()) return
     setIsCancelling(true)
     try {
-      onCancel(appt.id)
+      onCancel(appt.id, cancelReasonInput.trim() || undefined)
     } finally {
       setShowCancelConfirm(false)
       setIsCancelling(false)
+      setCancelReasonInput('')
     }
   }
 
@@ -309,17 +316,154 @@ export function AppointmentRow({
         </div>
       )}
 
-      <ConfirmModal
+      <CancelAppointmentModal
         isOpen={showCancelConfirm}
-        onClose={() => setShowCancelConfirm(false)}
+        onClose={() => {
+          setShowCancelConfirm(false)
+          setCancelReasonInput('')
+        }}
         onConfirm={handleCancelConfirmed}
-        title="Cancel Appointment"
-        description={`Are you sure you want to cancel the appointment on ${format(parseISO(appt.start_time), 'MMM d, yyyy @ HH:mm')}? This action cannot be undone.`}
-        confirmLabel="Yes, Cancel"
-        cancelLabel="Keep Appointment"
-        variant="destructive"
+        isLateCancel={isLateCancel}
+        reason={cancelReasonInput}
+        onReasonChange={setCancelReasonInput}
+        appointmentTime={format(parseISO(appt.start_time), 'MMM d, yyyy @ HH:mm')}
         loading={isCancelling}
       />
     </Card>
+  )
+}
+
+/**
+ * Cancel-with-reason modal. When an appointment is within 30 minutes of
+ * starting, the reason is required so the provider knows why the member
+ * didn't show; otherwise it's optional. Replaces the old ConfirmModal that
+ * silently blocked late cancellations with a toast — see the product
+ * requirement: if a patient genuinely can't make it at the last minute they
+ * still need a path to notify their provider.
+ */
+function CancelAppointmentModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  isLateCancel,
+  reason,
+  onReasonChange,
+  appointmentTime,
+  loading,
+}: {
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  isLateCancel: boolean
+  reason: string
+  onReasonChange: (value: string) => void
+  appointmentTime: string
+  loading: boolean
+}) {
+  const containerRef = useFocusTrap(isOpen, { onEscape: onClose })
+  if (!isOpen) return null
+
+  const reasonRequired = isLateCancel
+  const canSubmit = !reasonRequired || reason.trim().length > 0
+
+  return (
+    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        ref={containerRef}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="cancel-appt-title"
+        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in zoom-in-95 fade-in duration-200"
+      >
+        <div className={cn('h-1.5 w-full', isLateCancel ? 'bg-amber-500' : 'bg-red-500')} />
+        <div className="p-6">
+          <div className="flex items-start gap-4">
+            <div
+              className={cn(
+                'w-10 h-10 rounded-full flex items-center justify-center shrink-0',
+                isLateCancel
+                  ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-500'
+                  : 'bg-red-50 dark:bg-red-900/20 text-red-600',
+              )}
+            >
+              <AlertTriangle className="w-5 h-5" aria-hidden="true" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3
+                id="cancel-appt-title"
+                className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight"
+              >
+                {isLateCancel ? 'Late Cancellation' : 'Cancel Appointment'}
+              </h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                {isLateCancel
+                  ? `Your appointment starts in under 30 minutes (${appointmentTime}). Please tell your provider why you can't make it so they can plan accordingly.`
+                  : `Cancel the appointment on ${appointmentTime}? You can optionally include a note for your provider.`}
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+              aria-label="Close dialog"
+            >
+              <X className="w-5 h-5" aria-hidden="true" />
+            </button>
+          </div>
+
+          <div className="mt-5 space-y-2">
+            <label
+              htmlFor="cancel-reason-input"
+              className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400"
+            >
+              Reason {reasonRequired ? <span className="text-red-500">*</span> : '(optional)'}
+            </label>
+            <textarea
+              id="cancel-reason-input"
+              value={reason}
+              onChange={(e) => onReasonChange(e.target.value)}
+              rows={3}
+              placeholder={
+                isLateCancel
+                  ? "e.g. Unexpected emergency at work — I'll call to reschedule."
+                  : 'e.g. Feeling better, no longer need this visit.'
+              }
+              className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 resize-none"
+            />
+            {reasonRequired && !reason.trim() && (
+              <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400">
+                A reason is required for cancellations within 30 minutes.
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 h-11 text-xs font-black uppercase tracking-widest"
+            >
+              Keep Appointment
+            </Button>
+            <Button
+              onClick={onConfirm}
+              isLoading={loading}
+              disabled={!canSubmit || loading}
+              className={cn(
+                'flex-1 h-11 text-xs font-black uppercase tracking-widest text-white',
+                isLateCancel ? 'bg-amber-500 hover:bg-amber-600' : 'bg-red-600 hover:bg-red-700',
+              )}
+            >
+              {isLateCancel ? 'Notify Provider & Cancel' : 'Cancel Appointment'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }

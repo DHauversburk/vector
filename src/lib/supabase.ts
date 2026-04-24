@@ -122,21 +122,38 @@ const mockSupabase = {
         userId = 'mock-admin-alex'
         tokenAlias = 'CMD. ALEX'
       } else if (isProvider) {
+        // IDs for the three primary demo providers intentionally match the seeded
+        // providers in src/lib/api/appointments/mock.ts::seedInitialData and
+        // src/lib/api/providers/mock.ts::getProviders. When a patient books with
+        // Dr. Smith/Jameson/Taylor, the resulting appointment's provider_id must
+        // equal the logged-in provider's id for the provider dashboard to show it.
+        // Secondary providers (doc2+, mh2+, etc.) still use synthetic ids — they
+        // won't have seeded appointments, but real ones they create still work.
         if (email.includes('doc')) {
           const num = email.match(/doc(\d+)/)?.[1] || '1'
-          userId = `mock-provider-doc-${num}`
-          tokenAlias = `DR. DOCTOR ${num}`
+          if (num === '1') {
+            userId = 'mock-provider-smith'
+            tokenAlias = 'Dr. Smith'
+          } else {
+            userId = `mock-provider-doc-${num}`
+            tokenAlias = `DR. DOCTOR ${num}`
+          }
         } else if (email.includes('mh')) {
           const num = email.match(/mh(\d+)/)?.[1] || '1'
-          userId = `mock-provider-mh-${num}`
-          tokenAlias = `DOC MH ${num}`
+          if (num === '1') {
+            userId = 'mock-provider-jameson'
+            tokenAlias = 'Dr. Jameson'
+          } else {
+            userId = `mock-provider-mh-${num}`
+            tokenAlias = `DOC MH ${num}`
+          }
         } else if (email.includes('medtech')) {
           const num = email.match(/medtech(\d+)/)?.[1] || '1'
           userId = `mock-provider-mt-${num}`
           tokenAlias = `TECH ${num}`
         } else if (email.includes('pt')) {
-          userId = 'mock-provider-pt-1'
-          tokenAlias = 'DR. PT 1'
+          userId = 'mock-provider-taylor'
+          tokenAlias = 'Dr. Taylor'
         }
       } else if (isPatient) {
         const match = email.match(/patient(\d{3})/)
@@ -225,7 +242,12 @@ const mockSupabase = {
               const role = 'provider'
               let st = 'MH_GREEN'
 
-              if (val.includes('mh')) st = 'MH_GREEN'
+              // Seeded demo providers (see src/lib/api/providers/mock.ts)
+              if (val === 'mock-provider-jameson') st = 'MH_GREEN'
+              else if (val === 'mock-provider-smith') st = 'PRIMARY_BLUE'
+              else if (val === 'mock-provider-taylor') st = 'PT_GOLD'
+              // Synthetic providers (doc2+, mh2+, etc.) — fall back to substring match
+              else if (val.includes('mh')) st = 'MH_GREEN'
               else if (val.includes('doc')) st = 'PRIMARY_BLUE'
               else if (val.includes('pt')) st = 'PT_GOLD'
               else if (val.includes('mt')) st = 'TECH_PURPLE'
