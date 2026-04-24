@@ -251,6 +251,18 @@ const mockSupabase = {
     logger.debug('MOCK', `RPC Call: ${_fn}`, args)
     return { data: null, error: null }
   },
+  // Realtime subscriptions — no-op in mock mode. Components that wire up
+  // postgres_changes listeners (e.g. PendingRequests) still work because
+  // they already poll on an interval; the mock channel simply never fires.
+  channel: (_name: string) => {
+    const chain: any = {
+      on: () => chain,
+      subscribe: () => chain,
+      unsubscribe: () => Promise.resolve('ok'),
+    }
+    return chain
+  },
+  removeChannel: (_channel: any) => Promise.resolve('ok'),
   functions: {
     invoke: async (fn: string, options?: any) => {
       logger.debug('MOCK', `Edge Function Call: ${fn}`, options)

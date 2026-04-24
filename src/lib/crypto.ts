@@ -12,6 +12,19 @@ const ENCRYPTION_DB_NAME = 'vector_keystore'
 const STORE_NAME = 'keys'
 const KEY_NAME = 'tactical_vault_key'
 
+// Chunk size chosen well below all engines' argument-list limit (~65K in V8)
+// while still being large enough to minimize string concatenation overhead.
+const BASE64_CHUNK_SIZE = 0x8000 // 32 KiB
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = ''
+  for (let i = 0; i < bytes.length; i += BASE64_CHUNK_SIZE) {
+    const chunk = bytes.subarray(i, i + BASE64_CHUNK_SIZE)
+    binary += String.fromCharCode.apply(null, chunk as unknown as number[])
+  }
+  return btoa(binary)
+}
+
 async function getCryptoKeyStore(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(ENCRYPTION_DB_NAME, 1)
@@ -80,8 +93,11 @@ export async function encryptPayload(data: any): Promise<string> {
     payload.set(iv, 0)
     payload.set(ciphertext, iv.length)
 
-    // Convert to Base64
-    return btoa(String.fromCharCode(...payload))
+    // Convert to Base64. NOTE: `btoa(String.fromCharCode(...payload))` blows the
+    // JS argument stack for payloads larger than ~32 KB (engine-dependent).
+    // Chunked apply keeps the argument list small so large mock stores and
+    // offline queues encrypt safely.
+    return bytesToBase64(payload)
   } catch (error) {
     logger.error('crypto', 'Encryption failed', error)
     throw new Error('Encryption Engine Failure')
