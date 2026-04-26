@@ -57,6 +57,16 @@ export function useMemberDashboard() {
     return () => window.removeEventListener('vector-navigate', handleNav)
   }, [])
 
+  // BookingConsole renders inline within the ops tab. If the user navigates
+  // away, close it so it doesn't bleed onto the next view when they return.
+  useEffect(() => {
+    if (activeTab !== 'ops') {
+      setBookingOpen(false)
+      setIsRescheduling(false)
+      setApptToReschedule(null)
+    }
+  }, [activeTab])
+
   const startReschedule = useCallback((apptId: string) => {
     setIsRescheduling(true)
     setApptToReschedule(apptId)

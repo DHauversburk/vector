@@ -310,7 +310,7 @@ export default function MemberDashboard() {
       </div>
 
       {/* Feature Modals */}
-      {bookingOpen && (
+      {activeTab === 'ops' && bookingOpen && (
         <BookingConsole
           providers={providers}
           appointments={appointments}

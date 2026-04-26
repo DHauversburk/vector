@@ -2,6 +2,7 @@ import { mockStore } from '../mockStore'
 import type { PublicUser, AuditLog, SystemStats } from '../types'
 import type { IAdminActions } from '../interfaces'
 import { logger } from '../../logger'
+import { mockProviders } from '../providers/mock'
 
 export const mockAdmin: IAdminActions = {
   getMembers: async (search?: string): Promise<PublicUser[]> => {
@@ -75,10 +76,17 @@ export const mockAdmin: IAdminActions = {
     const activeAppts = mockStore.appointments.filter(
       (a) => a.status !== 'cancelled' && new Date(a.start_time) > new Date(),
     ).length
+    const availableSlots = mockStore.appointments.filter(
+      (a) => !a.is_booked && a.status !== 'cancelled' && new Date(a.start_time) > new Date(),
+    ).length
+    // Derive total_users from the same sources the admin directory reads,
+    // plus the seeded admin account, so the header metric matches the list.
+    const members = await mockAdmin.getMembers()
+    const providers = await mockProviders.getProviders()
     return {
-      total_users: 25,
+      total_users: members.length + providers.length + 1,
       active_appointments: activeAppts,
-      available_slots: 42,
+      available_slots: availableSlots,
       errors_today: 0,
       duplicates: 0,
     }

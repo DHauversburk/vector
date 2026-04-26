@@ -126,7 +126,19 @@ export function QuickNoteModal({
       recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
         logger.error('QuickNoteModal', 'Speech recognition error', event.error)
         setIsListening(false)
-        toast.error(`Speech Error: ${event.error}`)
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          toast.error('Microphone access is blocked', {
+            description:
+              'Click the lock icon in your browser address bar, set Microphone to Allow, then try again.',
+            duration: 8000,
+          })
+        } else if (event.error === 'no-speech') {
+          toast.warning("Didn't catch that — try speaking again.")
+        } else if (event.error === 'audio-capture') {
+          toast.error('No microphone detected on this device.')
+        } else {
+          toast.error(`Speech Error: ${event.error}`)
+        }
       }
 
       recognitionRef.current.onend = () => {
@@ -166,7 +178,7 @@ export function QuickNoteModal({
 
   if (!isOpen) return null
 
-  const toggleVoice = () => {
+  const toggleVoice = async () => {
     if (!recognitionRef.current) {
       toast.error('Speech recognition not supported in this browser')
       return
@@ -176,17 +188,44 @@ export function QuickNoteModal({
       recognitionRef.current.stop()
       setIsListening(false)
       toast.success('Voice documentation stopped')
-    } else {
+      return
+    }
+
+    // Pre-flight the mic permission via getUserMedia so the browser shows its
+    // standard permission prompt and a denial is caught with actionable copy
+    // here instead of leaking through the SpeechRecognition onerror path.
+    if (navigator.mediaDevices?.getUserMedia) {
       try {
-        recognitionRef.current.start()
-        setIsListening(true)
-        toast.info('Voice documentation active', {
-          description: 'Speak clearly into your microphone.',
-        })
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        // Release the stream — SpeechRecognition opens its own.
+        stream.getTracks().forEach((t) => t.stop())
       } catch (e) {
-        logger.error('QuickNoteModal', 'Speech start error', e)
-        setIsListening(true)
+        const err = e as DOMException
+        logger.error('QuickNoteModal', 'Mic permission denied', err.name)
+        if (err.name === 'NotAllowedError' || err.name === 'SecurityError') {
+          toast.error('Microphone access is blocked', {
+            description:
+              'Click the lock icon in your browser address bar, set Microphone to Allow, then try again.',
+            duration: 8000,
+          })
+        } else if (err.name === 'NotFoundError' || err.name === 'OverconstrainedError') {
+          toast.error('No microphone detected on this device.')
+        } else {
+          toast.error(`Microphone error: ${err.name || 'unknown'}`)
+        }
+        return
       }
+    }
+
+    try {
+      recognitionRef.current.start()
+      setIsListening(true)
+      toast.info('Voice documentation active', {
+        description: 'Speak clearly into your microphone.',
+      })
+    } catch (e) {
+      logger.error('QuickNoteModal', 'Speech start error', e)
+      setIsListening(true)
     }
   }
 
